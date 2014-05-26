@@ -10,6 +10,8 @@ set(CMAKE_CXX_COMPILER i586-mingw32msvc-g++)
 set(CMAKE_RC_COMPILER i586-mingw32msvc-windres)
 set(CMAKE_RANLIB i586-mingw32msvc-ranlib)
 
+SET(WINDOWS "ON" CACHE INTERNAL "windows system")
+
 # here is the target environment located
 set(CMAKE_FIND_ROOT_PATH /usr/i586-mingw32msvc/)
 

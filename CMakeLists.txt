@@ -33,15 +33,14 @@ add_library(core_sources STATIC
 )
 
 if(UNIX)
- config_executable(core_sources GLFW)
- target_link_libraries(core_sources GL Xrandr Xi)
+  config_executable(core_sources GLFW)
+  target_link_libraries(core_sources GL Xrandr Xi)
 
-elseif(WINDOWS OR CMAKE_SYSTEM_NAME STREQUAL "Windows")
- config_executable(core_sources GLFW)
- target_link_libraries(core_sources opengl32)
+elseif(WINDOWS)
+  config_executable(core_sources GLFW)
+  target_link_libraries(core_sources opengl32)
 
 endif()
-
 
 ###############################################
 # main executable settings
