@@ -25,7 +25,8 @@ endmacro()
 include_directories("src")
 
 add_library(core_sources STATIC
-    src/sample.cpp
+    src/ObjModel.hpp
+    src/ObjModel.cpp
 )
 
 ###############################################
@@ -49,7 +50,7 @@ if(BUILD_UNITTESTS)
     include_directories("src")
     add_executable(unittest
                    tests/main.cpp
-                   tests/wavefront_test.cpp
+                   tests/ObjModel_test.cpp
     )
 
     config_executable(unittest GTEST)
