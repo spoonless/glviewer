@@ -52,9 +52,17 @@ add_executable(main
 target_link_libraries(main core_sources)
 
 add_custom_target(run
-                  "$<TARGET_FILE:main>" data/monkey.obj
+                  "$<TARGET_FILE:main>"
                   WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 add_dependencies(run main)
+
+###############################################
+# simple loader executable settings
+###############################################
+add_executable(simpleloader
+    src/simpleloader.cpp
+)
+target_link_libraries(simpleloader core_sources)
 
 ###############################################
 # unit tests project settings
