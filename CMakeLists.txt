@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
-project(project_template)
+project(wavefront)
 
 option(BUILD_UNITTESTS "Build all unit tests." "1")
 
@@ -49,7 +49,7 @@ if(BUILD_UNITTESTS)
     include_directories("src")
     add_executable(unittest
                    tests/main.cpp
-                   tests/sample_test.cpp
+                   tests/wavefront_test.cpp
     )
 
     config_executable(unittest GTEST)
