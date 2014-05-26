@@ -1,6 +1,16 @@
 #include <limits>
 #include "ObjModel.hpp"
 
+namespace
+{
+
+std::istream& eatline (std::istream& is)
+{
+    return is.ignore(std::numeric_limits<long>::max(), '\n');
+}
+
+}
+
 model::Vertex4d::Vertex4d(coord_t x, coord_t y, coord_t z, coord_t w)
 {
     coord.x = x;
@@ -94,7 +104,8 @@ std::istream & model::operator >> (std::istream &is, ObjModel &model)
     {
         if (! token.empty() && token[0] == '#')
         {
-            is.ignore(std::numeric_limits<long>::max(), '\n');
+            // ignore comments
+            is >> eatline;
         }
         else if (token == "v")
         {
@@ -105,7 +116,7 @@ std::istream & model::operator >> (std::istream &is, ObjModel &model)
         else if (token == "vt")
         {
             // read texture coodinates
-            is.ignore(std::numeric_limits<long>::max(), '\n');
+            is >> eatline;
         }
         else if (token == "vn")
         {
@@ -121,7 +132,8 @@ std::istream & model::operator >> (std::istream &is, ObjModel &model)
         }
         else if(is)
         {
-            is.setstate(std::ios_base::failbit);
+            // ignore line
+            is >> eatline;
         }
     }
 

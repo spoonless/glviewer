@@ -3,7 +3,7 @@
 #include <sstream>
 #include "ObjModel.hpp"
 
-TEST(wavefront, canLoadEmptyModel)
+TEST(ObjModel, canLoadEmptyModel)
 {
     model::ObjModel model;
 
@@ -15,7 +15,7 @@ TEST(wavefront, canLoadEmptyModel)
     ASSERT_EQ(0u, model.normals.size());
 }
 
-TEST(wavefront, canLoadVertices)
+TEST(ObjModel, canLoadVertices)
 {
     model::ObjModel model;
 
@@ -34,7 +34,7 @@ TEST(wavefront, canLoadVertices)
     ASSERT_EQ(model::Vertex4d(1,1,1,0.5), model.vertices[2]);
 }
 
-TEST(wavefront, canLoadNormals)
+TEST(ObjModel, canLoadNormals)
 {
     model::ObjModel model;
 
@@ -53,7 +53,7 @@ TEST(wavefront, canLoadNormals)
     ASSERT_EQ(model::Vertex3d(1,1,1), model.normals[2]);
 }
 
-TEST(wavefront, canReadIndices)
+TEST(ObjModel, canReadIndices)
 {
     model::ObjModel model;
 

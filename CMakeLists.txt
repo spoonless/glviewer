@@ -38,7 +38,7 @@ add_executable(main
 target_link_libraries(main core_sources)
 
 add_custom_target(run
-                  "$<TARGET_FILE:main>"
+                  "$<TARGET_FILE:main>" data/monkey.obj
                   WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 add_dependencies(run main)
 
