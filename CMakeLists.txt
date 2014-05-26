@@ -18,9 +18,12 @@ macro( config_executable PROJNAME )
     endforeach()
 endmacro()
 
+include("EmbedGlfw")
+
 ###############################################
 # main sources settings
 ###############################################
+
 # necessary for mingw32
 include_directories("src")
 
@@ -28,6 +31,8 @@ add_library(core_sources STATIC
     src/ObjModel.hpp
     src/ObjModel.cpp
 )
+
+config_executable(core_sources GLFW)
 
 ###############################################
 # main executable settings
