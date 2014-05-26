@@ -32,7 +32,16 @@ add_library(core_sources STATIC
     src/ObjModel.cpp
 )
 
-config_executable(core_sources GLFW)
+if(UNIX)
+ config_executable(core_sources GLFW)
+ target_link_libraries(core_sources GL Xrandr Xi)
+
+elseif(WINDOWS OR CMAKE_SYSTEM_NAME STREQUAL "Windows")
+ config_executable(core_sources GLFW)
+ target_link_libraries(core_sources opengl32)
+
+endif()
+
 
 ###############################################
 # main executable settings
