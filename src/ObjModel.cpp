@@ -4,14 +4,14 @@
 namespace
 {
 
-std::istream& eatline (std::istream& is)
+inline std::istream& eatline (std::istream& is)
 {
     return is.ignore(std::numeric_limits<long>::max(), '\n');
 }
 
 }
 
-model::Vertex4d::Vertex4d(coord_t x, coord_t y, coord_t z, coord_t w)
+vfm::Vertex4d::Vertex4d(coord_t x, coord_t y, coord_t z, coord_t w)
 {
     coord.x = x;
     coord.y = y;
@@ -19,7 +19,7 @@ model::Vertex4d::Vertex4d(coord_t x, coord_t y, coord_t z, coord_t w)
     coord.w = w;
 }
 
-bool model::Vertex4d::operator == (const Vertex4d &v) const
+bool vfm::Vertex4d::operator == (const Vertex4d &v) const
 {
     return this->coord.x == v.coord.x
             && this->coord.y == v.coord.y
@@ -27,36 +27,36 @@ bool model::Vertex4d::operator == (const Vertex4d &v) const
             && this->coord.w == v.coord.w;
 }
 
-model::Vertex3d::Vertex3d(coord_t x, coord_t y, coord_t z)
+vfm::Vertex3d::Vertex3d(coord_t x, coord_t y, coord_t z)
 {
     coord.x = x;
     coord.y = y;
     coord.z = z;
 }
 
-bool model::Vertex3d::operator == (const Vertex3d &v) const
+bool vfm::Vertex3d::operator == (const Vertex3d &v) const
 {
     return this->coord.x == v.coord.x
             && this->coord.y == v.coord.y
             && this->coord.z == v.coord.z;
 }
 
-model::VertexIndex::VertexIndex (index_t vertex, index_t normal)
-    : vertex(vertex), normal(normal)
+vfm::VertexIndex::VertexIndex (index_t vertex, index_t normal)
+    : vertex(vertex) // , normal(normal)
 {
 }
 
-bool model::VertexIndex::operator == (const VertexIndex &vi) const
+bool vfm::VertexIndex::operator == (const VertexIndex &vi) const
 {
-    return this->vertex == vi.vertex && this->normal == vi.normal;
+    return this->vertex == vi.vertex; // && this->normal == vi.normal;
 }
 
-std::istream & model::operator >> (std::istream &is, Vertex3d &v)
+std::istream & vfm::operator >> (std::istream &is, Vertex3d &v)
 {
     return is >> v.coord.x >> v.coord.y >> v.coord.z;
 }
 
-std::istream & model::operator >> (std::istream &is, Vertex4d &v)
+std::istream & vfm::operator >> (std::istream &is, Vertex4d &v)
 {
     is >> v.coord.x >> v.coord.y >> v.coord.z;
     if (is)
@@ -73,7 +73,7 @@ std::istream & model::operator >> (std::istream &is, Vertex4d &v)
     return is;
 }
 
-std::istream & model::operator >> (std::istream &is, TriangleFace &face)
+std::istream & vfm::operator >> (std::istream &is, TriangleFace &face)
 {
     for (int i = 0; is && i < 3; ++i)
     {
@@ -82,14 +82,15 @@ std::istream & model::operator >> (std::istream &is, TriangleFace &face)
         if (is && is.peek() == '/')
         {
             is.ignore(1);
-            index_t textureIndex = 0;
-            is >> textureIndex;
+            index_t dummyIndex = 0;
+            is >> dummyIndex;
             is.clear(is.rdstate() & ~std::istream::failbit);
 
             if(is && is.peek() == '/')
             {
                 is.ignore(1);
-                is >> vi->normal;
+                //is >> vi->normal;
+                is >> dummyIndex;
             }
         }
     }
@@ -97,7 +98,7 @@ std::istream & model::operator >> (std::istream &is, TriangleFace &face)
     return is;
 }
 
-std::istream & model::operator >> (std::istream &is, ObjModel &model)
+std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
 {
     std::string token;
     while (is && is >> token)
@@ -115,7 +116,7 @@ std::istream & model::operator >> (std::istream &is, ObjModel &model)
         }
         else if (token == "vt")
         {
-            // read texture coodinates
+            // read texture coordinates
             is >> eatline;
         }
         else if (token == "vn")

@@ -18,8 +18,9 @@ int main (int argc, char **argv)
         return 1;
     }
 
-    model::ObjModel model;
+    vfm::ObjModel model;
     ifs >> model;
+    ifs.close();
 
     std::cout << std::setw(10) << "Vertices: " << model.vertices.size() << std::endl;
     std::cout << std::setw(10) << "Normals: " << model.normals.size() << std::endl;

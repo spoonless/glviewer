@@ -19,25 +19,28 @@ macro( config_executable PROJNAME )
 endmacro()
 
 include("EmbedGlfw")
+include("EmbedGlew")
 
 ###############################################
 # main sources settings
 ###############################################
 
+include_directories("include")
 # necessary for mingw32
 include_directories("src")
 
 add_library(core_sources STATIC
+    src/gl3w.c
     src/ObjModel.hpp
     src/ObjModel.cpp
 )
 
+config_executable(core_sources GLFW)
+
 if(UNIX)
-  config_executable(core_sources GLFW)
   target_link_libraries(core_sources GL Xrandr Xi)
 
 elseif(WINDOWS)
-  config_executable(core_sources GLFW)
   target_link_libraries(core_sources opengl32)
 
 endif()

@@ -4,7 +4,7 @@
 #include <vector>
 #include <fstream>
 
-namespace model
+namespace vfm
 {
 
 typedef double coord_t;
@@ -48,7 +48,7 @@ struct VertexIndex
     bool operator == (const VertexIndex &vi) const;
 
     index_t vertex;
-    index_t normal;
+//    index_t normal;
 };
 
 struct TriangleFace
@@ -70,7 +70,7 @@ struct ObjModel
 std::istream & operator >> (std::istream &is, Vertex3d &v);
 std::istream & operator >> (std::istream &is, Vertex4d &v);
 std::istream & operator >> (std::istream &is, TriangleFace &face);
-std::istream & operator >> (std::istream &is, ObjModel &model);
+std::istream & operator >> (std::istream &is, ObjModel &vfm);
 
 }
 
