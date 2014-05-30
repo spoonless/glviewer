@@ -53,10 +53,18 @@ add_executable(main
 )
 target_link_libraries(main core_sources)
 
+###############################################
+# tutorial executable settings
+###############################################
+add_executable(tutorial
+    src/main_tutorial.cpp
+)
+target_link_libraries(tutorial core_sources)
+
 add_custom_target(run
-                  "$<TARGET_FILE:main>"
+                  "$<TARGET_FILE:tutorial>"
                   WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
-add_dependencies(run main)
+add_dependencies(run tutorial)
 
 ###############################################
 # simple loader executable settings
