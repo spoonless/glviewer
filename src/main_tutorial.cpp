@@ -112,33 +112,144 @@ int tutoRunner(int argc, char **argv)
     return 0;
 }
 
-class Tutorial1
+class Shader
+{
+    friend class ShaderProgram;
+public:
+    explicit Shader(GLenum type) : type(type), id(0)
+    {
+    }
+
+    ~Shader()
+    {
+        glDeleteShader(id);
+    }
+
+    bool compile(const char *source)
+    {
+        if (id == 0)
+        {
+            // Create the shaders
+            id = glCreateShader(type);
+            if (id == 0)
+            {
+                return false;
+            }
+        }
+
+        glShaderSource(id, 1, &source, 0);
+        glCompileShader(id);
+
+        GLint result = GL_FALSE;
+
+        glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+        if (result == GL_FALSE)
+        {
+            int infoLogLength = 0;
+            glGetShaderiv(id, GL_INFO_LOG_LENGTH, &infoLogLength);
+            char *errorMessage = new char[infoLogLength];
+            glGetShaderInfoLog(id, infoLogLength, NULL, errorMessage);
+            std::cerr << errorMessage << std::endl;
+            delete[] errorMessage;
+            return false;
+        }
+        return true;
+    }
+
+private:
+    Shader(const Shader&);
+    Shader& operator = (const Shader&);
+    GLenum type;
+    GLuint id;
+};
+
+class VertexShader : public Shader
 {
 public:
-    void operator()()
+    VertexShader() : Shader(GL_FRAGMENT_SHADER)
     {
-        static float vertices[] = {-0.5, -0.5, 0.0, 0.5, 0.5, -0.5};
-
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, vertices);
-        glEnableVertexAttribArray(0);
-
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-
-        glDisableVertexAttribArray(0);
-
     }
 };
 
+class FragmentShader : public Shader
+{
+public:
+    FragmentShader() : Shader(GL_VERTEX_SHADER)
+    {
+    }
+};
 
-class Tutorial2
+class ShaderProgram
+{
+public:
+    ShaderProgram() : id(0)
+    {
+    }
+
+    ~ShaderProgram()
+    {
+        glDeleteProgram(id);
+    }
+
+    void add(Shader &shader)
+    {
+        if (shader.id)
+        {
+            createIfNecessary();
+            glAttachShader(id, shader.id);
+        }
+    }
+
+    bool link()
+    {
+        createIfNecessary();
+        glLinkProgram(id);
+
+        GLint result = GL_FALSE;
+        // Check the program
+        glGetProgramiv(id, GL_LINK_STATUS, &result);
+        if (result == GL_FALSE)
+        {
+            int infoLogLength = 0;
+            glGetProgramiv(id, GL_INFO_LOG_LENGTH, &infoLogLength);
+            char *errorMessage = new char[infoLogLength];
+            glGetProgramInfoLog(id, infoLogLength, NULL, errorMessage);
+            std::cerr << errorMessage << std::endl;
+            delete[] errorMessage;
+            return false;
+        }
+        return true;
+    }
+
+    void use()
+    {
+        if (id != 0)
+        {
+            glUseProgram(id);
+        }
+    }
+
+private:
+    ShaderProgram(const ShaderProgram&);
+    ShaderProgram& operator = (const ShaderProgram&);
+
+    void createIfNecessary()
+    {
+        if (id == 0)
+        {
+            id = glCreateProgram();
+        }
+    }
+
+    GLuint id;
+};
+
+class Tutorial1
 {
 public:
 
-    Tutorial2()
+    Tutorial1()
     {
-        GLuint VertexArrayID;
         glGenVertexArrays(1, &VertexArrayID);
         glBindVertexArray(VertexArrayID);
 
@@ -149,6 +260,9 @@ public:
            0.0f,  1.0f, 0.0f,
         };
 
+        // This will identify our vertex buffer
+        GLuint vertexbuffer;
+
         // Generate 1 buffer, put the resulting identifier in vertexbuffer
         glGenBuffers(1, &vertexbuffer);
 
@@ -157,13 +271,7 @@ public:
 
         // Give our vertices to OpenGL.
         glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-    }
 
-    void operator()()
-    {
-        // 1rst attribute buffer : vertices
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glVertexAttribPointer(
            0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
            3,                  // size
@@ -172,18 +280,63 @@ public:
            0,                  // stride
            (void*)0            // array buffer offset
         );
+        glEnableVertexAttribArray(0);
+        glBindVertexArray(0);
+    }
+
+    void operator()()
+    {
+        glBindVertexArray(VertexArrayID);
 
         // Draw the triangle !
         glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
 
-        glDisableVertexAttribArray(0);
+        glBindVertexArray(0);
     }
 
 private:
-    // This will identify our vertex buffer
-    GLuint vertexbuffer;
+    GLuint VertexArrayID;
 
 };
+
+class Tutorial2 : private Tutorial1
+{
+public:
+    Tutorial2()
+    {
+        VertexShader vs;
+        vs.compile(
+                    "#version 330 core\n"
+                    "in vec3 vertices;\n"
+                    "void main(){\n"
+                    "  gl_Position = vec4(vertices, 1);\n"
+                    "}\n"
+        );
+
+        FragmentShader fs;
+        vs.compile(
+                    "#version 330 core\n"
+                    "out vec3 color;\n"
+                    "void main(){\n"
+                    "  color = vec3(1, 0, 0);\n"
+                    "}\n"
+        );
+
+        program.add(vs);
+        program.add(fs);
+        program.link();
+    }
+
+    void operator()()
+    {
+        program.use();
+        Tutorial1::operator ()();
+    }
+
+private:
+    ShaderProgram program;
+};
+
 
 int main(int argc, char **argv)
 {
@@ -193,5 +346,5 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    return tutoRunner<Tutorial1>(argc, argv);
+    return tutoRunner<Tutorial2>(argc, argv);
 }
