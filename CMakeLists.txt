@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
-project(wavefront)
+project(glviewer)
 
 option(BUILD_UNITTESTS "Build all unit tests." "1")
 
@@ -19,7 +19,6 @@ macro( config_executable PROJNAME )
 endmacro()
 
 include("EmbedGlfw")
-include("EmbedGlew")
 
 ###############################################
 # main sources settings
@@ -30,9 +29,20 @@ include_directories("include")
 include_directories("src")
 
 add_library(core_sources STATIC
+    src/gl.hpp
     src/gl3w.c
+    src/Duration.hpp
+    src/Duration.cpp
+    src/GlError.hpp
+    src/GlError.cpp
     src/ObjModel.hpp
     src/ObjModel.cpp
+    src/Shader.hpp
+    src/Shader.cpp
+    src/ShaderProgram.hpp
+    src/ShaderProgram.cpp
+    src/UniformDeclaration.hpp
+    src/UniformDeclaration.cpp
 )
 
 config_executable(core_sources GLFW)
@@ -81,8 +91,12 @@ if(BUILD_UNITTESTS)
     include("EmbedGtest")
     include_directories("src")
     add_executable(unittest
-                   tests/main.cpp
-                   tests/ObjModel_test.cpp
+        tests/main.cpp
+        tests/GlError_test.cpp
+        tests/ObjModel_test.cpp
+        tests/Shader_test.cpp
+        tests/ShaderProgram_test.cpp
+        tests/UniformDeclaration_test.cpp
     )
 
     config_executable(unittest GTEST)

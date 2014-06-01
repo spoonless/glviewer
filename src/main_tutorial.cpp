@@ -1,8 +1,7 @@
-#include <cassert>
-#include <GL/gl3w.h>
-#define GLFW_INCLUDE_GL_3
-#include <GLFW/glfw3.h>
 #include <iostream>
+#include <cassert>
+#include "gl.hpp"
+#include <GLFW/glfw3.h>
 
 bool glInit()
 {
@@ -55,7 +54,6 @@ public:
         /* Create a windowed mode window and its OpenGL context */
         window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
         if (!window) {
-            glfwTerminate();
             return false;
         }
         return true;

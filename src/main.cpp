@@ -1,6 +1,5 @@
 #include <cassert>
-#include <GL/gl3w.h>
-#define GLFW_INCLUDE_GL_3
+#include <gl.hpp>
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <iomanip>
