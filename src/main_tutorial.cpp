@@ -3,6 +3,8 @@
 #include "gl.hpp"
 #include <GLFW/glfw3.h>
 
+#include "ShaderProgram.hpp"
+
 bool glInit()
 {
     if(gl3wInit())
@@ -110,138 +112,6 @@ int tutoRunner(int argc, char **argv)
     return 0;
 }
 
-class Shader
-{
-    friend class ShaderProgram;
-public:
-    explicit Shader(GLenum type) : type(type), id(0)
-    {
-    }
-
-    ~Shader()
-    {
-        glDeleteShader(id);
-    }
-
-    bool compile(const char *source)
-    {
-        if (id == 0)
-        {
-            // Create the shaders
-            id = glCreateShader(type);
-            if (id == 0)
-            {
-                return false;
-            }
-        }
-
-        glShaderSource(id, 1, &source, 0);
-        glCompileShader(id);
-
-        GLint result = GL_FALSE;
-
-        glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-        if (result == GL_FALSE)
-        {
-            int infoLogLength = 0;
-            glGetShaderiv(id, GL_INFO_LOG_LENGTH, &infoLogLength);
-            char *errorMessage = new char[infoLogLength];
-            glGetShaderInfoLog(id, infoLogLength, NULL, errorMessage);
-            std::cerr << errorMessage << std::endl;
-            delete[] errorMessage;
-            return false;
-        }
-        return true;
-    }
-
-private:
-    Shader(const Shader&);
-    Shader& operator = (const Shader&);
-    GLenum type;
-    GLuint id;
-};
-
-class VertexShader : public Shader
-{
-public:
-    VertexShader() : Shader(GL_FRAGMENT_SHADER)
-    {
-    }
-};
-
-class FragmentShader : public Shader
-{
-public:
-    FragmentShader() : Shader(GL_VERTEX_SHADER)
-    {
-    }
-};
-
-class ShaderProgram
-{
-public:
-    ShaderProgram() : id(0)
-    {
-    }
-
-    ~ShaderProgram()
-    {
-        glDeleteProgram(id);
-    }
-
-    void add(Shader &shader)
-    {
-        if (shader.id)
-        {
-            createIfNecessary();
-            glAttachShader(id, shader.id);
-        }
-    }
-
-    bool link()
-    {
-        createIfNecessary();
-        glLinkProgram(id);
-
-        GLint result = GL_FALSE;
-        // Check the program
-        glGetProgramiv(id, GL_LINK_STATUS, &result);
-        if (result == GL_FALSE)
-        {
-            int infoLogLength = 0;
-            glGetProgramiv(id, GL_INFO_LOG_LENGTH, &infoLogLength);
-            char *errorMessage = new char[infoLogLength];
-            glGetProgramInfoLog(id, infoLogLength, NULL, errorMessage);
-            std::cerr << errorMessage << std::endl;
-            delete[] errorMessage;
-            return false;
-        }
-        return true;
-    }
-
-    void use()
-    {
-        if (id != 0)
-        {
-            glUseProgram(id);
-        }
-    }
-
-private:
-    ShaderProgram(const ShaderProgram&);
-    ShaderProgram& operator = (const ShaderProgram&);
-
-    void createIfNecessary()
-    {
-        if (id == 0)
-        {
-            id = glCreateProgram();
-        }
-    }
-
-    GLuint id;
-};
-
 class Tutorial1
 {
 public:
@@ -302,7 +172,7 @@ class Tutorial2 : private Tutorial1
 public:
     Tutorial2()
     {
-        VertexShader vs;
+        glv::Shader vs(glv::Shader::VERTEX_SHADER);
         vs.compile(
                     "#version 330 core\n"
                     "in vec3 vertices;\n"
@@ -311,8 +181,8 @@ public:
                     "}\n"
         );
 
-        FragmentShader fs;
-        vs.compile(
+        glv::Shader fs(glv::Shader::FRAGMENT_SHADER);
+        fs.compile(
                     "#version 330 core\n"
                     "out vec3 color;\n"
                     "void main(){\n"
@@ -320,8 +190,8 @@ public:
                     "}\n"
         );
 
-        program.add(vs);
-        program.add(fs);
+        program.attach(vs);
+        program.attach(fs);
         program.link();
     }
 
@@ -332,7 +202,7 @@ public:
     }
 
 private:
-    ShaderProgram program;
+    glv::ShaderProgram program;
 };
 
 

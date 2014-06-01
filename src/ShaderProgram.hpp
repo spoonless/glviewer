@@ -55,6 +55,11 @@ public:
         return _linkageDuration;
     }
 
+    void use() const
+    {
+        glUseProgram(_shaderProgramId);
+    }
+
 private:
     void attachShadersFrom(const ShaderProgram& shaderProgram);
     void extractInfoLog(std::string &log);
