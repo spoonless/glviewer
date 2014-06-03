@@ -12,9 +12,6 @@ class GlError
 public:
 
     GlError();
-    GlError(const GlError& error);
-
-    GlError& operator = (const GlError& glerror);
 
     bool hasOccured();
 

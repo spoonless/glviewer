@@ -185,10 +185,44 @@ void ShaderProgram::extractActive(UniformDeclarationVector& vector)
             }
             if (strncmp(activeUniformName, "gl_", 3))
             {
-                vector.push_back(UniformDeclaration((GLuint) i, activeUniformSize, activeUniformType, activeUniformName));
+                vector.push_back(UniformDeclaration(i, activeUniformSize, activeUniformType, activeUniformName));
             }
         }
         delete[]activeUniformName;
+    }
+}
+
+void ShaderProgram::extractActive(VertexAttributeDeclarationVector& vector)
+{
+    vector.clear();
+    GlError glError;
+    GLint nbAttributes = 0;
+    glGetProgramiv(_shaderProgramId, GL_ACTIVE_ATTRIBUTES, &nbAttributes);
+    if (glError.hasOccured())
+    {
+        return;
+    }
+    if (nbAttributes > 0)
+    {
+        GLint activeAttributeMaxLength = 0;
+        glGetProgramiv(_shaderProgramId, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &activeAttributeMaxLength);
+        if (glError.hasOccured() || activeAttributeMaxLength <= 0)
+        {
+            return;
+        }
+        char* activeAttributeName = new char[activeAttributeMaxLength];
+        for (int i = 0; i < nbAttributes; ++i)
+        {
+            GLint activeAttributeSize = 0;
+            GLenum activeAttributeType = 0;
+            glGetActiveAttrib(_shaderProgramId, i, activeAttributeMaxLength, NULL, &activeAttributeSize, &activeAttributeType, activeAttributeName);
+            if (glError.hasOccured()) {
+                vector.clear();
+                break;
+            }
+            vector.push_back(VertexAttributeDeclaration(i, activeAttributeSize, activeAttributeType, activeAttributeName));
+        }
+        delete[]activeAttributeName;
     }
 }
 

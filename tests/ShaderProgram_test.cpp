@@ -320,3 +320,34 @@ TEST(ShaderProgram, canExtractMultipleUniformDeclaration)
         }
     }
 }
+
+TEST(ShaderProgram, canExtractEmptyAttributeDeclarationWhenNoAttribute)
+{
+    ShaderProgram shaderProgram;
+    addShader(shaderProgram, Shader::FRAGMENT_SHADER, VALID_FRAGMENT_SHADER_SOURCE);
+    ASSERT_TRUE(shaderProgram.link());
+
+    VertexAttributeDeclarationVector vector;
+    shaderProgram.extractActive(vector);
+
+    ASSERT_TRUE(vector.empty());
+}
+
+TEST(ShaderProgram, canExtractAttributeDeclarationWhenOneAttribute)
+{
+    ShaderProgram shaderProgram;
+    const char* source = \
+            "in vec4 vertices;"\
+            "void main() {"\
+            " gl_Position = vertices;"\
+            "}";
+
+    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    ASSERT_TRUE(shaderProgram.link());
+
+    VertexAttributeDeclarationVector vector;
+    shaderProgram.extractActive(vector);
+
+    ASSERT_EQ(static_cast<size_t>(1), vector.size());
+    ASSERT_EQ(VertexAttributeDeclaration(0, 1, GL_FLOAT_VEC4, "vertices"), vector[0]);
+}

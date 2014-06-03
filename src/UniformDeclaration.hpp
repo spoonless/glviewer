@@ -1,5 +1,5 @@
-#ifndef UNIFORMDECLARATION_H
-#define UNIFORMDECLARATION_H
+#ifndef ShaderValueDeclaration_H
+#define ShaderValueDeclaration_H
 
 #include <string>
 #include <vector>
@@ -8,19 +8,19 @@
 namespace glv
 {
 
-class UniformDeclaration
+class ShaderValueDeclaration
 {
+protected:
+
+    ShaderValueDeclaration(GLuint index, GLint size, GLenum type, const char *name);
+
 public:
-    UniformDeclaration(GLuint index, GLint size, GLenum type, const char* name);
-    UniformDeclaration(const UniformDeclaration& uniformDeclaration);
 
-    UniformDeclaration& operator = (const UniformDeclaration& uniformDeclaration);
+    bool operator == (const ShaderValueDeclaration &svd) const;
 
-    bool operator == (const UniformDeclaration& uniformDeclaration) const;
-
-    inline bool operator != (const UniformDeclaration& uniformDeclaration) const
+    inline bool operator != (const ShaderValueDeclaration &svd) const
     {
-        return !(*this == uniformDeclaration);
+        return !(this->operator ==(svd));
     }
 
     inline const std::string& getName() const
@@ -47,6 +47,7 @@ public:
     {
         return _size > 1;
     }
+
 private:
     void normalizeArrayName();
     GLuint _index;
@@ -55,8 +56,22 @@ private:
     std::string _name;
 };
 
+class UniformDeclaration : public ShaderValueDeclaration
+{
+public:
+    UniformDeclaration(GLuint index, GLint size, GLenum type, const char *name);
+};
+
 typedef std::vector<UniformDeclaration> UniformDeclarationVector;
+
+class VertexAttributeDeclaration : public ShaderValueDeclaration
+{
+public:
+    VertexAttributeDeclaration(GLuint index, GLint size, GLenum type, const char *name);
+};
+
+typedef std::vector<VertexAttributeDeclaration> VertexAttributeDeclarationVector;
 
 }
 
-#endif // UNIFORMDECLARATION_H
+#endif // ShaderValueDeclaration_H

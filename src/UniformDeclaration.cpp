@@ -5,30 +5,13 @@ using namespace glv;
 #define ARRAY_NORMALIZATION_SUFFIX_LENGTH 3
 #define ARRAY_NORMALIZATION_SUFFIX "[0]"
 
-UniformDeclaration::UniformDeclaration(GLuint index, GLint size, GLenum type, const char* name)
+ShaderValueDeclaration::ShaderValueDeclaration(GLuint index, GLint size, GLenum type, const char *name)
     :_index(index), _size(size), _type(type), _name(name)
 {
     normalizeArrayName();
 }
 
-UniformDeclaration::UniformDeclaration(const UniformDeclaration& uniformDeclaration)
-    :_index(uniformDeclaration._index), _size(uniformDeclaration._size), _type(uniformDeclaration._type), _name(uniformDeclaration._name)
-{
-}
-
-UniformDeclaration& UniformDeclaration::operator = (const UniformDeclaration& uniformDeclaration)
-{
-    if (this != &uniformDeclaration)
-    {
-        _index = uniformDeclaration._index;
-        _size = uniformDeclaration._size;
-        _type = uniformDeclaration._type;
-        _name = uniformDeclaration._name;
-    }
-    return *this;
-}
-
-bool UniformDeclaration::operator == (const UniformDeclaration& uniformDeclaration) const
+bool ShaderValueDeclaration::operator == (const ShaderValueDeclaration &uniformDeclaration) const
 {
     return this->_index == uniformDeclaration._index
             && this->_size == uniformDeclaration._size
@@ -37,7 +20,7 @@ bool UniformDeclaration::operator == (const UniformDeclaration& uniformDeclarati
 }
 
 
-void UniformDeclaration::normalizeArrayName()
+void ShaderValueDeclaration::normalizeArrayName()
 {
     /*
      * Uniform array name can be optionally suffixed by [0].
@@ -53,3 +36,12 @@ void UniformDeclaration::normalizeArrayName()
         }
     }
 }
+
+UniformDeclaration::UniformDeclaration(GLuint index, GLint size, GLenum type, const char *name) : ShaderValueDeclaration(index, size, type, name)
+{
+}
+
+VertexAttributeDeclaration::VertexAttributeDeclaration(GLuint index, GLint size, GLenum type, const char *name) : ShaderValueDeclaration(index, size, type, name)
+{
+}
+

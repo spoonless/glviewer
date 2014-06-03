@@ -8,20 +8,6 @@ GlError::GlError()
     reset();
 }
 
-GlError::GlError(const GlError& error)
-    : _errorFlag(error._errorFlag)
-{
-}
-
-GlError& GlError::operator = (const GlError& glerror)
-{
-    if (&glerror != this)
-    {
-        _errorFlag = glerror._errorFlag;
-    }
-    return *this;
-}
-
 bool GlError::hasOccured()
 {
     _errorFlag = glGetError();

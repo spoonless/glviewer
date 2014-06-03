@@ -33,6 +33,8 @@ public:
 
     void extractActive(UniformDeclarationVector& vector);
 
+    void extractActive(VertexAttributeDeclarationVector& vector);
+
     inline const std::string& getLastLinkLog() const
     {
         return _lastLinkLog;
