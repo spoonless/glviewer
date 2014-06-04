@@ -6,16 +6,6 @@
 
 #include "ObjModel.hpp"
 
-
-bool glInit()
-{
-    if(gl3wInit())
-    {
-        return true;
-    }
-    return false;
-}
-
 static void error_callback(int error, const char* description)
 {
     std::cerr << "[" << error << "] " << description << std::endl;
@@ -70,7 +60,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    if(!glInit())
+    if(!gl3wInit())
     {
       //Problem: glewInit failed, something is seriously wrong.
       std::cerr<<"glewInit failed, aborting."<< std::endl;

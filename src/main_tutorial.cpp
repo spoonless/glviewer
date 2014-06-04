@@ -4,15 +4,6 @@
 #include <GLFW/glfw3.h>
 #include "ShaderProgram.hpp"
 
-bool glInit()
-{
-    if(gl3wInit())
-    {
-        return true;
-    }
-    return false;
-}
-
 class glframework
 {
 public:
@@ -336,7 +327,7 @@ private:
 
 int main(int argc, char **argv)
 {
-    if (!glInit())
+    if (!gl3wInit())
     {
         std::cerr<<"GL init failed, aborting."<< std::endl;
         return -1;
