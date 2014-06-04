@@ -19,6 +19,7 @@ macro( config_executable PROJNAME )
 endmacro()
 
 include("EmbedGlfw")
+include("EmbedGlm")
 
 ###############################################
 # main sources settings
@@ -27,6 +28,8 @@ include("EmbedGlfw")
 include_directories("include")
 # necessary for mingw32
 include_directories("src")
+
+include_directories("${GLM_INCLUDE_DIR}")
 
 add_library(core_sources STATIC
     src/gl.hpp
