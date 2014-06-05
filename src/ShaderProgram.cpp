@@ -178,7 +178,7 @@ void ShaderProgram::extractActive(UniformDeclarationVector& vector)
         {
             GLint activeUniformSize = 0;
             GLenum activeUniformType = 0;
-            glGetActiveUniform(_shaderProgramId, i, activeUniformMaxLength, NULL, &activeUniformSize, &activeUniformType, activeUniformName);
+            glGetActiveUniform(_shaderProgramId, i, activeUniformMaxLength, 0, &activeUniformSize, &activeUniformType, activeUniformName);
             if (glError.hasOccured()) {
                 vector.clear();
                 break;
@@ -190,6 +190,21 @@ void ShaderProgram::extractActive(UniformDeclarationVector& vector)
         }
         delete[]activeUniformName;
     }
+}
+
+UniformDeclaration ShaderProgram::getActiveUniform(const char *name) const
+{
+    GLint location = glGetUniformLocation(this->_shaderProgramId, name);
+    if (location == -1)
+    {
+        return UniformDeclaration();
+    }
+    GLint activeUniformSize = 0;
+    GLenum activeUniformType = 0;
+    glGetActiveUniform(_shaderProgramId, location, 0, 0, &activeUniformSize, &activeUniformType, 0);
+
+    return UniformDeclaration(location, activeUniformSize, activeUniformType, name);
+
 }
 
 void ShaderProgram::extractActive(VertexAttributeDeclarationVector& vector)

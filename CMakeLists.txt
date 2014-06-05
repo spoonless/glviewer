@@ -67,17 +67,17 @@ add_executable(main
 target_link_libraries(main core_sources)
 
 ###############################################
-# tutorial executable settings
+# glslviewer executable settings
 ###############################################
-add_executable(tutorial
-    src/main_tutorial.cpp
+add_executable(glslviewer
+    src/main_glslviewer.cpp
 )
-target_link_libraries(tutorial core_sources)
+target_link_libraries(glslviewer core_sources)
 
 add_custom_target(run
-                  "$<TARGET_FILE:tutorial>"
+                  "$<TARGET_FILE:glslviewer>"
                   WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
-add_dependencies(run tutorial)
+add_dependencies(run glslviewer)
 
 ###############################################
 # simple loader executable settings

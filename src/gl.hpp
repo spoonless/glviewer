@@ -2,6 +2,6 @@
 #define GL_HPP
 
 #include "GL/gl3w.h"
-#define GLFW_INCLUDE_GL_3
+#define GLFW_INCLUDE_NONE
 
 #endif // GL_HPP

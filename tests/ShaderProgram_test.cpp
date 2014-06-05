@@ -196,6 +196,24 @@ TEST(ShaderProgram, canExtractUniformDeclarationWhenOneUniform)
     ASSERT_EQ(UniformDeclaration(0, 1, GL_FLOAT_VEC4, "position"), uniformDeclarationVector[0]);
 }
 
+TEST(ShaderProgram, canGetActiveUniformDeclaration)
+{
+    ShaderProgram shaderProgram;
+    const char* source = \
+            "uniform vec4 position;"\
+            "void main() {"\
+            " gl_Position = position;"\
+            "}";
+
+    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    ASSERT_TRUE(shaderProgram.link());
+
+    UniformDeclaration result = shaderProgram.getActiveUniform("position");
+
+    ASSERT_TRUE(result);
+    ASSERT_EQ(UniformDeclaration(0, 1, GL_FLOAT_VEC4, "position"), result);
+}
+
 TEST(ShaderProgram, canExtractFixedArrayUniformDeclaration)
 {
     ShaderProgram shaderProgram;
