@@ -48,6 +48,8 @@ add_library(core_sources STATIC
     src/UniformDeclaration.cpp
 )
 
+add_dependencies(core_sources glm)
+
 config_executable(core_sources GLFW)
 
 if(UNIX)

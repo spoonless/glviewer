@@ -8,7 +8,7 @@ namespace {
 class GlContext
 {
 public:
-    GlContext()
+    GlContext() : window(0)
     {
     }
 

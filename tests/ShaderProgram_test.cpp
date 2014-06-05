@@ -6,13 +6,17 @@ using namespace glv;
 namespace
 {
 
-const char VALID_VERTEX_SHADER_SOURCE [] = "void main(){gl_Position = gl_Vertex;}";
-const char VALID_FRAGMENT_SHADER_SOURCE [] = "void main(){}";
+const char VALID_VERTEX_SHADER_SOURCE [] = GLSL_VERSION_HEADER
+                                           "void main(){gl_Position = gl_Vertex;}";
+
+const char VALID_FRAGMENT_SHADER_SOURCE [] = GLSL_VERSION_HEADER
+                                             "void main(){}";
 
 void addShader(ShaderProgram& shaderProgram, Shader::ShaderType type, const char* source)
 {
     Shader vertexShader(type);
-    ASSERT_TRUE(vertexShader.compile(source));
+    EXPECT_TRUE(vertexShader.compile(source));
+
     ASSERT_TRUE(shaderProgram.attach(vertexShader));
 }
 
@@ -180,10 +184,11 @@ TEST(ShaderProgram, canExtractEmptyUniformDeclarationWhenNoUniform)
 TEST(ShaderProgram, canExtractUniformDeclarationWhenOneUniform)
 {
     ShaderProgram shaderProgram;
-    const char* source = \
-            "uniform vec4 position;"\
-            "void main() {"\
-            " gl_Position = position;"\
+    const char* source =
+            GLSL_VERSION_HEADER
+            "uniform vec4 position;"
+            "void main() {"
+            " gl_Position = position;"
             "}";
 
     addShader(shaderProgram, Shader::VERTEX_SHADER, source);
@@ -199,10 +204,11 @@ TEST(ShaderProgram, canExtractUniformDeclarationWhenOneUniform)
 TEST(ShaderProgram, canGetActiveUniformDeclaration)
 {
     ShaderProgram shaderProgram;
-    const char* source = \
-            "uniform vec4 position;"\
-            "void main() {"\
-            " gl_Position = position;"\
+    const char* source =
+            GLSL_VERSION_HEADER
+            "uniform vec4 position;"
+            "void main() {"
+            " gl_Position = position;"
             "}";
 
     addShader(shaderProgram, Shader::VERTEX_SHADER, source);
@@ -217,10 +223,11 @@ TEST(ShaderProgram, canGetActiveUniformDeclaration)
 TEST(ShaderProgram, canExtractFixedArrayUniformDeclaration)
 {
     ShaderProgram shaderProgram;
-    const char* source = \
-            "uniform vec4 position[2];"\
-            "void main() {"\
-            " gl_Position = position[0] + position[1];"\
+    const char* source =
+            GLSL_VERSION_HEADER
+            "uniform vec4 position[2];"
+            "void main() {"
+            " gl_Position = position[0] + position[1];"
             "}";
 
     addShader(shaderProgram, Shader::VERTEX_SHADER, source);
@@ -236,10 +243,11 @@ TEST(ShaderProgram, canExtractFixedArrayUniformDeclaration)
 TEST(ShaderProgram, canExtractArrayUniformDeclaration)
 {
     ShaderProgram shaderProgram;
-    const char* source = \
-            "uniform vec4 position[];"\
-            "void main() {"\
-            " gl_Position = position[0] + position[1] + position[3];"\
+    const char* source =
+            GLSL_VERSION_HEADER
+            "uniform vec4 position[];"
+            "void main() {"
+            " gl_Position = position[0] + position[1] + position[3];"
             "}";
 
     addShader(shaderProgram, Shader::VERTEX_SHADER, source);
@@ -255,14 +263,15 @@ TEST(ShaderProgram, canExtractArrayUniformDeclaration)
 TEST(ShaderProgram, canExtractStructUniformDeclaration)
 {
     ShaderProgram shaderProgram;
-    const char* source = \
-            "struct MyStruct {"\
-            " vec4 position1;"\
-            " vec3 position2;"\
-            "};"\
-            "uniform MyStruct ms;"\
-            "void main() {"\
-            " gl_Position = ms.position1 + vec4(ms.position2, 0);"\
+    const char* source =
+            GLSL_VERSION_HEADER
+            "struct MyStruct {"
+            " vec4 position1;"
+            " vec3 position2;"
+            "};"
+            "uniform MyStruct ms;"
+            "void main() {"
+            " gl_Position = ms.position1 + vec4(ms.position2, 0);"
             "}";
 
     addShader(shaderProgram, Shader::VERTEX_SHADER, source);
@@ -279,14 +288,15 @@ TEST(ShaderProgram, canExtractStructUniformDeclaration)
 TEST(ShaderProgram, canExtractStructArrayUniformDeclaration)
 {
     ShaderProgram shaderProgram;
-    const char* source = \
-            "struct MyStruct {"\
-            " vec4 position1[2];"\
-            " vec3 position2;"\
-            "};"\
-            "uniform MyStruct ms[2];"\
-            "void main() {"\
-            " gl_Position = ms[1].position1[1] + vec4(ms[1].position2, 0);"\
+    const char* source =
+            GLSL_VERSION_HEADER
+            "struct MyStruct {"
+            " vec4 position1[2];"
+            " vec3 position2;"
+            "};"
+            "uniform MyStruct ms[2];"
+            "void main() {"
+            " gl_Position = ms[1].position1[1] + vec4(ms[1].position2, 0);"
             "}";
 
     addShader(shaderProgram, Shader::VERTEX_SHADER, source);
@@ -303,11 +313,12 @@ TEST(ShaderProgram, canExtractStructArrayUniformDeclaration)
 TEST(ShaderProgram, canExtractMultipleUniformDeclaration)
 {
     ShaderProgram shaderProgram;
-    const char* source = \
-            "uniform vec4 position;"\
+    const char* source =
+            GLSL_VERSION_HEADER
+            "uniform vec4 position;"
             "uniform mat4 mvp;"
-            "void main() {"\
-            " gl_Position = mvp * position;"\
+            "void main() {"
+            " gl_Position = mvp * position;"
             "}";
 
     addShader(shaderProgram, Shader::VERTEX_SHADER, source);
@@ -354,10 +365,11 @@ TEST(ShaderProgram, canExtractEmptyAttributeDeclarationWhenNoAttribute)
 TEST(ShaderProgram, canExtractAttributeDeclarationWhenOneAttribute)
 {
     ShaderProgram shaderProgram;
-    const char* source = \
-            "in vec4 vertices;"\
-            "void main() {"\
-            " gl_Position = vertices;"\
+    const char* source =
+            GLSL_VERSION_HEADER
+            "in vec4 vertices;"
+            "void main() {"
+            " gl_Position = vertices;"
             "}";
 
     addShader(shaderProgram, Shader::VERTEX_SHADER, source);

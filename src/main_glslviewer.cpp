@@ -59,12 +59,16 @@ public:
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
         /* Create a windowed mode window and its OpenGL context */
-        window = glfwCreateWindow(1280, 960, "Viewer", NULL, NULL);
+        window = glfwCreateWindow(800, 600, "Viewer", NULL, NULL);
         if (!window) {
             return false;
         }
         glfwSetWindowUserPointer(window, this);
         glfwSetWindowSizeCallback(window, windowSizeCallback);
+        int width,height = 0;
+        glfwGetWindowSize(window, &width, &height);
+        windowSize.x = width;
+        windowSize.y = height;
         return true;
     }
 
@@ -145,6 +149,7 @@ int tutoRunner(int argc, char **argv)
 }
 
 const char defaultFragmentShader[] =
+        GLSL_VERSION_HEADER
         "varying vec2 surfacePosition;\n"
         "uniform float time;\n"
 
@@ -177,6 +182,10 @@ public:
         {
             std::ifstream shaderFile(argv[1]);
             std::getline(shaderFile, fragmentShader, '\0');
+            if (!fragmentShader.empty())
+            {
+                fragmentShader.insert(0, GLSL_VERSION_HEADER);
+            }
             title = std::string("/") + argv[1];
             title = title.substr(title.find_last_of("\\/") + 1);
         }
@@ -230,14 +239,14 @@ public:
         );
         glEnableVertexAttribArray(0);
         glBindVertexArray(0);
-        glDeleteBuffers(1, &vertexbuffer);
+        //glDeleteBuffers(1, &vertexbuffer);
     }
 
     void createProgram(const std::string &fragmentShader)
     {
         glv::Shader vs(glv::Shader::VERTEX_SHADER);
         vs.compile(
-                    "#version 330 core\n"
+                    GLSL_VERSION_HEADER
                     "in vec3 vertices;\n"
                     "out vec2 surfacePosition;\n"
                     "void main(){\n"
@@ -249,13 +258,19 @@ public:
         std::cout << vs.getLastCompilationLog() << std::endl;
 
         glv::Shader fs(glv::Shader::FRAGMENT_SHADER);
-        fs.compile(fragmentShader);
+        if(! fs.compile(fragmentShader))
+        {
+            std::cout << "Cannot compile fragment shader!" << std::endl;
+        }
 
         std::cout << fs.getLastCompilationLog() << std::endl;
 
         program.attach(vs);
         program.attach(fs);
-        program.link();
+        if(!program.link())
+        {
+            std::cout << "Cannot link shader program!" << std::endl;
+        }
 
         std::cout << program.getLastLinkLog() << std::endl;
 

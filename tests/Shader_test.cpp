@@ -38,7 +38,10 @@ TEST(Shader, canCreateFragmentShader)
 TEST(Shader, canCompileShader)
 {
     Shader shader(Shader::FRAGMENT_SHADER);
-    bool compilationResult = shader.compile("void main(){}");
+    bool compilationResult = shader.compile(GLSL_VERSION_HEADER
+                                            "void main(){}");
+
+    std::cout << shader.getLastCompilationLog() << std::endl;
 
     ASSERT_TRUE(compilationResult);
 }

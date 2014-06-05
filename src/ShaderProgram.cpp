@@ -201,7 +201,9 @@ UniformDeclaration ShaderProgram::getActiveUniform(const char *name) const
     }
     GLint activeUniformSize = 0;
     GLenum activeUniformType = 0;
-    glGetActiveUniform(_shaderProgramId, location, 0, 0, &activeUniformSize, &activeUniformType, 0);
+    // Fix for AMD card a buffer must be provided for name
+    char tmp[1];
+    glGetActiveUniform(_shaderProgramId, location, 1, 0, &activeUniformSize, &activeUniformType, tmp);
 
     return UniformDeclaration(location, activeUniformSize, activeUniformType, name);
 
