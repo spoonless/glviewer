@@ -6,7 +6,7 @@ A simple OpenGL 3.3+ viewer.
 
 This implementation is based on :
 * gl3w for OpenGL 3.3+ initialization (https://github.com/skaslev/gl3w)
-* fglw for input/output management (http://www.glfw.org/)
+* glfw for input/output management (http://www.glfw.org/)
 * googletest for unit tests (https://code.google.com/p/googletest/)
 
 All dependencies are downloaded, compiled and statically linked with cmake: easy build process and distribution!
