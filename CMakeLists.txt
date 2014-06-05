@@ -61,14 +61,6 @@ elseif(WINDOWS)
 endif()
 
 ###############################################
-# main executable settings
-###############################################
-add_executable(main
-    src/main.cpp
-)
-target_link_libraries(main core_sources)
-
-###############################################
 # glslviewer executable settings
 ###############################################
 add_executable(glslviewer
@@ -85,7 +77,7 @@ add_dependencies(run glslviewer)
 # simple loader executable settings
 ###############################################
 add_executable(simpleloader
-    src/simpleloader.cpp
+    src/main_simpleloader.cpp
 )
 target_link_libraries(simpleloader core_sources)
 
