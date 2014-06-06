@@ -7,7 +7,7 @@ namespace
 {
 
 const char VALID_VERTEX_SHADER_SOURCE [] = GLSL_VERSION_HEADER
-                                           "void main(){gl_Position = gl_Vertex;}";
+                                           "void main(){gl_Position = vec4(0);}";
 
 const char VALID_FRAGMENT_SHADER_SOURCE [] = GLSL_VERSION_HEADER
                                              "void main(){}";
