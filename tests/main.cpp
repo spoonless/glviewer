@@ -19,12 +19,6 @@ public:
 
     bool makeCurrent()
     {
-        if (!gl3wInit())
-        {
-            std::cerr << "Cannot initialise GL3W" << std::endl;
-            return false;
-        }
-
         if(!glfwInit())
         {
             std::cerr << "Cannot initialise GLFW" << std::endl;
@@ -38,6 +32,9 @@ public:
         /* Create a windowed mode window and its OpenGL context */
         window = glfwCreateWindow(10, 10, "Test", NULL, NULL);
         glfwMakeContextCurrent(window);
+
+        gl3wInit();
+
         return true;
     }
 

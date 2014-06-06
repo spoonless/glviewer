@@ -2,10 +2,9 @@
 #include <sstream>
 #include <fstream>
 #include <cassert>
-#include <algorithm>
 #include "gl.hpp"
 #include "glm/vec2.hpp"
-#include <GLFW/glfw3.h>
+#include "GLFW/glfw3.h"
 #include "ShaderProgram.hpp"
 
 class glframework
@@ -63,6 +62,7 @@ public:
         if (!window) {
             return false;
         }
+
         glfwSetWindowUserPointer(window, this);
         glfwSetWindowSizeCallback(window, windowSizeCallback);
         int width,height = 0;
@@ -124,30 +124,6 @@ private:
     glm::vec2 windowSize;
 };
 
-template<typename Tuto>
-int tutoRunner(int argc, char **argv)
-{
-    glframework glfw;
-    if (!glfw.init())
-    {
-        std::cerr<<"GLFW failed, aborting."<< std::endl;
-        return -1;
-    }
-
-    glfw.makeCurrent();
-
-    Tuto tuto(argc, argv);
-    glfw.setTitle(tuto.getTitle());
-
-    /* Loop until the user closes the window */
-    while (glfw.shouldContinue())
-    {
-        tuto(glfw);
-        glfw.swapAndPollEvents();
-    }
-    return 0;
-}
-
 const char defaultFragmentShader[] =
         GLSL_VERSION_HEADER
         "varying vec2 surfacePosition;\n"
@@ -171,11 +147,11 @@ const char defaultFragmentShader[] =
           "gl_FragColor=vec4(col, 1.0);\n"
         "}\n";
 
-class TutorialGlslViewer
+class GlslViewer
 {
 public:
 
-    TutorialGlslViewer(int argc, char **argv) : vertexArrayID(0)
+    GlslViewer(int argc, char **argv) : vertexArrayID(0)
     {
         std::string fragmentShader;
         if (argc > 1)
@@ -198,7 +174,7 @@ public:
         createProgram(fragmentShader);
     }
 
-    ~TutorialGlslViewer()
+    ~GlslViewer()
     {
         glBindVertexArray(0);
         glDeleteVertexArrays(1, &vertexArrayID);
@@ -323,11 +299,23 @@ private:
 
 int main(int argc, char **argv)
 {
-    if (!gl3wInit())
+    glframework glfw;
+    if(!glfw.init())
     {
-        std::cerr<<"GL init failed, aborting."<< std::endl;
-        return -1;
+        std::cerr << "Cannot initialise GLFW" << std::endl;
+        return false;
     }
+    glfw.makeCurrent();
+    gl3wInit();
 
-    return tutoRunner<TutorialGlslViewer>(argc, argv);
+    GlslViewer viewer(argc, argv);
+    glfw.setTitle(viewer.getTitle());
+
+    /* Loop until the user closes the window */
+    while (glfw.shouldContinue())
+    {
+        viewer(glfw);
+        glfw.swapAndPollEvents();
+    }
+    return 0;
 }

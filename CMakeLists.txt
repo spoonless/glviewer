@@ -55,7 +55,7 @@ config_executable(core_sources GLFW)
 if(UNIX)
   target_link_libraries(core_sources GL Xrandr Xi)
 
-elseif(WINDOWS)
+elseif(WIN32)
   target_link_libraries(core_sources opengl32)
 
 endif()
