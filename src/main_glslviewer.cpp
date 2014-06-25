@@ -306,7 +306,9 @@ int main(int argc, char **argv)
         return false;
     }
     glfw.makeCurrent();
-    gl3wInit();
+    gladLoadGL();
+
+    std::cout << "OpenGL version " << GLVersion.major << "." << GLVersion.minor << std::endl;
 
     GlslViewer viewer(argc, argv);
     glfw.setTitle(viewer.getTitle());

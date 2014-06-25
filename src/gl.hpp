@@ -1,7 +1,7 @@
 #ifndef  GL_HPP
 #define GL_HPP
 
-#include "GL/gl3w.h"
+#include "glad/glad.h"
 
 #define GLSL_VERSION_HEADER "#version 330\n"
 

@@ -33,7 +33,7 @@ public:
         window = glfwCreateWindow(10, 10, "Test", NULL, NULL);
         glfwMakeContextCurrent(window);
 
-        gl3wInit();
+        gladLoadGL();
 
         return true;
     }
