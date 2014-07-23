@@ -1,17 +1,49 @@
 #include <cstring>
+#include <string>
 #include "Duration.hpp"
 #include "ShaderProgram.hpp"
 #include "GlError.hpp"
 
 using namespace glv;
 
+namespace
+{
+
+void extractInfoLog(GLuint shaderProgramId, std::string& log)
+{
+    GlError error;
+    GLint infoLogLength = 0;
+
+    glGetProgramiv(shaderProgramId, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+    if (infoLogLength == 0)
+    {
+        log.clear();
+        return;
+    }
+
+    char* infoLogBuffer = new char[infoLogLength];
+    glGetProgramInfoLog(shaderProgramId, infoLogLength, NULL, infoLogBuffer);
+    if (error.hasOccured())
+    {
+        log = error.toString("Cannot retrieve properly shader program link log info");
+    }
+    else
+    {
+        log = infoLogBuffer;
+    }
+    delete[] infoLogBuffer;
+}
+
+}
+
 ShaderProgram::ShaderProgram()
-    : _shaderProgramId(glCreateProgram()), _linkageDuration(0)
+    : _shaderProgramId(glCreateProgram())
 {
 }
 
 ShaderProgram::ShaderProgram(const ShaderProgram& shaderProgram)
-    : _shaderProgramId(glCreateProgram()), _linkageDuration(0)
+    : _shaderProgramId(glCreateProgram())
 {
     attachShadersFrom(shaderProgram);
 }
@@ -36,15 +68,15 @@ bool ShaderProgram::exists() const
     return _shaderProgramId != 0 && glIsProgram(_shaderProgramId);
 }
 
-bool ShaderProgram::attach(const Shader& shader)
+ShaderAttachmentResult ShaderProgram::attach(const Shader& shader)
 {
     if (!shader.exists())
     {
-        return false;
+        return ShaderAttachmentResult(false, "Attempt to attach a non shader object to GLSL program!");
     }
     GlError error;
     glAttachShader(_shaderProgramId, shader.getId());
-    return !error.hasOccured();
+    return ShaderAttachmentResult(!error.hasOccured(), error.toString("Error while attempting to attach shader object to GLSL program"));
 }
 
 bool ShaderProgram::has(const Shader& shader) const
@@ -66,15 +98,15 @@ bool ShaderProgram::has(const Shader& shader) const
     return found;
 }
 
-bool ShaderProgram::detach(const Shader& shader)
+ShaderAttachmentResult ShaderProgram::detach(const Shader& shader)
 {
     if (!shader.exists())
     {
-        return false;
+        return ShaderAttachmentResult(false, "Attempt to detach a non shader object to GLSL program!");
     }
     GlError error;
     glDetachShader(_shaderProgramId, shader.getId());
-    return !error.hasOccured();
+    return ShaderAttachmentResult(!error.hasOccured(), error.toString("Error while attempting to detach shader object to GLSL program"));
 }
 
 void ShaderProgram::detachAllShaders()
@@ -87,10 +119,8 @@ void ShaderProgram::detachAllShaders()
     delete[] shaders;
 }
 
-bool ShaderProgram::link()
+LinkResult ShaderProgram::link()
 {
-    _lastLinkLog.clear();
-    _linkageDuration = 0;
     GlError error;
 
     /*
@@ -101,58 +131,55 @@ bool ShaderProgram::link()
     GLint nbShaders = getNbAttachedShaders();
     if (error.hasOccured())
     {
-        _lastLinkLog = error.toString("Cannot retrieve attached shaders");
-        return false;
+        return LinkResult(false, error.toString("Cannot retrieve attached shaders"));
     }
     if (!nbShaders)
     {
-        _lastLinkLog = "Cannot link program because no shader is attached!";
-        return false;
+        return LinkResult(false, "Cannot link program because no shader is attached!");
     }
 
     Duration duration;
     glLinkProgram(_shaderProgramId);
-    _linkageDuration = duration.elapsed();
+    unsigned long linkageDuration = duration.elapsed();
     if (error.hasOccured())
     {
-        _lastLinkLog = error.toString("Cannot link program");
-        return false;
+        return LinkResult(false, error.toString("Cannot link program"));
     }
 
     GLint linkStatus = GL_FALSE;
     glGetProgramiv(_shaderProgramId, GL_LINK_STATUS, &linkStatus);
 
-    extractInfoLog(_lastLinkLog);
+    std::string lastLinkLog;
+    extractInfoLog(_shaderProgramId, lastLinkLog);
 
-    return linkStatus == GL_TRUE;
+    return LinkResult(linkStatus, lastLinkLog, linkageDuration);
 }
 
-bool ShaderProgram::validate()
+ValidationResult ShaderProgram::validate()
 {
-    _lastLinkLog.clear();
     GlError error;
 
     GLint linkStatus = GL_FALSE;
     glGetProgramiv(_shaderProgramId, GL_LINK_STATUS, &linkStatus);
     if (!linkStatus)
     {
-        _lastValidationLog = "Cannot validate unlinked shader program";
-        return false;
+        return ValidationResult(false, "Cannot validate unlinked shader program");
     }
 
     glValidateProgram(_shaderProgramId);
     if (error.hasOccured())
     {
-        _lastValidationLog = error.toString("Cannot validate shader program");
-        return false;
+        return ValidationResult(false, error.toString("Cannot validate shader program"));
     }
 
     GLint validationStatus = GL_FALSE;
     glGetProgramiv(_shaderProgramId, GL_VALIDATE_STATUS, &validationStatus);
 
-    extractInfoLog(_lastValidationLog);
+    std::string validationLog;
 
-    return validationStatus == GL_TRUE;
+    extractInfoLog(_shaderProgramId, validationLog);
+
+    return ValidationResult(validationStatus, validationLog);
 }
 
 void ShaderProgram::extractActive(UniformDeclarationVector& vector)
@@ -241,26 +268,6 @@ void ShaderProgram::extractActive(VertexAttributeDeclarationVector& vector)
         }
         delete[]activeAttributeName;
     }
-}
-
-void ShaderProgram::extractInfoLog(std::string& log)
-{
-    GlError error;
-    GLint infoLogLength = 0;
-
-    glGetProgramiv(_shaderProgramId, GL_INFO_LOG_LENGTH, &infoLogLength);
-
-    char* infoLogBuffer = new char[infoLogLength];
-    glGetProgramInfoLog(_shaderProgramId, infoLogLength, NULL, infoLogBuffer);
-    if (error.hasOccured())
-    {
-        log = error.toString("Cannot retrieve properly shader program link log info");
-    }
-    else
-    {
-        log = infoLogBuffer;
-    }
-    delete[] infoLogBuffer;
 }
 
 void ShaderProgram::attachShadersFrom(const ShaderProgram& shaderProgram)

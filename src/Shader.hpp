@@ -1,11 +1,13 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-#include <string>
 #include "gl.hpp"
+#include "OperationResult.hpp"
 
 namespace glv
 {
+
+typedef OperationResult CompilationResult;
 
 class Shader
 {
@@ -31,32 +33,19 @@ public:
 
     void extractSource(std::string& source) const;
 
-    inline unsigned int getCompilationDuration() const
-    {
-        return _compilationDuration;
-    }
-
-    bool compile(const std::string &source)
+    CompilationResult compile(const std::string &source)
     {
         return compile(source.c_str());
     }
 
-    bool compile(const char* source);
-
-    inline const std::string& getLastCompilationLog() const
-    {
-        return _lastCompilationLog;
-    }
+    CompilationResult compile(const char* source);
 
 private:
     void deleteShaderId();
-    void extractInfoLog();
     void createShader();
 
     GLuint _shaderId;
     const ShaderType _type;
-    unsigned int _compilationDuration;
-    std::string _lastCompilationLog;
 };
 
 }

@@ -221,7 +221,7 @@ public:
     void createProgram(const std::string &fragmentShader)
     {
         glv::Shader vs(glv::Shader::VERTEX_SHADER);
-        vs.compile(
+        glv::CompilationResult cr = vs.compile(
                     GLSL_VERSION_HEADER
                     "in vec3 vertices;\n"
                     "out vec2 surfacePosition;\n"
@@ -231,24 +231,34 @@ public:
                     "}\n"
         );
 
-        std::cout << vs.getLastCompilationLog() << std::endl;
-
-        glv::Shader fs(glv::Shader::FRAGMENT_SHADER);
-        if(! fs.compile(fragmentShader))
+        if (! cr)
         {
-            std::cout << "Cannot compile fragment shader!" << std::endl;
+            std::cerr << cr.message() << std::endl;
         }
 
-        std::cout << fs.getLastCompilationLog() << std::endl;
+
+        glv::Shader fs(glv::Shader::FRAGMENT_SHADER);
+        if(cr = fs.compile(fragmentShader))
+        {
+            std::cout << "Successfully compiling fragment source in " << cr.duration() << "ms." << std::endl << cr.message() << std::endl;
+        }
+        else
+        {
+            std::cerr << cr.message() << std::endl;
+        }
 
         program.attach(vs);
         program.attach(fs);
-        if(!program.link())
+        glv::LinkResult lr = program.link();
+        if(lr)
         {
-            std::cout << "Cannot link shader program!" << std::endl;
+            std::cout << "Successfully linking GLSL program in " << lr.duration() << "ms." << std::endl << lr.message() << std::endl;
         }
-
-        std::cout << program.getLastLinkLog() << std::endl;
+        else
+        {
+            std::cerr << "Cannot link shader program!" << std::endl;
+            std::cerr << lr.message() << std::endl;
+        }
 
         program.use();
 

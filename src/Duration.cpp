@@ -1,7 +1,19 @@
+#include <GLFW/glfw3.h>
+
 #include "Duration.hpp"
 
+namespace
+{
+
+inline unsigned long getTime()
+{
+    return static_cast<unsigned long>(glfwGetTime() * 1000);
+}
+
+}
+
 Duration::Duration()
-    :_start(clock())
+    :_start(getTime())
 {
 
 }
@@ -21,7 +33,7 @@ Duration& Duration::operator = (const Duration& duration)
     return *this;
 }
 
-unsigned int Duration::elapsed() const
+unsigned long Duration::elapsed() const
 {
-    return (unsigned long) (clock() - _start) * 1000 / CLOCKS_PER_SEC;
+    return static_cast<unsigned long>(getTime() - _start);
 }

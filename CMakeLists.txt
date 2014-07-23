@@ -40,6 +40,7 @@ add_library(core_sources STATIC
     src/GlError.cpp
     src/ObjModel.hpp
     src/ObjModel.cpp
+    src/OperationResult.hpp
     src/Shader.hpp
     src/Shader.cpp
     src/ShaderProgram.hpp

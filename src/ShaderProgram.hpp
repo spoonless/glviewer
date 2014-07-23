@@ -1,14 +1,18 @@
 #ifndef SHADERPROGRAM_H
 #define SHADERPROGRAM_H
 
-#include <string>
 #include "gl.hpp"
 
 #include "Shader.hpp"
 #include "UniformDeclaration.hpp"
+#include "OperationResult.hpp"
 
 namespace glv
 {
+
+typedef OperationResult ShaderAttachmentResult;
+typedef OperationResult LinkResult;
+typedef OperationResult ValidationResult;
 
 class ShaderProgram
 {
@@ -19,33 +23,23 @@ public:
 
     ShaderProgram& operator = (const ShaderProgram& shaderProgram);
 
-    bool attach(const Shader& shader);
+    ShaderAttachmentResult attach(const Shader& shader);
 
     bool has(const Shader& shader) const;
 
-    bool detach(const Shader& shader);
+    ShaderAttachmentResult detach(const Shader& shader);
 
     void detachAllShaders();
 
-    bool link();
+    LinkResult link();
 
-    bool validate();
+    ValidationResult validate();
 
     void extractActive(UniformDeclarationVector& vector);
 
     UniformDeclaration getActiveUniform(const char *name) const;
 
     void extractActive(VertexAttributeDeclarationVector& vector);
-
-    inline const std::string& getLastLinkLog() const
-    {
-        return _lastLinkLog;
-    }
-
-    inline const std::string& getLastValidationLog() const
-    {
-        return _lastValidationLog;
-    }
 
     inline GLuint getId() const
     {
@@ -54,11 +48,6 @@ public:
 
     bool exists() const;
 
-    inline unsigned long getLinkageDuration() const
-    {
-        return _linkageDuration;
-    }
-
     void use() const
     {
         glUseProgram(_shaderProgramId);
@@ -66,15 +55,11 @@ public:
 
 private:
     void attachShadersFrom(const ShaderProgram& shaderProgram);
-    void extractInfoLog(std::string &log);
     void deleteShaderProgram();
     GLuint getNbAttachedShaders()const;
     GLuint* getAttachedShaders()const;
 
     GLuint _shaderProgramId;
-    unsigned long _linkageDuration;
-    std::string _lastLinkLog;
-    std::string _lastValidationLog;
 };
 
 }

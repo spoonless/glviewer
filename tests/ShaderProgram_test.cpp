@@ -67,8 +67,10 @@ TEST(ShaderProgram, cannotLinkProgramWithoutShader)
 {
     ShaderProgram shaderProgram;
 
-    ASSERT_FALSE(shaderProgram.link());
-    ASSERT_EQ("Cannot link program because no shader is attached!", shaderProgram.getLastLinkLog());
+    LinkResult lr = shaderProgram.link();
+
+    ASSERT_FALSE(lr);
+    ASSERT_EQ("Cannot link program because no shader is attached!", lr.message());
 }
 
 TEST(ShaderProgram, cannotLinkProgramWhenShaderNotCompiled)
@@ -78,8 +80,10 @@ TEST(ShaderProgram, cannotLinkProgramWhenShaderNotCompiled)
 
     shaderProgram.attach(shader);
 
-    ASSERT_FALSE(shaderProgram.link());
-    ASSERT_FALSE(shaderProgram.getLastLinkLog().empty());
+    LinkResult lr = shaderProgram.link();
+
+    ASSERT_FALSE(lr);
+    ASSERT_FALSE(lr.message().empty());
 }
 
 TEST(ShaderProgram, canLinkProgramWhenShadersCompiled)
@@ -150,8 +154,10 @@ TEST(ShaderProgram, cannotValidateUnlinkProgram)
 {
     ShaderProgram shaderProgram;
 
-    ASSERT_FALSE(shaderProgram.validate());
-    ASSERT_FALSE(shaderProgram.getLastValidationLog().empty());
+    ValidationResult vr = shaderProgram.validate();
+
+    ASSERT_FALSE(vr);
+    ASSERT_FALSE(vr.message().empty());
 }
 
 TEST(ShaderProgram, canValidateLinkedProgramWhenShadersCompiled)

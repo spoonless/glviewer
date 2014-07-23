@@ -38,10 +38,8 @@ TEST(Shader, canCreateFragmentShader)
 TEST(Shader, canCompileShader)
 {
     Shader shader(Shader::FRAGMENT_SHADER);
-    bool compilationResult = shader.compile(GLSL_VERSION_HEADER
+    CompilationResult compilationResult = shader.compile(GLSL_VERSION_HEADER
                                             "void main(){}");
-
-    std::cout << shader.getLastCompilationLog() << std::endl;
 
     ASSERT_TRUE(compilationResult);
 }
@@ -49,10 +47,10 @@ TEST(Shader, canCompileShader)
 TEST(Shader, cannotCompileErroneousCode)
 {
     Shader shader(Shader::FRAGMENT_SHADER);
-    bool compilationResult = shader.compile("ERRONEOUS CODE");
+    CompilationResult compilationResult = shader.compile("ERRONEOUS CODE");
 
     ASSERT_FALSE(compilationResult);
-    ASSERT_NE("", shader.getLastCompilationLog());
+    ASSERT_NE("", compilationResult.message());
 }
 
 TEST(Shader, canExtractSource)

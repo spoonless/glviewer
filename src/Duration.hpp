@@ -1,8 +1,6 @@
 #ifndef DURATION_H
 #define DURATION_H
 
-#include <ctime>
-
 class Duration
 {
 public:
@@ -12,10 +10,10 @@ public:
 
     Duration& operator = (const Duration& duration);
 
-    unsigned int elapsed() const;
+    unsigned long elapsed() const;
 
 private:
-    clock_t _start;
+    unsigned long _start;
 };
 
 #endif // DURATION_H
