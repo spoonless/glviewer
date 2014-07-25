@@ -29,9 +29,9 @@ TEST(ObjModel, canLoadVertices)
     stream >> model;
 
     ASSERT_EQ(3u, model.vertices.size());
-    ASSERT_EQ(vfm::Vertex4d(0,0,0,1), model.vertices[0]);
-    ASSERT_EQ(vfm::Vertex4d(0.4,0.5,0.6,1), model.vertices[1]);
-    ASSERT_EQ(vfm::Vertex4d(1,1,1,0.5), model.vertices[2]);
+    ASSERT_EQ(glm::vec4(0,0,0,1), model.vertices[0]);
+    ASSERT_EQ(glm::vec4(0.4,0.5,0.6,1), model.vertices[1]);
+    ASSERT_EQ(glm::vec4(1,1,1,0.5), model.vertices[2]);
 }
 
 TEST(ObjModel, canLoadNormals)
@@ -48,9 +48,9 @@ TEST(ObjModel, canLoadNormals)
     stream >> model;
 
     ASSERT_EQ(3u, model.normals.size());
-    ASSERT_EQ(vfm::Vertex3d(0,0,0), model.normals[0]);
-    ASSERT_EQ(vfm::Vertex3d(0.4,0.5,0.6), model.normals[1]);
-    ASSERT_EQ(vfm::Vertex3d(1,1,1), model.normals[2]);
+    ASSERT_EQ(glm::vec3(0,0,0), model.normals[0]);
+    ASSERT_EQ(glm::vec3(0.4,0.5,0.6), model.normals[1]);
+    ASSERT_EQ(glm::vec3(1,1,1), model.normals[2]);
 }
 
 TEST(ObjModel, canReadIndices)
