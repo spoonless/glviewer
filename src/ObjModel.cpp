@@ -11,19 +11,39 @@ inline std::istream& eatline (std::istream& is)
 
 }
 
-vfm::VertexIndex::VertexIndex (index_t vertex, index_t normal)
-    : vertex(vertex) // , normal(normal)
+vfm::VertexIndex::VertexIndex (index_t vertex, index_t normal, index_t texture)
+    : vertex(vertex), normal(normal), texture(texture)
 {
 }
 
 bool vfm::VertexIndex::operator == (const VertexIndex &vi) const
 {
-    return this->vertex == vi.vertex; // && this->normal == vi.normal;
+    return this->vertex == vi.vertex && this->normal == vi.normal && this->texture == vi.texture;
 }
 
 std::istream & vfm::operator >> (std::istream &is, glm::vec3 &v)
 {
-    return is >> v.x >> v.y >> v.z;
+    is >> v.x;
+    if(is)
+    {
+        is >> v.y;
+        if (is.fail())
+        {
+            v.y = 0;
+            v.z = 0;
+            is.clear();
+        }
+        else if(is)
+        {
+            is >> v.z;
+            if (is.fail())
+            {
+                v.z = 0;
+                is.clear();
+            }
+        }
+    }
+    return is;
 }
 
 std::istream & vfm::operator >> (std::istream &is, glm::vec4 &v)
@@ -43,34 +63,61 @@ std::istream & vfm::operator >> (std::istream &is, glm::vec4 &v)
     return is;
 }
 
-std::istream & vfm::operator >> (std::istream &is, TriangleFace &face)
+std::istream & vfm::operator >> (std::istream &is, VertexIndex &vi)
 {
-    for (int i = 0; is && i < 3; ++i)
+    is >> vi.vertex;
+    if (is && is.peek() == '/')
     {
-        VertexIndex *vi = face.vertexIndices + i;
-        is >> vi->vertex;
-        if (is && is.peek() == '/')
+        is.ignore(1);
+        if(is && is.peek() != '/')
+        {
+            is >> vi.texture;
+        }
+        if(is && is.peek() == '/')
         {
             is.ignore(1);
-            index_t dummyIndex = 0;
-            is >> dummyIndex;
-            is.clear(is.rdstate() & ~std::istream::failbit);
+            is >> vi.normal;
+        }
+    }
+    return is;
+}
 
-            if(is && is.peek() == '/')
+std::istream & vfm::operator >> (std::istream &is, Face &face)
+{
+    bool eol = false;
+    while(is && !eol)
+    {
+        VertexIndex vi;
+        if (is >> vi)
+        {
+            face.vertexIndices.push_back(vi);
+            while (is && !eol)
             {
-                is.ignore(1);
-                //is >> vi->normal;
-                is >> dummyIndex;
+                int c = is.peek();
+                if (c == '#' || c == '\n')
+                {
+                    is >> eatline;
+                    eol = true;
+                }
+                else if (std::isspace(c))
+                {
+                    is.get();
+                }
+                else {
+                    break;
+                }
             }
         }
     }
-
     return is;
 }
 
 std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
 {
     std::string token;
+    glm::vec4 vec4;
+    glm::vec3 vec3;
+    Face face;
     while (is && is >> token)
     {
         if (! token.empty() && token[0] == '#')
@@ -81,25 +128,24 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
         else if (token == "v")
         {
             // read new vertex
-            model.vertices.push_back(glm::vec4());
-            is >> model.vertices.back();
+            if (is >> vec4) model.vertices.push_back(vec4);
         }
         else if (token == "vt")
         {
             // read texture coordinates
-            is >> eatline;
+            if (is >> vec3) model.textures.push_back(vec3);
         }
         else if (token == "vn")
         {
             // read normals coordinates
-            model.normals.push_back(glm::vec3());
-            is >> model.normals.back();
+            if (is >> vec3) model.normals.push_back(vec3);
         }
         else if (token == "f")
         {
+            face.vertexIndices.clear();
+            is >> face;
             // read faces indices
-            model.faces.push_back(TriangleFace());
-            is >> model.faces.back();
+            model.faces.push_back(face);
         }
         else if(is)
         {

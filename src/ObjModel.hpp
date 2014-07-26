@@ -11,36 +11,41 @@ namespace vfm
 {
 
 typedef unsigned int index_t;
+typedef std::vector<glm::vec4> Vec4Vector;
+typedef std::vector<glm::vec3> Vec3Vector;
 
 struct VertexIndex
 {
-    VertexIndex (index_t vertex = 0, index_t normal = 0);
+    VertexIndex (index_t vertex = 0, index_t normal = 0, index_t texture = 0);
 
     bool operator == (const VertexIndex &vi) const;
 
     index_t vertex;
-//    index_t normal;
+    index_t normal;
+    index_t texture;
 };
 
-struct TriangleFace
+typedef std::vector<VertexIndex> VertexIndexVector;
+
+struct Face
 {
-    VertexIndex vertexIndices[3];
+    VertexIndexVector vertexIndices;
 };
 
-typedef std::vector<glm::vec4> Vec4Vector;
-typedef std::vector<glm::vec3> Vec3Vector;
-typedef std::vector<TriangleFace> TriangleFaceVector;
+typedef std::vector<Face> FaceVector;
 
 struct ObjModel
 {
     Vec4Vector vertices;
     Vec3Vector normals;
-    TriangleFaceVector faces;
+    Vec3Vector textures;
+    FaceVector faces;
 };
 
 std::istream & operator >> (std::istream &is, glm::vec3 &v);
 std::istream & operator >> (std::istream &is, glm::vec4 &v);
-std::istream & operator >> (std::istream &is, TriangleFace &face);
+std::istream & operator >> (std::istream &is, VertexIndex &vi);
+std::istream & operator >> (std::istream &is, Face &face);
 std::istream & operator >> (std::istream &is, ObjModel &vfm);
 
 }

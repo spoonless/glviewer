@@ -22,9 +22,17 @@ int main (int argc, char **argv)
     ifs >> model;
     ifs.close();
 
-    std::cout << std::setw(10) << "Vertices: " << model.vertices.size() << std::endl;
-    std::cout << std::setw(10) << "Normals: " << model.normals.size() << std::endl;
-    std::cout << std::setw(10) << "Faces: " << model.faces.size() << std::endl;
+    std::cout << std::setw(12) << "Vertices: " << model.vertices.size() << std::endl;
+    std::cout << std::setw(12) << "Normals: " << model.normals.size() << std::endl;
+    std::cout << std::setw(12) << "Textures: " << model.textures.size() << std::endl;
+    std::cout << std::setw(12) << "Faces: " << model.faces.size() << std::endl;
+
+    unsigned int triangleCount = 0;
+    for (vfm::FaceVector::iterator it = model.faces.begin(); it != model.faces.end(); ++it)
+    {
+        triangleCount += it->vertexIndices.size() - 2;
+    }
+    std::cout << std::setw(12) << "Triangles: " << triangleCount << std::endl;
 
     return 0;
 }
