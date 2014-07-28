@@ -135,3 +135,27 @@ TEST(ObjModel, canReadIndices)
     ASSERT_EQ(vfm::VertexIndex(8, 800, 0), vertexIndices[10]);
     ASSERT_EQ(vfm::VertexIndex(9, 900, 0), vertexIndices[11]);
 }
+
+TEST(ObjModel, canRemoveDuplicates)
+{
+    vfm::ObjModel model;
+
+    std::istringstream stream(
+        "# only face indices\n"
+        "f 4/40/400 5/50/500 6/60/600\n"
+        "f 6/60/600 4/40/400 7/70/700\n"
+    );
+
+    stream >> model;
+
+    ASSERT_EQ(1u, model.objects.size());
+
+    vfm::VertexIndexVector &vertexIndices = model.objects[0].vertexIndices;
+
+    ASSERT_EQ(4u, vertexIndices.size());
+
+    ASSERT_EQ(vfm::VertexIndex(4, 400, 40), vertexIndices[0]);
+    ASSERT_EQ(vfm::VertexIndex(5, 500, 50), vertexIndices[1]);
+    ASSERT_EQ(vfm::VertexIndex(6, 600, 60), vertexIndices[2]);
+    ASSERT_EQ(vfm::VertexIndex(7, 700, 70), vertexIndices[3]);
+}

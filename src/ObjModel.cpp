@@ -1,4 +1,4 @@
-#include <set>
+#include <map>
 #include <limits>
 #include "ObjModel.hpp"
 
@@ -17,21 +17,21 @@ namespace
 {
 
 struct VertexIndexPtrComparator {
-    bool operator() (const vfm::VertexIndex* vi1, const vfm::VertexIndex* vi2) const
+    bool operator() (const vfm::VertexIndex &vi1, const vfm::VertexIndex &vi2) const
     {
-      if (vi1->vertex == vi2->vertex)
+      if (vi1.vertex == vi2.vertex)
       {
-          if(vi1->normal == vi2->normal)
+          if(vi1.normal == vi2.normal)
           {
-              return vi1->texture < vi2->texture;
+              return vi1.texture < vi2.texture;
           }
-          return vi1->normal < vi2->normal;
+          return vi1.normal < vi2.normal;
       }
-      return vi1->vertex < vi2->vertex;
+      return vi1.vertex < vi2.vertex;
     }
 };
 
-typedef std::set<vfm::VertexIndex const*, VertexIndexPtrComparator> VertexIndexPtrSet;
+typedef std::map<vfm::VertexIndex, vfm::index_t, VertexIndexPtrComparator> VertexIndexPtrMap;
 
 inline std::istream& eatline (std::istream& is)
 {
@@ -141,22 +141,18 @@ std::istream & vfm::operator >> (std::istream &is, Face &face)
     return is;
 }
 
-static void createTriangles(vfm::Object &object, const vfm::Face &face, VertexIndexPtrSet &vertexIndexPtrSet)
+static void createTriangles(vfm::Object &object, const vfm::Face &face, VertexIndexPtrMap &vertexIndexPtrMap)
 {
     for(vfm::VertexIndexVector::const_iterator it = face.vertexIndices.begin(); it != face.vertexIndices.end(); ++it)
     {
-        std::pair<VertexIndexPtrSet::iterator, bool> p = vertexIndexPtrSet.insert(&(*it));
-        vfm::VertexIndex **viptr = const_cast<vfm::VertexIndex**>(&(*p.first));
-        if (p.second)
+        size_t mapSize = vertexIndexPtrMap.size();
+        vfm::index_t * index = &vertexIndexPtrMap[*it];
+        if (vertexIndexPtrMap.size() > mapSize)
         {
-            object.trianglesVector.push_back(object.vertexIndices.size());
+            *index = mapSize;
             object.vertexIndices.push_back(*it);
-            *viptr = &object.vertexIndices.back();
         }
-        else
-        {
-            object.trianglesVector.push_back(std::distance(&object.vertexIndices[0], *viptr));
-        }
+        object.trianglesVector.push_back(*index);
     }
 }
 
@@ -167,7 +163,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
     glm::vec3 vec3;
     Face face;
     Object *object = 0;
-    VertexIndexPtrSet vertexIndexPtrSet;
+    VertexIndexPtrMap vertexIndexPtrMap;
 
     while (is && is >> token)
     {
@@ -178,9 +174,9 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
         }
         else if (token == "o")
         {
+            vertexIndexPtrMap.clear();
             model.objects.push_back(Object());
             object = &model.objects.back();
-            vertexIndexPtrSet.clear();
             is >> object->name;
         }
         else if (token == "v")
@@ -207,7 +203,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
             {
                 model.objects.push_back(Object());
                 object = &model.objects.back();
-                vertexIndexPtrSet.clear();
+                vertexIndexPtrMap.clear();
             }
 
             face.vertexIndices.clear();
@@ -216,7 +212,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
 
             if(!is.bad())
             {
-                createTriangles(*object, face, vertexIndexPtrSet);
+                createTriangles(*object, face, vertexIndexPtrMap);
             }
         }
         else if(is)
