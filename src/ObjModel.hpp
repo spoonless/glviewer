@@ -33,7 +33,7 @@ struct Object
 {
     std::string name;
     VertexIndexVector vertexIndices;
-    IndexVector trianglesVector;
+    IndexVector triangles;
 };
 
 typedef std::vector<Object> ObjectVector;

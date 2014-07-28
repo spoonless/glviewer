@@ -29,7 +29,7 @@ int main (int argc, char **argv)
 
     for (vfm::ObjectVector::iterator it = model.objects.begin(); it < model.objects.end(); ++it)
     {
-        std::clog << "Object '" << it->name << "' has " << it->vertexIndices.size() << " vertices" << std::endl;
+        std::clog << "Object '" << it->name << "' has " << it->vertexIndices.size() << " vertices" << " and " << it->triangles.size()/3 << " triangles" << std::endl;
     }
 
     return 0;

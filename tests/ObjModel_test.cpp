@@ -159,3 +159,56 @@ TEST(ObjModel, canRemoveDuplicates)
     ASSERT_EQ(vfm::VertexIndex(6, 600, 60), vertexIndices[2]);
     ASSERT_EQ(vfm::VertexIndex(7, 700, 70), vertexIndices[3]);
 }
+
+TEST(ObjModel, canTriangulate)
+{
+    vfm::ObjModel model;
+
+    std::istringstream stream(
+        "# only face indices\n"
+        "f 1 2 3\n"
+        "f 1 2 3 4 5\n"
+    );
+
+    stream >> model;
+
+    ASSERT_EQ(1u, model.objects.size());
+
+    vfm::IndexVector &triangles = model.objects[0].triangles;
+    vfm::VertexIndexVector &vertexIndices = model.objects[0].vertexIndices;
+
+    ASSERT_EQ(4u * 3u, triangles.size());
+
+    ASSERT_EQ(0u, triangles[0]);
+    ASSERT_EQ(1u, triangles[1]);
+    ASSERT_EQ(2u, triangles[2]);
+
+    ASSERT_EQ(0u, triangles[3]);
+    ASSERT_EQ(1u, triangles[4]);
+    ASSERT_EQ(2u, triangles[5]);
+
+    ASSERT_EQ(3u, triangles[6]);
+    ASSERT_EQ(0u, triangles[7]);
+    ASSERT_EQ(2u, triangles[8]);
+
+    ASSERT_EQ(3u, triangles[9]);
+    ASSERT_EQ(2u, triangles[10]);
+    ASSERT_EQ(4u, triangles[11]);
+
+    ASSERT_EQ(vfm::VertexIndex(1, 0, 0), vertexIndices[triangles[0]]);
+    ASSERT_EQ(vfm::VertexIndex(2, 0, 0), vertexIndices[triangles[1]]);
+    ASSERT_EQ(vfm::VertexIndex(3, 0, 0), vertexIndices[triangles[2]]);
+
+    ASSERT_EQ(vfm::VertexIndex(1, 0, 0), vertexIndices[triangles[3]]);
+    ASSERT_EQ(vfm::VertexIndex(2, 0, 0), vertexIndices[triangles[4]]);
+    ASSERT_EQ(vfm::VertexIndex(3, 0, 0), vertexIndices[triangles[5]]);
+
+    ASSERT_EQ(vfm::VertexIndex(5, 0, 0), vertexIndices[triangles[6]]);
+    ASSERT_EQ(vfm::VertexIndex(1, 0, 0), vertexIndices[triangles[7]]);
+    ASSERT_EQ(vfm::VertexIndex(3, 0, 0), vertexIndices[triangles[8]]);
+
+    ASSERT_EQ(vfm::VertexIndex(5, 0, 0), vertexIndices[triangles[9]]);
+    ASSERT_EQ(vfm::VertexIndex(3, 0, 0), vertexIndices[triangles[10]]);
+    ASSERT_EQ(vfm::VertexIndex(4, 0, 0), vertexIndices[triangles[11]]);
+}
+

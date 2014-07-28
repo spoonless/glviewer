@@ -141,18 +141,68 @@ std::istream & vfm::operator >> (std::istream &is, Face &face)
     return is;
 }
 
-static void createTriangles(vfm::Object &object, const vfm::Face &face, VertexIndexPtrMap &vertexIndexPtrMap)
+class VertexIndexIndexer
 {
-    for(vfm::VertexIndexVector::const_iterator it = face.vertexIndices.begin(); it != face.vertexIndices.end(); ++it)
+public:
+
+    VertexIndexIndexer& operator << (vfm::Object &o)
     {
-        size_t mapSize = vertexIndexPtrMap.size();
-        vfm::index_t * index = &vertexIndexPtrMap[*it];
-        if (vertexIndexPtrMap.size() > mapSize)
+        if (_object != &o)
+        {
+            _vertexIndexPtrMap.clear();
+            _object = &o;
+        }
+        return *this;
+    }
+
+    vfm::index_t getIndex(const vfm::VertexIndex &vi)
+    {
+        size_t mapSize = _vertexIndexPtrMap.size();
+        vfm::index_t *index = &_vertexIndexPtrMap[vi];
+        if (_vertexIndexPtrMap.size() > mapSize)
         {
             *index = mapSize;
-            object.vertexIndices.push_back(*it);
+            _object->vertexIndices.push_back(vi);
         }
-        object.trianglesVector.push_back(*index);
+        return *index;
+    }
+
+private:
+    vfm::Object *_object;
+    VertexIndexPtrMap _vertexIndexPtrMap;
+};
+
+static void createTriangles(const vfm::Face &face, VertexIndexIndexer &vertexIndexIndexer, vfm::IndexVector &triangles)
+{
+    vfm::index_t nbIndices = face.vertexIndices.size();
+    if (nbIndices < 3)
+    {
+        return;
+    }
+
+    vfm::index_t descIndex = nbIndices;
+    vfm::index_t ascIndex = 2;
+
+    vfm::index_t previous = vertexIndexIndexer.getIndex(face.vertexIndices[0]);
+    vfm::index_t current = vertexIndexIndexer.getIndex(face.vertexIndices[1]);
+    vfm::index_t next = vertexIndexIndexer.getIndex(face.vertexIndices[2]);
+
+    for(bool asc = false; ascIndex < descIndex; asc = !asc)
+    {
+        triangles.push_back(previous);
+        triangles.push_back(current);
+        triangles.push_back(next);
+
+        if (asc)
+        {
+            current = next;
+            next = vertexIndexIndexer.getIndex(face.vertexIndices[++ascIndex]);
+        }
+        else
+        {
+            current = previous % nbIndices;
+            previous = vertexIndexIndexer.getIndex(face.vertexIndices[--descIndex]);
+        }
     }
 }
 
@@ -163,7 +213,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
     glm::vec3 vec3;
     Face face;
     Object *object = 0;
-    VertexIndexPtrMap vertexIndexPtrMap;
+    VertexIndexIndexer vertexIndexIndexer;
 
     while (is && is >> token)
     {
@@ -174,9 +224,9 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
         }
         else if (token == "o")
         {
-            vertexIndexPtrMap.clear();
             model.objects.push_back(Object());
             object = &model.objects.back();
+            vertexIndexIndexer << *object;
             is >> object->name;
         }
         else if (token == "v")
@@ -203,7 +253,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
             {
                 model.objects.push_back(Object());
                 object = &model.objects.back();
-                vertexIndexPtrMap.clear();
+                vertexIndexIndexer << *object;
             }
 
             face.vertexIndices.clear();
@@ -212,7 +262,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
 
             if(!is.bad())
             {
-                createTriangles(*object, face, vertexIndexPtrMap);
+                createTriangles(face, vertexIndexIndexer, object->triangles);
             }
         }
         else if(is)
