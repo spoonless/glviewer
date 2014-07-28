@@ -31,7 +31,7 @@ struct VertexIndexPtrComparator {
     }
 };
 
-typedef std::set<vfm::VertexIndex*, VertexIndexPtrComparator> VertexIndexPtrSet;
+typedef std::set<vfm::VertexIndex const*, VertexIndexPtrComparator> VertexIndexPtrSet;
 
 inline std::istream& eatline (std::istream& is)
 {
@@ -141,6 +141,25 @@ std::istream & vfm::operator >> (std::istream &is, Face &face)
     return is;
 }
 
+static void createTriangles(vfm::Object &object, const vfm::Face &face, VertexIndexPtrSet &vertexIndexPtrSet)
+{
+    for(vfm::VertexIndexVector::const_iterator it = face.vertexIndices.begin(); it != face.vertexIndices.end(); ++it)
+    {
+        std::pair<VertexIndexPtrSet::iterator, bool> p = vertexIndexPtrSet.insert(&(*it));
+        vfm::VertexIndex **viptr = const_cast<vfm::VertexIndex**>(&(*p.first));
+        if (p.second)
+        {
+            object.trianglesVector.push_back(object.vertexIndices.size());
+            object.vertexIndices.push_back(*it);
+            *viptr = &object.vertexIndices.back();
+        }
+        else
+        {
+            object.trianglesVector.push_back(std::distance(&object.vertexIndices[0], *viptr));
+        }
+    }
+}
+
 std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
 {
     std::string token;
@@ -197,22 +216,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
 
             if(!is.bad())
             {
-
-                for(VertexIndexVector::iterator it = face.vertexIndices.begin(); it != face.vertexIndices.end(); ++it)
-                {
-                    std::pair<VertexIndexPtrSet::iterator, bool> p = vertexIndexPtrSet.insert(&(*it));
-                    VertexIndex **viptr = const_cast<VertexIndex**>(&(*p.first));
-                    if (p.second)
-                    {
-                        object->trianglesVector.push_back(object->vertexIndices.size());
-                        object->vertexIndices.push_back(*it);
-                        *viptr = &object->vertexIndices.back();
-                    }
-                    else
-                    {
-                        object->trianglesVector.push_back(std::distance(&object->vertexIndices[0], *viptr));
-                    }
-                }
+                createTriangles(*object, face, vertexIndexPtrSet);
             }
         }
         else if(is)
