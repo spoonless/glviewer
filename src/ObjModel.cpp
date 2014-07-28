@@ -188,7 +188,7 @@ static void createTriangles(const vfm::IndexVector &polygons, vfm::IndexVector &
         }
         else
         {
-            current = previous % nbIndices;
+            current = previous;
             previous = polygons[--descIndex];
         }
     }
