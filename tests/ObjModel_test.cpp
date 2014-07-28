@@ -187,13 +187,13 @@ TEST(ObjModel, canTriangulate)
     ASSERT_EQ(1u, triangles[4]);
     ASSERT_EQ(2u, triangles[5]);
 
-    ASSERT_EQ(3u, triangles[6]);
+    ASSERT_EQ(4u, triangles[6]);
     ASSERT_EQ(0u, triangles[7]);
     ASSERT_EQ(2u, triangles[8]);
 
-    ASSERT_EQ(3u, triangles[9]);
+    ASSERT_EQ(4u, triangles[9]);
     ASSERT_EQ(2u, triangles[10]);
-    ASSERT_EQ(4u, triangles[11]);
+    ASSERT_EQ(3u, triangles[11]);
 
     ASSERT_EQ(vfm::VertexIndex(1, 0, 0), vertexIndices[triangles[0]]);
     ASSERT_EQ(vfm::VertexIndex(2, 0, 0), vertexIndices[triangles[1]]);

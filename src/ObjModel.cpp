@@ -2,36 +2,55 @@
 #include <limits>
 #include "ObjModel.hpp"
 
-namespace vfm
-{
-
-struct Face
-{
-    VertexIndexVector vertexIndices;
-};
-std::istream & operator >> (std::istream &is, Face &face);
-
-}
-
 namespace
 {
 
-struct VertexIndexPtrComparator {
-    bool operator() (const vfm::VertexIndex &vi1, const vfm::VertexIndex &vi2) const
-    {
-      if (vi1.vertex == vi2.vertex)
-      {
-          if(vi1.normal == vi2.normal)
-          {
-              return vi1.texture < vi2.texture;
-          }
-          return vi1.normal < vi2.normal;
-      }
-      return vi1.vertex < vi2.vertex;
-    }
-};
+class VertexIndexIndexer
+{
+public:
 
-typedef std::map<vfm::VertexIndex, vfm::index_t, VertexIndexPtrComparator> VertexIndexPtrMap;
+    VertexIndexIndexer& operator << (vfm::Object &o)
+    {
+        if (_object != &o)
+        {
+            _vertexIndexPtrMap.clear();
+            _object = &o;
+        }
+        return *this;
+    }
+
+    vfm::index_t getIndex(const vfm::VertexIndex &vi)
+    {
+        size_t mapSize = _vertexIndexPtrMap.size();
+        vfm::index_t *index = &_vertexIndexPtrMap[vi];
+        if (_vertexIndexPtrMap.size() > mapSize)
+        {
+            *index = mapSize;
+            _object->vertexIndices.push_back(vi);
+        }
+        return *index;
+    }
+
+private:
+    struct VertexIndexPtrComparator {
+        bool operator() (const vfm::VertexIndex &vi1, const vfm::VertexIndex &vi2) const
+        {
+          if (vi1.vertex == vi2.vertex)
+          {
+              if(vi1.normal == vi2.normal)
+              {
+                  return vi1.texture < vi2.texture;
+              }
+              return vi1.normal < vi2.normal;
+          }
+          return vi1.vertex < vi2.vertex;
+        }
+    };
+    typedef std::map<vfm::VertexIndex, vfm::index_t, VertexIndexPtrComparator> VertexIndexMap;
+
+    vfm::Object *_object;
+    VertexIndexMap _vertexIndexPtrMap;
+};
 
 inline std::istream& eatline (std::istream& is)
 {
@@ -111,7 +130,7 @@ std::istream & vfm::operator >> (std::istream &is, VertexIndex &vi)
     return is;
 }
 
-std::istream & vfm::operator >> (std::istream &is, Face &face)
+std::istream & vfm::operator >> (std::istream &is, VertexIndexVector &viv)
 {
     bool eol = false;
     while(is && !eol)
@@ -119,7 +138,7 @@ std::istream & vfm::operator >> (std::istream &is, Face &face)
         VertexIndex vi;
         if (is >> vi)
         {
-            face.vertexIndices.push_back(vi);
+            viv.push_back(vi);
             while (is && !eol)
             {
                 int c = is.peek();
@@ -141,40 +160,9 @@ std::istream & vfm::operator >> (std::istream &is, Face &face)
     return is;
 }
 
-class VertexIndexIndexer
+static void createTriangles(const vfm::IndexVector &polygons, vfm::IndexVector &triangles)
 {
-public:
-
-    VertexIndexIndexer& operator << (vfm::Object &o)
-    {
-        if (_object != &o)
-        {
-            _vertexIndexPtrMap.clear();
-            _object = &o;
-        }
-        return *this;
-    }
-
-    vfm::index_t getIndex(const vfm::VertexIndex &vi)
-    {
-        size_t mapSize = _vertexIndexPtrMap.size();
-        vfm::index_t *index = &_vertexIndexPtrMap[vi];
-        if (_vertexIndexPtrMap.size() > mapSize)
-        {
-            *index = mapSize;
-            _object->vertexIndices.push_back(vi);
-        }
-        return *index;
-    }
-
-private:
-    vfm::Object *_object;
-    VertexIndexPtrMap _vertexIndexPtrMap;
-};
-
-static void createTriangles(const vfm::Face &face, VertexIndexIndexer &vertexIndexIndexer, vfm::IndexVector &triangles)
-{
-    vfm::index_t nbIndices = face.vertexIndices.size();
+    vfm::index_t nbIndices = polygons.size();
     if (nbIndices < 3)
     {
         return;
@@ -183,9 +171,9 @@ static void createTriangles(const vfm::Face &face, VertexIndexIndexer &vertexInd
     vfm::index_t descIndex = nbIndices;
     vfm::index_t ascIndex = 2;
 
-    vfm::index_t previous = vertexIndexIndexer.getIndex(face.vertexIndices[0]);
-    vfm::index_t current = vertexIndexIndexer.getIndex(face.vertexIndices[1]);
-    vfm::index_t next = vertexIndexIndexer.getIndex(face.vertexIndices[2]);
+    vfm::index_t previous = polygons[0];
+    vfm::index_t current = polygons[1];
+    vfm::index_t next = polygons[2];
 
     for(bool asc = false; ascIndex < descIndex; asc = !asc)
     {
@@ -196,12 +184,12 @@ static void createTriangles(const vfm::Face &face, VertexIndexIndexer &vertexInd
         if (asc)
         {
             current = next;
-            next = vertexIndexIndexer.getIndex(face.vertexIndices[++ascIndex]);
+            next = polygons[++ascIndex];
         }
         else
         {
             current = previous % nbIndices;
-            previous = vertexIndexIndexer.getIndex(face.vertexIndices[--descIndex]);
+            previous = polygons[--descIndex];
         }
     }
 }
@@ -211,9 +199,10 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
     std::string token;
     glm::vec4 vec4;
     glm::vec3 vec3;
-    Face face;
-    Object *object = 0;
     VertexIndexIndexer vertexIndexIndexer;
+    vfm::IndexVector polygons;
+    VertexIndexVector face;
+    Object *object = 0;
 
     while (is && is >> token)
     {
@@ -256,13 +245,19 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
                 vertexIndexIndexer << *object;
             }
 
-            face.vertexIndices.clear();
+            face.clear();
             // read faces indices
             is >> face;
 
             if(!is.bad())
             {
-                createTriangles(face, vertexIndexIndexer, object->triangles);
+                polygons.clear();
+                for(vfm::VertexIndexVector::iterator it = face.begin(); it < face.end(); ++it)
+                {
+                    polygons.push_back(vertexIndexIndexer.getIndex(*it));
+                }
+
+                createTriangles(polygons, object->triangles);
             }
         }
         else if(is)

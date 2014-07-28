@@ -49,6 +49,7 @@ struct ObjModel
 std::istream & operator >> (std::istream &is, glm::vec3 &v);
 std::istream & operator >> (std::istream &is, glm::vec4 &v);
 std::istream & operator >> (std::istream &is, VertexIndex &vi);
+std::istream & operator >> (std::istream &is, VertexIndexVector &viv);
 std::istream & operator >> (std::istream &is, ObjModel &vfm);
 
 }
