@@ -72,6 +72,33 @@ TEST(ObjModel, canLoadTextures)
     ASSERT_EQ(glm::vec3(100,200,300), model.textures[2]);
 }
 
+TEST(ObjModel, canHaveMultipleObjects)
+{
+    vfm::ObjModel model;
+
+    std::istringstream stream(
+        "# only face indices\n"
+        "f 1 2 3 4\n"
+        "# only face indices\n"
+        "o object2\n"
+        "f 1 2 3 4 5\n"
+        "o object3\n"
+        "f 1 2 3 4 5 6\n"
+    );
+
+    stream >> model;
+
+    ASSERT_EQ(3u, model.objects.size());
+
+    ASSERT_EQ("", model.objects[0].name);
+    ASSERT_EQ(4u, model.objects[0].vertexIndices.size());
+    ASSERT_EQ("object2", model.objects[1].name);
+    ASSERT_EQ(5u, model.objects[1].vertexIndices.size());
+    ASSERT_EQ("object3", model.objects[2].name);
+    ASSERT_EQ(6u, model.objects[2].vertexIndices.size());
+}
+
+
 TEST(ObjModel, canReadIndices)
 {
     vfm::ObjModel model;
@@ -86,21 +113,25 @@ TEST(ObjModel, canReadIndices)
 
     stream >> model;
 
-    ASSERT_EQ(4u, model.faces.size());
+    ASSERT_EQ(1u, model.objects.size());
 
-    ASSERT_EQ(vfm::VertexIndex(1, 0, 0), model.faces[0].vertexIndices[0]);
-    ASSERT_EQ(vfm::VertexIndex(2, 0, 0), model.faces[0].vertexIndices[1]);
-    ASSERT_EQ(vfm::VertexIndex(3, 0, 0), model.faces[0].vertexIndices[2]);
+    vfm::VertexIndexVector &vertexIndices = model.objects[0].vertexIndices;
 
-    ASSERT_EQ(vfm::VertexIndex(4, 0, 40), model.faces[1].vertexIndices[0]);
-    ASSERT_EQ(vfm::VertexIndex(5, 0, 50), model.faces[1].vertexIndices[1]);
-    ASSERT_EQ(vfm::VertexIndex(6, 0, 60), model.faces[1].vertexIndices[2]);
+    ASSERT_EQ(12u, vertexIndices.size());
 
-    ASSERT_EQ(vfm::VertexIndex(4, 400, 40), model.faces[2].vertexIndices[0]);
-    ASSERT_EQ(vfm::VertexIndex(5, 500, 50), model.faces[2].vertexIndices[1]);
-    ASSERT_EQ(vfm::VertexIndex(6, 600, 60), model.faces[2].vertexIndices[2]);
+    ASSERT_EQ(vfm::VertexIndex(1, 0, 0), vertexIndices[0]);
+    ASSERT_EQ(vfm::VertexIndex(2, 0, 0), vertexIndices[1]);
+    ASSERT_EQ(vfm::VertexIndex(3, 0, 0), vertexIndices[2]);
 
-    ASSERT_EQ(vfm::VertexIndex(7, 700, 0), model.faces[3].vertexIndices[0]);
-    ASSERT_EQ(vfm::VertexIndex(8, 800, 0), model.faces[3].vertexIndices[1]);
-    ASSERT_EQ(vfm::VertexIndex(9, 900, 0), model.faces[3].vertexIndices[2]);
+    ASSERT_EQ(vfm::VertexIndex(4, 0, 40), vertexIndices[3]);
+    ASSERT_EQ(vfm::VertexIndex(5, 0, 50), vertexIndices[4]);
+    ASSERT_EQ(vfm::VertexIndex(6, 0, 60), vertexIndices[5]);
+
+    ASSERT_EQ(vfm::VertexIndex(4, 400, 40), vertexIndices[6]);
+    ASSERT_EQ(vfm::VertexIndex(5, 500, 50), vertexIndices[7]);
+    ASSERT_EQ(vfm::VertexIndex(6, 600, 60), vertexIndices[8]);
+
+    ASSERT_EQ(vfm::VertexIndex(7, 700, 0), vertexIndices[9]);
+    ASSERT_EQ(vfm::VertexIndex(8, 800, 0), vertexIndices[10]);
+    ASSERT_EQ(vfm::VertexIndex(9, 900, 0), vertexIndices[11]);
 }

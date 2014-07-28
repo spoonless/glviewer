@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <fstream>
+#include <string>
 
 #include "glm/vec4.hpp"
 #include "glm/vec3.hpp"
@@ -26,26 +27,28 @@ struct VertexIndex
 };
 
 typedef std::vector<VertexIndex> VertexIndexVector;
+typedef std::vector<index_t> IndexVector;
 
-struct Face
+struct Object
 {
+    std::string name;
     VertexIndexVector vertexIndices;
+    IndexVector trianglesVector;
 };
 
-typedef std::vector<Face> FaceVector;
+typedef std::vector<Object> ObjectVector;
 
 struct ObjModel
 {
     Vec4Vector vertices;
     Vec3Vector normals;
     Vec3Vector textures;
-    FaceVector faces;
+    ObjectVector objects;
 };
 
 std::istream & operator >> (std::istream &is, glm::vec3 &v);
 std::istream & operator >> (std::istream &is, glm::vec4 &v);
 std::istream & operator >> (std::istream &is, VertexIndex &vi);
-std::istream & operator >> (std::istream &is, Face &face);
 std::istream & operator >> (std::istream &is, ObjModel &vfm);
 
 }

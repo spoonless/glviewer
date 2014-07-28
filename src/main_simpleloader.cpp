@@ -22,17 +22,15 @@ int main (int argc, char **argv)
     ifs >> model;
     ifs.close();
 
-    std::cout << std::setw(12) << "Vertices: " << model.vertices.size() << std::endl;
-    std::cout << std::setw(12) << "Normals: " << model.normals.size() << std::endl;
-    std::cout << std::setw(12) << "Textures: " << model.textures.size() << std::endl;
-    std::cout << std::setw(12) << "Faces: " << model.faces.size() << std::endl;
+    std::clog << std::setw(12) << "Vertices: " << model.vertices.size() << std::endl;
+    std::clog << std::setw(12) << "Normals: " << model.normals.size() << std::endl;
+    std::clog << std::setw(12) << "Textures: " << model.textures.size() << std::endl;
+    std::clog << std::setw(12) << "Objects: " << model.objects.size() << std::endl;
 
-    unsigned int triangleCount = 0;
-    for (vfm::FaceVector::iterator it = model.faces.begin(); it != model.faces.end(); ++it)
+    for (vfm::ObjectVector::iterator it = model.objects.begin(); it < model.objects.end(); ++it)
     {
-        triangleCount += it->vertexIndices.size() - 2;
+        std::clog << "Object '" << it->name << "' has " << it->vertexIndices.size() << " vertices" << std::endl;
     }
-    std::cout << std::setw(12) << "Triangles: " << triangleCount << std::endl;
 
     return 0;
 }

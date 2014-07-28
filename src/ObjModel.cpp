@@ -1,8 +1,37 @@
+#include <set>
 #include <limits>
 #include "ObjModel.hpp"
 
+namespace vfm
+{
+
+struct Face
+{
+    VertexIndexVector vertexIndices;
+};
+std::istream & operator >> (std::istream &is, Face &face);
+
+}
+
 namespace
 {
+
+struct VertexIndexPtrComparator {
+    bool operator() (const vfm::VertexIndex* vi1, const vfm::VertexIndex* vi2) const
+    {
+      if (vi1->vertex == vi2->vertex)
+      {
+          if(vi1->normal == vi2->normal)
+          {
+              return vi1->texture < vi2->texture;
+          }
+          return vi1->normal < vi2->normal;
+      }
+      return vi1->vertex < vi2->vertex;
+    }
+};
+
+typedef std::set<vfm::VertexIndex*, VertexIndexPtrComparator> VertexIndexPtrSet;
 
 inline std::istream& eatline (std::istream& is)
 {
@@ -118,6 +147,9 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
     glm::vec4 vec4;
     glm::vec3 vec3;
     Face face;
+    Object *object = 0;
+    VertexIndexPtrSet vertexIndexPtrSet;
+
     while (is && is >> token)
     {
         if (! token.empty() && token[0] == '#')
@@ -125,27 +157,63 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
             // ignore comments
             is >> eatline;
         }
+        else if (token == "o")
+        {
+            model.objects.push_back(Object());
+            object = &model.objects.back();
+            vertexIndexPtrSet.clear();
+            is >> object->name;
+        }
         else if (token == "v")
         {
             // read new vertex
-            if (is >> vec4) model.vertices.push_back(vec4);
+            is >> vec4;
+            if(!is.bad()) model.vertices.push_back(vec4);
         }
         else if (token == "vt")
         {
             // read texture coordinates
-            if (is >> vec3) model.textures.push_back(vec3);
+            is >> vec3;
+            if (!is.bad()) model.textures.push_back(vec3);
         }
         else if (token == "vn")
         {
             // read normals coordinates
-            if (is >> vec3) model.normals.push_back(vec3);
+            is >> vec3;
+            if (!is.bad()) model.normals.push_back(vec3);
         }
         else if (token == "f")
         {
+            if (object == 0)
+            {
+                model.objects.push_back(Object());
+                object = &model.objects.back();
+                vertexIndexPtrSet.clear();
+            }
+
             face.vertexIndices.clear();
-            is >> face;
             // read faces indices
-            model.faces.push_back(face);
+            is >> face;
+
+            if(!is.bad())
+            {
+
+                for(VertexIndexVector::iterator it = face.vertexIndices.begin(); it != face.vertexIndices.end(); ++it)
+                {
+                    std::pair<VertexIndexPtrSet::iterator, bool> p = vertexIndexPtrSet.insert(&(*it));
+                    VertexIndex **viptr = const_cast<VertexIndex**>(&(*p.first));
+                    if (p.second)
+                    {
+                        object->trianglesVector.push_back(object->vertexIndices.size());
+                        object->vertexIndices.push_back(*it);
+                        *viptr = &object->vertexIndices.back();
+                    }
+                    else
+                    {
+                        object->trianglesVector.push_back(std::distance(&object->vertexIndices[0], *viptr));
+                    }
+                }
+            }
         }
         else if(is)
         {
