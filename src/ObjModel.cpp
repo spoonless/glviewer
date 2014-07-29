@@ -9,6 +9,10 @@ class VertexIndexIndexer
 {
 public:
 
+    VertexIndexIndexer() : _object(0)
+    {
+    }
+
     VertexIndexIndexer& operator << (vfm::Object &o)
     {
         if (_object != &o)
