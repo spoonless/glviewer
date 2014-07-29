@@ -167,7 +167,7 @@ TEST(ObjModel, canTriangulate)
     std::istringstream stream(
         "# only face indices\n"
         "f 1 2 3\n"
-        "f 1 2 3 4 5\n"
+        "f 1 2 3 4 5"
     );
 
     stream >> model;

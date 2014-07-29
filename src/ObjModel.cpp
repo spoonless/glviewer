@@ -136,24 +136,22 @@ std::istream & vfm::operator >> (std::istream &is, VertexIndexVector &viv)
     while(is && !eol)
     {
         VertexIndex vi;
-        if (is >> vi)
+        is >> vi;
+        viv.push_back(vi);
+        while (is && !eol)
         {
-            viv.push_back(vi);
-            while (is && !eol)
+            int c = is.peek();
+            if (c == '#' || c == '\n')
             {
-                int c = is.peek();
-                if (c == '#' || c == '\n')
-                {
-                    is >> eatline;
-                    eol = true;
-                }
-                else if (std::isspace(c))
-                {
-                    is.get();
-                }
-                else {
-                    break;
-                }
+                is >> eatline;
+                eol = true;
+            }
+            else if (std::isspace(c))
+            {
+                is.get();
+            }
+            else {
+                break;
             }
         }
     }
