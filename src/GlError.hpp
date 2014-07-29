@@ -15,6 +15,16 @@ public:
 
     bool hasOccured();
 
+    inline operator bool()
+    {
+        return hasOccured();
+    }
+
+    inline bool operator !()
+    {
+        return !hasOccured();
+    }
+
     GLenum getErrorFlag() const
     {
         return _errorFlag;

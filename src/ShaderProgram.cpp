@@ -76,7 +76,7 @@ ShaderAttachmentResult ShaderProgram::attach(const Shader& shader)
     }
     GlError error;
     glAttachShader(_shaderProgramId, shader.getId());
-    return ShaderAttachmentResult(!error.hasOccured(), error.toString("Error while attempting to attach shader object to GLSL program"));
+    return ShaderAttachmentResult(!error, error ? error.toString("Error while attempting to attach shader object to GLSL program") : "");
 }
 
 bool ShaderProgram::has(const Shader& shader) const
@@ -106,7 +106,7 @@ ShaderAttachmentResult ShaderProgram::detach(const Shader& shader)
     }
     GlError error;
     glDetachShader(_shaderProgramId, shader.getId());
-    return ShaderAttachmentResult(!error.hasOccured(), error.toString("Error while attempting to detach shader object to GLSL program"));
+    return ShaderAttachmentResult(!error, error ? error.toString("Error while attempting to detach shader object to GLSL program"): "");
 }
 
 void ShaderProgram::detachAllShaders()
@@ -141,7 +141,7 @@ LinkResult ShaderProgram::link()
     Duration duration;
     glLinkProgram(_shaderProgramId);
     unsigned long linkageDuration = duration.elapsed();
-    if (error.hasOccured())
+    if (error)
     {
         return LinkResult(false, error.toString("Cannot link program"));
     }
@@ -167,7 +167,7 @@ ValidationResult ShaderProgram::validate()
     }
 
     glValidateProgram(_shaderProgramId);
-    if (error.hasOccured())
+    if (error)
     {
         return ValidationResult(false, error.toString("Cannot validate shader program"));
     }
@@ -188,7 +188,7 @@ void ShaderProgram::extractActive(UniformDeclarationVector& vector)
     GlError glError;
     GLint nbUniforms = 0;
     glGetProgramiv(_shaderProgramId, GL_ACTIVE_UNIFORMS, &nbUniforms);
-    if (glError.hasOccured())
+    if (glError)
     {
         return;
     }
@@ -196,7 +196,7 @@ void ShaderProgram::extractActive(UniformDeclarationVector& vector)
     {
         GLint activeUniformMaxLength = 0;
         glGetProgramiv(_shaderProgramId, GL_ACTIVE_UNIFORM_MAX_LENGTH, &activeUniformMaxLength);
-        if (glError.hasOccured() || activeUniformMaxLength <= 0)
+        if (glError || activeUniformMaxLength <= 0)
         {
             return;
         }
@@ -206,7 +206,7 @@ void ShaderProgram::extractActive(UniformDeclarationVector& vector)
             GLint activeUniformSize = 0;
             GLenum activeUniformType = 0;
             glGetActiveUniform(_shaderProgramId, i, activeUniformMaxLength, 0, &activeUniformSize, &activeUniformType, activeUniformName);
-            if (glError.hasOccured()) {
+            if (glError) {
                 vector.clear();
                 break;
             }
@@ -242,7 +242,7 @@ void ShaderProgram::extractActive(VertexAttributeDeclarationVector& vector)
     GlError glError;
     GLint nbAttributes = 0;
     glGetProgramiv(_shaderProgramId, GL_ACTIVE_ATTRIBUTES, &nbAttributes);
-    if (glError.hasOccured())
+    if (glError)
     {
         return;
     }
@@ -250,7 +250,7 @@ void ShaderProgram::extractActive(VertexAttributeDeclarationVector& vector)
     {
         GLint activeAttributeMaxLength = 0;
         glGetProgramiv(_shaderProgramId, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &activeAttributeMaxLength);
-        if (glError.hasOccured() || activeAttributeMaxLength <= 0)
+        if (glError || activeAttributeMaxLength <= 0)
         {
             return;
         }
@@ -260,7 +260,7 @@ void ShaderProgram::extractActive(VertexAttributeDeclarationVector& vector)
             GLint activeAttributeSize = 0;
             GLenum activeAttributeType = 0;
             glGetActiveAttrib(_shaderProgramId, i, activeAttributeMaxLength, NULL, &activeAttributeSize, &activeAttributeType, activeAttributeName);
-            if (glError.hasOccured()) {
+            if (glError) {
                 vector.clear();
                 break;
             }

@@ -1,11 +1,23 @@
 #include <iostream>
 #include <sstream>
-#include <fstream>
-#include <cassert>
 #include "gl.hpp"
 #include "glm/vec2.hpp"
 #include "GLFW/glfw3.h"
 #include "ShaderProgram.hpp"
+#include "GlMesh.hpp"
+
+static bool trace(const glv::OperationResult &r, const std::string &context)
+{
+    if (r)
+    {
+        std::cout << "Successfully " << context << " in " << r.duration() << "ms." << std::endl << r.message() << std::endl;
+    }
+    else
+    {
+        std::cerr << "Failure while " << context << ":" << std::endl << r.message() << std::endl;
+    }
+    return r.ok();
+}
 
 class glframework
 {
@@ -124,6 +136,15 @@ private:
     glm::vec2 windowSize;
 };
 
+const char defaultVertexShader[] =
+        GLSL_VERSION_HEADER
+        "in vec3 vertices;\n"
+        "out vec2 surfacePosition;\n"
+        "void main(){\n"
+        "  gl_Position = vec4(vertices, 1);\n"
+        "  surfacePosition = vertices.xy;\n"
+        "}\n";
+
 const char defaultFragmentShader[] =
         GLSL_VERSION_HEADER
         "varying vec2 surfacePosition;\n"
@@ -151,7 +172,7 @@ class GlslViewer
 {
 public:
 
-    GlslViewer(int argc, char **argv) : vertexArrayID(0)
+    GlslViewer(int argc, char **argv)
     {
         std::string fragmentShader;
         if (argc > 1)
@@ -170,95 +191,36 @@ public:
             title = "default";
             fragmentShader = defaultFragmentShader;
         }
-        createVertexArray();
+        createMesh();
         createProgram(fragmentShader);
     }
 
-    ~GlslViewer()
+    void createMesh()
     {
-        glBindVertexArray(0);
-        glDeleteVertexArrays(1, &vertexArrayID);
-    }
-
-    void createVertexArray()
-    {
-        glGenVertexArrays(1, &vertexArrayID);
-        glBindVertexArray(vertexArrayID);
-
-        // An array of vectors which represents 3 vertices
-        static const GLfloat g_vertex_buffer_data[] = {
-           -1.0f, -1.0f, 0.0f,
-           1.0f, -1.0f, 0.0f,
-           -1.0f,  1.0f, 0.0f,
-            1.0f,  1.0f, 0.0f,
-        };
-
-        // This will identify our vertex buffer
-        GLuint vertexbuffer;
-
-        // Generate 1 buffer, put the resulting identifier in vertexbuffer
-        glGenBuffers(1, &vertexbuffer);
-
-        // The following commands will talk about our 'vertexbuffer' buffer
-        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-
-        // Give our vertices to OpenGL.
-        glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-
-        glVertexAttribPointer(
-           0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-           3,                  // size
-           GL_FLOAT,           // type
-           GL_FALSE,           // normalized?
-           0,                  // stride
-           (void*)0            // array buffer offset
+        vfm::ObjModel model;
+        std::istringstream plane(
+            "v -1 -1 0\n"
+            "v -1  1 0\n"
+            "v  1  1 0\n"
+            "v  1 -1 0\n"
+            "f  1 2 3 4\n"
         );
-        glEnableVertexAttribArray(0);
-        glBindVertexArray(0);
-        //glDeleteBuffers(1, &vertexbuffer);
+
+        plane >> model;
+        trace(mesh.generate(model), "generating mesh");
     }
 
     void createProgram(const std::string &fragmentShader)
     {
         glv::Shader vs(glv::Shader::VERTEX_SHADER);
-        glv::CompilationResult cr = vs.compile(
-                    GLSL_VERSION_HEADER
-                    "in vec3 vertices;\n"
-                    "out vec2 surfacePosition;\n"
-                    "void main(){\n"
-                    "  gl_Position = vec4(vertices, 1);\n"
-                    "  surfacePosition = vertices.xy;\n"
-                    "}\n"
-        );
-
-        if (! cr)
-        {
-            std::cerr << cr.message() << std::endl;
-        }
-
+        trace(vs.compile(defaultVertexShader), "compiling vertex shader");
 
         glv::Shader fs(glv::Shader::FRAGMENT_SHADER);
-        if(cr = fs.compile(fragmentShader))
-        {
-            std::cout << "Successfully compiling fragment source in " << cr.duration() << "ms." << std::endl << cr.message() << std::endl;
-        }
-        else
-        {
-            std::cerr << cr.message() << std::endl;
-        }
+        trace(fs.compile(fragmentShader), "compiling fragment shader");
 
-        program.attach(vs);
-        program.attach(fs);
-        glv::LinkResult lr = program.link();
-        if(lr)
-        {
-            std::cout << "Successfully linking GLSL program in " << lr.duration() << "ms." << std::endl << lr.message() << std::endl;
-        }
-        else
-        {
-            std::cerr << "Cannot link shader program!" << std::endl;
-            std::cerr << lr.message() << std::endl;
-        }
+        trace(program.attach(vs), "attaching vertex shader to GLSL program");
+        trace(program.attach(fs), "attaching fragment shader to GLSL program");
+        trace(program.link(), "linking GLSL program");
 
         program.use();
 
@@ -286,11 +248,7 @@ public:
             *resolutionUniform = glf.getWindowSize();
         }
 
-        glBindVertexArray(vertexArrayID);
-        // Draw the triangle !
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // Starting from vertex 0; 3 vertices total -> 1 triangle
-
-        glBindVertexArray(0);
+        mesh.render();
     }
 
     std::string getTitle()
@@ -299,11 +257,11 @@ public:
     }
 
 private:
-    GLuint vertexArrayID;
     glv::ShaderProgram program;
     glv::UniformDeclaration timeUniform;
     glv::UniformDeclaration mouseUniform;
     glv::UniformDeclaration resolutionUniform;
+    glv::GlMesh mesh;
     std::string title;
 };
 
@@ -320,14 +278,16 @@ int main(int argc, char **argv)
 
     std::cout << "OpenGL version " << GLVersion.major << "." << GLVersion.minor << std::endl;
 
-    GlslViewer viewer(argc, argv);
-    glfw.setTitle(viewer.getTitle());
-
-    /* Loop until the user closes the window */
-    while (glfw.shouldContinue())
     {
-        viewer(glfw);
-        glfw.swapAndPollEvents();
+        GlslViewer viewer(argc, argv);
+        glfw.setTitle(viewer.getTitle());
+
+        /* Loop until the user closes the window */
+        while (glfw.shouldContinue())
+        {
+            viewer(glfw);
+            glfw.swapAndPollEvents();
+        }
     }
     return 0;
 }

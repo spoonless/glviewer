@@ -38,6 +38,8 @@ add_library(core_sources STATIC
     src/Duration.cpp
     src/GlError.hpp
     src/GlError.cpp
+    src/GlMesh.hpp
+    src/GlMesh.cpp
     src/ObjModel.hpp
     src/ObjModel.cpp
     src/OperationResult.hpp
