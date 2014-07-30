@@ -82,6 +82,7 @@ public:
         if (!window) {
             return false;
         }
+        glfwSetWindowTitle(window, "GLSL viewer");
 
         glfwSetWindowUserPointer(window, this);
         glfwSetWindowSizeCallback(window, windowSizeCallback);
@@ -127,17 +128,6 @@ public:
     {
         return windowSize;
     }
-
-    void setTitle(const std::string& title)
-    {
-        if (window)
-        {
-            std::string completeTitle = "GLSL Viewer - ";
-            completeTitle += title;
-            glfwSetWindowTitle(window, completeTitle.c_str());
-        }
-    }
-
 
 private:
     GLFWwindow *window;
@@ -276,18 +266,12 @@ public:
         mesh.render();
     }
 
-    std::string getTitle()
-    {
-        return title;
-    }
-
 private:
     glv::ShaderProgram program;
     glv::UniformDeclaration timeUniform;
     glv::UniformDeclaration mouseUniform;
     glv::UniformDeclaration resolutionUniform;
     glv::GlMesh mesh;
-    std::string title;
 };
 
 int main(int argc, char **argv)
@@ -305,7 +289,6 @@ int main(int argc, char **argv)
 
     {
         GlslViewer viewer(argc, argv);
-        glfw.setTitle(viewer.getTitle());
 
         /* Loop until the user closes the window */
         while (glfw.shouldContinue())
