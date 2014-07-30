@@ -1,8 +1,10 @@
 #include <iostream>
 #include <sstream>
+#include <cstring>
 #include "gl.hpp"
 #include "glm/vec2.hpp"
 #include "GLFW/glfw3.h"
+#include "Duration.hpp"
 #include "ShaderProgram.hpp"
 #include "GlMesh.hpp"
 
@@ -10,13 +12,19 @@ static bool trace(const glv::OperationResult &r, const std::string &context)
 {
     if (r)
     {
-        std::cout << "Successfully " << context << " in " << r.duration() << "ms." << std::endl << r.message() << std::endl;
+        std::cout << "* " << context << " in " << r.duration() << "ms." << std::endl << r.message() << std::endl;
     }
     else
     {
-        std::cerr << "Failure while " << context << ":" << std::endl << r.message() << std::endl;
+        std::cerr << "! " << context << ":" << std::endl << r.message() << std::endl;
     }
     return r.ok();
+}
+
+bool endsWith (const char *base, const char *str) {
+    int blen = std::strlen(base);
+    int slen = std::strlen(str);
+    return (blen >= slen) && (0 == std::strcmp(base + blen - slen, str));
 }
 
 class glframework
@@ -136,6 +144,13 @@ private:
     glm::vec2 windowSize;
 };
 
+const char defaultMesh[] =
+        "v -1 -1 0\n"
+        "v -1  1 0\n"
+        "v  1  1 0\n"
+        "v  1 -1 0\n"
+        "f  1 2 3 4";
+
 const char defaultVertexShader[] =
         GLSL_VERSION_HEADER
         "in vec3 vertices;\n"
@@ -147,9 +162,10 @@ const char defaultVertexShader[] =
 
 const char defaultFragmentShader[] =
         GLSL_VERSION_HEADER
-        "varying vec2 surfacePosition;\n"
-        "uniform float time;\n"
+        "in vec2 surfacePosition;\n"
+        "out vec4 color;\n"
 
+        "uniform float time;\n"
 
         "const float color_intensity = .5;\n"
         "const float Pi = 3.14159;\n"
@@ -165,55 +181,64 @@ const char defaultFragmentShader[] =
             "p=newp;\n"
           "}\n"
           "vec3 col=vec3((sin(p.x+p.y)*.91+.1)*color_intensity);\n"
-          "gl_FragColor=vec4(col, 1.0);\n"
+          "color=vec4(col, 1.0);\n"
         "}\n";
 
 class GlslViewer
 {
 public:
 
+    typedef glv::OperationResult LoadFileResult;
+
     GlslViewer(int argc, char **argv)
     {
-        std::string fragmentShader;
-        if (argc > 1)
+        std::string mesh = defaultMesh;
+        std::string vertexShader = defaultVertexShader;
+        std::string fragmentShader = defaultFragmentShader;
+        for (int i = 1; i < argc; ++i)
         {
-            std::ifstream shaderFile(argv[1]);
-            std::getline(shaderFile, fragmentShader, '\0');
-            if (!fragmentShader.empty())
-            {
-                fragmentShader.insert(0, GLSL_VERSION_HEADER);
-            }
-            title = std::string("/") + argv[1];
-            title = title.substr(title.find_last_of("\\/") + 1);
+            if  (endsWith(argv[i], ".obj"))
+                trace(readFile(argv[i], mesh), std::string("loading '") + argv[i] + "'");
+            else if  (endsWith(argv[i], ".vert"))
+                trace(readFile(argv[i], vertexShader), std::string("loading '") + argv[i] + "'");
+            else if (endsWith(argv[i], ".frag"))
+                trace(readFile(argv[i], fragmentShader), std::string("loading '") + argv[i] + "'");
         }
-        if (fragmentShader.empty())
-        {
-            title = "default";
-            fragmentShader = defaultFragmentShader;
-        }
-        createMesh();
-        createProgram(fragmentShader);
+        createMesh(mesh);
+        createProgram(vertexShader, fragmentShader);
     }
 
-    void createMesh()
+    LoadFileResult readFile(const char *filename, std::string &content)
+    {
+        Duration duration;
+        std::ifstream is(filename);
+        std::string tmpContent;
+        std::getline(is, tmpContent, '\0');
+        if (is.fail() && !is.eof())
+        {
+            return LoadFileResult(false, std::string("Cannot read '") + filename + "'!", duration.elapsed());
+        }
+        if (content.empty())
+        {
+            return LoadFileResult(false, std::string("File '") + filename + "' is empty !", duration.elapsed());
+        }
+        content = GLSL_VERSION_HEADER + tmpContent;
+        return LoadFileResult(true, "", duration.elapsed());
+    }
+
+    void createMesh(const std::string &objectMesh)
     {
         vfm::ObjModel model;
-        std::istringstream plane(
-            "v -1 -1 0\n"
-            "v -1  1 0\n"
-            "v  1  1 0\n"
-            "v  1 -1 0\n"
-            "f  1 2 3 4\n"
-        );
+        std::istringstream plane(objectMesh);
 
         plane >> model;
         trace(mesh.generate(model), "generating mesh");
     }
 
-    void createProgram(const std::string &fragmentShader)
+    void createProgram(const std::string &vertexShader, const std::string &fragmentShader)
     {
         glv::Shader vs(glv::Shader::VERTEX_SHADER);
-        trace(vs.compile(defaultVertexShader), "compiling vertex shader");
+        trace(vs.compile(vertexShader), "compiling vertex shader");
 
         glv::Shader fs(glv::Shader::FRAGMENT_SHADER);
         trace(fs.compile(fragmentShader), "compiling fragment shader");
