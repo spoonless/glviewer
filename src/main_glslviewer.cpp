@@ -2,8 +2,7 @@
 #include <sstream>
 #include <cstring>
 #include "gl.hpp"
-#include "glm/vec2.hpp"
-#include "GLFW/glfw3.h"
+#include "GlWindowContext.hpp"
 #include "Duration.hpp"
 #include "ShaderProgram.hpp"
 #include "GlMesh.hpp"
@@ -26,113 +25,6 @@ bool endsWith (const char *base, const char *str) {
     int slen = std::strlen(str);
     return (blen >= slen) && (0 == std::strcmp(base + blen - slen, str));
 }
-
-class glframework
-{
-public:
-    static void errorCallback(int error, const char* description)
-    {
-        std::cerr << "[" << error << "] " << description << std::endl;
-    }
-
-    static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
-    {
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        {
-            glfwSetWindowShouldClose(window, GL_TRUE);
-        }
-    }
-
-    static void windowSizeCallback(GLFWwindow* window, int width, int height)
-    {
-        glframework *glfw = static_cast<glframework*>(glfwGetWindowUserPointer(window));
-        if(glfw)
-        {
-            glfw->windowSize.x = width;
-            glfw->windowSize.y = height;
-            glViewport(0, 0, width, height);
-        }
-    }
-
-    glframework() : window(0)
-    {
-
-    }
-
-    ~glframework()
-    {
-        glfwTerminate();
-    }
-
-    bool init ()
-    {
-        glfwSetErrorCallback(errorCallback);
-        /* Initialize the library */
-        if (!glfwInit())
-        {
-            return false;
-        }
-
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-        /* Create a windowed mode window and its OpenGL context */
-        window = glfwCreateWindow(800, 600, "Viewer", NULL, NULL);
-        if (!window) {
-            return false;
-        }
-        glfwSetWindowTitle(window, "GLSL viewer");
-
-        glfwSetWindowUserPointer(window, this);
-        glfwSetWindowSizeCallback(window, windowSizeCallback);
-        int width,height = 0;
-        glfwGetWindowSize(window, &width, &height);
-        windowSize.x = width;
-        windowSize.y = height;
-        return true;
-    }
-
-    void makeCurrent()
-    {
-        if (window)
-        {
-            /* Make the window's context current */
-            glfwMakeContextCurrent(window);
-            glfwSetKeyCallback(window, keyCallback);
-        }
-    }
-
-    bool shouldContinue()
-    {
-        return !glfwWindowShouldClose(window);
-    }
-
-    void swapAndPollEvents()
-    {
-        /* Swap front and back buffers */
-        glfwSwapBuffers(window);
-
-        /* Poll for and process events */
-        glfwPollEvents();
-    }
-
-    glm::fvec2 getCursorPosition()
-    {
-        double x,y;
-        glfwGetCursorPos(this->window, &x, &y);
-        return glm::vec2(static_cast<float>(x/windowSize.x), static_cast<float>(1.0 - (y/windowSize.y)));
-    }
-
-    glm::vec2 getWindowSize()
-    {
-        return windowSize;
-    }
-
-private:
-    GLFWwindow *window;
-    glm::vec2 windowSize;
-};
 
 const char defaultMesh[] =
         "v -1 -1 0\n"
@@ -215,7 +107,7 @@ public:
         {
             return LoadFileResult(false, std::string("File '") + filename + "' is empty !", duration.elapsed());
         }
-        content = GLSL_VERSION_HEADER + tmpContent;
+        content = tmpContent;
         return LoadFileResult(true, "", duration.elapsed());
     }
 
@@ -261,13 +153,13 @@ public:
         return true;
     }
 
-    void operator()(glframework& glf)
+    void operator()(glv::GlWindowContext& glf)
     {
         program.use();
 
         if (timeUniform)
         {
-            *timeUniform = static_cast<float>(glfwGetTime());
+            *timeUniform = duration.elapsed() / 1000.0f;
         }
 
         if(mouseUniform)
@@ -284,6 +176,7 @@ public:
     }
 
 private:
+    Duration duration;
     glv::ShaderProgram program;
     glv::UniformDeclaration timeUniform;
     glv::UniformDeclaration mouseUniform;
@@ -293,25 +186,23 @@ private:
 
 int main(int argc, char **argv)
 {
-    glframework glfw;
-    if(!glfw.init())
+    glv::GlWindowContext glwc;
+    if(!glwc.init("GLSL viewer", 800, 600) || ! glwc.makeCurrent())
     {
-        std::cerr << "Cannot initialise GLFW" << std::endl;
+        std::cerr << "Cannot initialise OpenGL context" << std::endl;
         return false;
     }
-    glfw.makeCurrent();
-    gladLoadGL();
 
-    std::cout << "OpenGL version " << GLVersion.major << "." << GLVersion.minor << std::endl;
-
+    std::cout << "OpenGL version " << glGetString(GL_VERSION) << std::endl;
+    std::cout << "OpenGLSL version " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
     {
         GlslViewer viewer(argc, argv);
 
         /* Loop until the user closes the window */
-        while (glfw.shouldContinue())
+        while (glwc.shouldContinue())
         {
-            viewer(glfw);
-            glfw.swapAndPollEvents();
+            viewer(glwc);
+            glwc.swapAndPollEvents();
         }
     }
     return 0;
