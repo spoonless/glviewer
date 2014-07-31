@@ -1,14 +1,12 @@
 include(ExternalProject)
 ###############################################
-# Download and compile gtest
-# Note: pthread support is disabled for cross
-# compilation
+# Download and compile GLFW
 ###############################################
 
 if(CMAKE_CROSSCOMPILING AND CMAKE_TOOLCHAIN_FILE)
   get_filename_component(FULLPATH_CMAKE_TOOLCHAIN_FILE ${CMAKE_TOOLCHAIN_FILE} REALPATH)
   message(${FULLPATH_CMAKE_TOOLCHAIN_FILE})
-  set(GTEST_ADDITIONAL_CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=${FULLPATH_CMAKE_TOOLCHAIN_FILE})
+  set(GLFW_ADDITIONAL_CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=${FULLPATH_CMAKE_TOOLCHAIN_FILE})
 endif()
 
 ExternalProject_Add(
@@ -16,7 +14,7 @@ ExternalProject_Add(
   URL https://github.com/glfw/glfw/archive/3.0.4.zip
   URL_MD5 3dc81fc265df03715b1595e9cf80724e
   PREFIX "${CMAKE_CURRENT_BINARY_DIR}/glfw"
-  CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release -DGLFW_BUILD_DOCS=0 -DGLFW_BUILD_EXAMPLES=0 -DGLFW_BUILD_TESTS=0 -DGLFW_INSTALL=0 ${GTEST_ADDITIONAL_CMAKE_ARGS}
+  CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release -DGLFW_BUILD_DOCS=0 -DGLFW_BUILD_EXAMPLES=0 -DGLFW_BUILD_TESTS=0 -DGLFW_INSTALL=0 ${GLFW_ADDITIONAL_CMAKE_ARGS}
   INSTALL_COMMAND ""
 )
 

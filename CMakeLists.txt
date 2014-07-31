@@ -18,6 +18,8 @@ macro( config_executable PROJNAME )
     endforeach()
 endmacro()
 
+find_package(OpenGL REQUIRED)
+
 include("EmbedGlfw")
 include("EmbedGlm")
 
@@ -25,9 +27,7 @@ include("EmbedGlm")
 # main sources settings
 ###############################################
 
-include_directories("include")
-# necessary for mingw32
-include_directories("src")
+include_directories("include" "src")
 
 include_directories("${GLM_INCLUDE_DIR}")
 
@@ -53,14 +53,10 @@ add_library(core_sources STATIC
 
 add_dependencies(core_sources glm)
 
-config_executable(core_sources GLFW)
+config_executable(core_sources GLFW OPENGL)
 
 if(UNIX)
-  target_link_libraries(core_sources GL Xrandr Xi)
-
-elseif(WIN32)
-  target_link_libraries(core_sources opengl32)
-
+  target_link_libraries(core_sources Xrandr Xi)
 endif()
 
 ###############################################
@@ -89,7 +85,6 @@ target_link_libraries(simpleloader core_sources)
 ###############################################
 if(BUILD_UNITTESTS)
     include("EmbedGtest")
-    include_directories("src")
     add_executable(unittest
         tests/main.cpp
         tests/GlError_test.cpp
