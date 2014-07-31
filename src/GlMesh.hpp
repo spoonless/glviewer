@@ -3,6 +3,8 @@
 
 #include <vector>
 #include "gl.hpp"
+#include "glm/vec3.hpp"
+#include "glm/geometric.hpp"
 #include "OperationResult.hpp"
 #include "ObjModel.hpp"
 #include "UniformDeclaration.hpp"
@@ -12,6 +14,22 @@ namespace glv
 
 typedef OperationResult GlMeshGeneration;
 typedef OperationResult VertexAttributeDataDefinition;
+
+class BoundingBox
+{
+public:
+    BoundingBox();
+
+    glm::vec3 min;
+    glm::vec3 max;
+
+    void accept(float x, float y, float z);
+
+    inline glm::vec3 center() const
+    {
+        return (min + max) * 0.5f;
+    }
+};
 
 class GlMesh
 {
@@ -24,6 +42,11 @@ public:
 
     void render();
 
+    inline const BoundingBox &getBoundingBox() const
+    {
+        return _boundingBox;
+    }
+
 
 private:
     GlMesh(const GlMesh&);
@@ -33,6 +56,7 @@ private:
     void clear();
 
     GLuint _vertexArray;
+    BoundingBox _boundingBox;
     std::vector<GLuint> _buffers;
     std::vector<GLsizei> _primitivesCount;
 };

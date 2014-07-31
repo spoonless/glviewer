@@ -1,6 +1,24 @@
+#include <limits>
 #include "GlError.hpp"
 #include "Duration.hpp"
 #include "GlMesh.hpp"
+
+#define MAX_FLOAT std::numeric_limits<float>::max()
+#define MIN_FLOAT -std::numeric_limits<float>::max()
+
+glv::BoundingBox::BoundingBox() : min(MAX_FLOAT, MAX_FLOAT, MAX_FLOAT), max(MIN_FLOAT, MIN_FLOAT, MIN_FLOAT)
+{
+}
+
+void glv::BoundingBox::accept(float x, float y, float z)
+{
+    min.x = std::min(min.x, x);
+    min.y = std::min(min.y, y);
+    min.z = std::min(min.z, z);
+    max.x = std::max(max.x, x);
+    max.y = std::max(max.y, y);
+    max.z = std::max(max.z, z);
+}
 
 glv::GlMesh::GlMesh() : _vertexArray(0)
 {
@@ -38,6 +56,7 @@ void glv::GlMesh::clear()
     {
         glDeleteBuffers(_buffers.size(), &_buffers[0]);
     }
+    _boundingBox = BoundingBox();
     _buffers.clear();
     _buffers.resize(3);
     _primitivesCount.clear();
@@ -115,6 +134,7 @@ void glv::GlMesh::generate(const vfm::ObjModel &objModel, unsigned int channel, 
             case 0:
                 vec4 = &objModel.vertices[vertexIndex[channel] -1];
                 buffer[i++] = vec4->x / vec4->w; buffer[i++] = vec4->y / vec4->w; buffer[i++] = vec4->z / vec4->w;
+                _boundingBox.accept(buffer[i-3], buffer[i-2], buffer[i-1]);
                 break;
             case 1:
                 vec3 = &objModel.normals[vertexIndex[channel] -1];
