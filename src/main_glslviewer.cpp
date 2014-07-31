@@ -143,11 +143,11 @@ const char defaultMesh[] =
 
 const char defaultVertexShader[] =
         GLSL_VERSION_HEADER
-        "in vec3 vertices;\n"
+        "in vec2 position;\n"
         "out vec2 surfacePosition;\n"
         "void main(){\n"
-        "  gl_Position = vec4(vertices, 1);\n"
-        "  surfacePosition = vertices.xy;\n"
+        "  gl_Position = vec4(position, 0, 1);\n"
+        "  surfacePosition = position;\n"
         "}\n";
 
 const char defaultFragmentShader[] =
@@ -198,6 +198,7 @@ public:
         }
         createMesh(mesh);
         createProgram(vertexShader, fragmentShader);
+        defineVertexAttributes();
     }
 
     LoadFileResult readFile(const char *filename, std::string &content)
@@ -244,6 +245,20 @@ public:
         timeUniform = program.getActiveUniform("time");
         mouseUniform = program.getActiveUniform("mouse");
         resolutionUniform = program.getActiveUniform("resolution");
+    }
+
+    bool defineVertexAttributes()
+    {
+        glv::VertexAttributeDeclarationVector vadv;
+        program.extractActive(vadv);
+        for (glv::VertexAttributeDeclarationVector::iterator it = vadv.begin(); it != vadv.end(); ++it)
+        {
+            if(!trace(this->mesh.defineVertexAttributeData(*it), "binding vertex attribute"))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     void operator()(glframework& glf)

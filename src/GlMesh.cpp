@@ -99,14 +99,6 @@ glv::GlMeshGeneration glv::GlMesh::generate(const vfm::ObjModel &objModel)
     glBindVertexArray(_vertexArray);
     glBindBuffer(GL_ARRAY_BUFFER, _buffers[0]);
     glBufferData(GL_ARRAY_BUFFER, tmpBuffer.size() * sizeof(GLfloat), &tmpBuffer[0], GL_STATIC_DRAW);
-    glVertexAttribPointer(
-       0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-       3,                  // size
-       GL_FLOAT,           // type
-       GL_FALSE,           // normalized?
-       0,                  // stride
-       (void*)0            // array buffer offset
-    );
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     if (glError)
@@ -116,3 +108,66 @@ glv::GlMeshGeneration glv::GlMesh::generate(const vfm::ObjModel &objModel)
 
     return GlMeshGeneration(true, "", duration.elapsed());
 }
+
+size_t glv::GlMesh::getBufferIndex(const std::string &name)
+{
+    if (name == "position")
+    {
+        return 0;
+    }
+    else if (name == "normal")
+    {
+        return 1;
+    }
+    else if (name == "texture_coords")
+    {
+        return 2;
+    }
+    return _buffers.size();
+}
+
+glv::VertexAttributeDataDefinition glv::GlMesh::defineVertexAttributeData(const VertexAttributeDeclaration& vad)
+{
+    GlError glError;
+    GLuint bufferIndex = getBufferIndex(vad.getName());
+    if (bufferIndex >= _buffers.size() || _buffers[bufferIndex] == 0)
+    {
+        return VertexAttributeDataDefinition(false, std::string("No buffer available for vertex attribute '") + vad.getName() + "'");
+    }
+    if (vad.getSize() > 1)
+    {
+        return VertexAttributeDataDefinition(false, std::string("Vertex attribute '") + vad.getName() + "' cannot be an array");
+    }
+
+    GLint vertexAttributeSize = 0;
+    GLsizei stride = 0;
+    switch(vad.getType())
+    {
+    case GL_FLOAT_VEC3:
+        vertexAttributeSize = 3;
+        stride = 0;
+        break;
+    case GL_FLOAT_VEC2:
+        vertexAttributeSize = 2;
+        stride = 3*sizeof(GL_FLOAT);
+        break;
+    case GL_FLOAT:
+        vertexAttributeSize = 1;
+        stride = 3*sizeof(GL_FLOAT);
+        break;
+    default:
+        return VertexAttributeDataDefinition(false, std::string("Invalid type for vertex attribute '") + vad.getName() + "': expected float, vec2 or vec3.");
+    }
+
+    glBindVertexArray(_vertexArray);
+    glBindBuffer(GL_ARRAY_BUFFER, _buffers[bufferIndex]);
+    glVertexAttribPointer(vad.getIndex(), vertexAttributeSize, GL_FLOAT, (bufferIndex == 1 ? GL_TRUE : GL_FALSE), stride, (void*)0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    if (glError)
+    {
+        return VertexAttributeDataDefinition(false, glError.toString("defining vertex attribute"));
+    }
+    return VertexAttributeDataDefinition(true, "");
+}
+
