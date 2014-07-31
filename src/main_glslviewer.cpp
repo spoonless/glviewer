@@ -193,6 +193,8 @@ public:
                 trace(readFile(argv[i], vertexShader), std::string("loading '") + argv[i] + "'");
             else if (endsWith(argv[i], ".frag"))
                 trace(readFile(argv[i], fragmentShader), std::string("loading '") + argv[i] + "'");
+            else
+                std::cerr << "! Unknown argument '" << argv[i] << "'. Expecting *.obj, *.vert and/or *.frag file path." << std::endl;
         }
         createMesh(mesh);
         createProgram(vertexShader, fragmentShader);
