@@ -29,6 +29,7 @@ private:
     GlMesh(const GlMesh&);
     GlMesh& operator = (const GlMesh&);
     size_t getBufferIndex(const std::string &name);
+    void generate(const vfm::ObjModel &objModel, unsigned int channel, std::vector<GLfloat> &buffer);
     void clear();
 
     GLuint _vertexArray;

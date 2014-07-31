@@ -21,6 +21,16 @@ struct VertexIndex
 
     bool operator == (const VertexIndex &vi) const;
 
+    inline operator index_t*()
+    {
+        return &vertex;
+    }
+
+    inline operator const index_t*() const
+    {
+        return &vertex;
+    }
+
     index_t vertex;
     index_t normal;
     index_t texture;

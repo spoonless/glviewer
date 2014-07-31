@@ -39,6 +39,7 @@ void glv::GlMesh::clear()
         glDeleteBuffers(_buffers.size(), &_buffers[0]);
     }
     _buffers.clear();
+    _buffers.resize(3);
     _primitivesCount.clear();
 }
 
@@ -54,21 +55,6 @@ glv::GlMeshGeneration glv::GlMesh::generate(const vfm::ObjModel &objModel)
         return GlMeshGeneration(false, glError.toString("Error during vertex array generation"), duration.elapsed());
     }
 
-    bool buffersAvailable [] = {! objModel.vertices.empty(), ! objModel.normals.empty(), ! objModel.textures.empty()};
-    for(int i = 0; i < 3; ++i)
-    {
-        GLuint bufferId = 0;
-        if (buffersAvailable[i])
-        {
-            glGenBuffers(1, &bufferId);
-            if (glError)
-            {
-                return GlMeshGeneration(false, glError.toString("Error during buffer generation"), duration.elapsed());
-            }
-        }
-        _buffers.push_back(bufferId);
-    }
-
     unsigned int bufferElements = 0;
     for(vfm::ObjectVector::const_iterator it = objModel.objects.begin(); it != objModel.objects.end(); ++it)
     {
@@ -77,37 +63,76 @@ glv::GlMeshGeneration glv::GlMesh::generate(const vfm::ObjModel &objModel)
     }
 
     std::vector<GLfloat> tmpBuffer(bufferElements*3);
+
+    bool buffersAvailable [] = {! objModel.vertices.empty(), ! objModel.normals.empty(), ! objModel.textures.empty()};
+    glBindVertexArray(_vertexArray);
+    for(unsigned int i = 0; i < 3; ++i)
+    {
+        GLuint bufferId = 0;
+        if (buffersAvailable[i])
+        {
+            glGenBuffers(1, &bufferId);
+            if (glError)
+            {
+                glBindVertexArray(0);
+                return GlMeshGeneration(false, glError.toString("Error during buffer generation"), duration.elapsed());
+            }
+            _buffers[i] = bufferId;
+            generate(objModel, i, tmpBuffer);
+            if (glError)
+            {
+                glBindVertexArray(0);
+                return GlMeshGeneration(false, glError.toString("Error while copying buffer data"), duration.elapsed());
+            }
+        }
+    }
+    glBindVertexArray(0);
+    return GlMeshGeneration(true, "", duration.elapsed());
+}
+
+void glv::GlMesh::generate(const vfm::ObjModel &objModel, unsigned int channel, std::vector<GLfloat> &buffer)
+{
+    if (!_buffers[channel])
+    {
+        return;
+    }
+
     int i = 0;
+    const glm::vec4 *vec4 = 0;
+    const glm::vec3 *vec3 = 0;
     for(vfm::ObjectVector::const_iterator it = objModel.objects.begin(); it != objModel.objects.end(); ++it)
     {
         const vfm::Object &o = *it;
         for(vfm::IndexVector::const_iterator idx = o.triangles.begin(); idx != o.triangles.end(); ++idx)
         {
-            const vfm::VertexIndex &vertexIndex = o.vertexIndices[*idx];
-            if (vertexIndex.vertex == 0)
+            const vfm::index_t *vertexIndex = o.vertexIndices[*idx];
+            if (vertexIndex[channel] == 0)
             {
-                tmpBuffer[i++] = 0; tmpBuffer[i++] = 0; tmpBuffer[i++] = 0;
+                buffer[i++] = 0; buffer[i++] = 0; buffer[i++] = 0;
             }
-            else
+            else switch(channel)
             {
-                const glm::vec4 &vec = objModel.vertices[vertexIndex.vertex -1];
-                tmpBuffer[i++] = vec.x / vec.w; tmpBuffer[i++] = vec.y / vec.w; tmpBuffer[i++] = vec.z / vec.w;
+            case 0:
+                vec4 = &objModel.vertices[vertexIndex[channel] -1];
+                buffer[i++] = vec4->x / vec4->w; buffer[i++] = vec4->y / vec4->w; buffer[i++] = vec4->z / vec4->w;
+                break;
+            case 1:
+                vec3 = &objModel.normals[vertexIndex[channel] -1];
+                buffer[i++] = vec3->x; buffer[i++] = vec3->y; buffer[i++] = vec3->z;
+                break;
+            case 2:
+                vec3 = &objModel.textures[vertexIndex[channel] -1];
+                buffer[i++] = vec3->x; buffer[i++] = vec3->y; buffer[i++] = vec3->z;
+                break;
             }
         }
     }
 
-    glBindVertexArray(_vertexArray);
-    glBindBuffer(GL_ARRAY_BUFFER, _buffers[0]);
-    glBufferData(GL_ARRAY_BUFFER, tmpBuffer.size() * sizeof(GLfloat), &tmpBuffer[0], GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, _buffers[channel]);
+    glBufferData(GL_ARRAY_BUFFER, buffer.size() * sizeof(GLfloat), &buffer[0], GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-    if (glError)
-    {
-        return GlMeshGeneration(false, glError.toString("Error while copying buffer data"), duration.elapsed());
-    }
-
-    return GlMeshGeneration(true, "", duration.elapsed());
 }
+
 
 size_t glv::GlMesh::getBufferIndex(const std::string &name)
 {
@@ -119,7 +144,7 @@ size_t glv::GlMesh::getBufferIndex(const std::string &name)
     {
         return 1;
     }
-    else if (name == "texture_coords")
+    else if (name == "texture_coord")
     {
         return 2;
     }
