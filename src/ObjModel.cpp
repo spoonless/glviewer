@@ -76,7 +76,7 @@ bool vfm::VertexIndex::operator == (const VertexIndex &vi) const
 std::istream & vfm::operator >> (std::istream &is, glm::vec3 &v)
 {
     is >> v.x;
-    if(is)
+    if(is.good())
     {
         is >> v.y;
         if (is.fail())
@@ -85,7 +85,7 @@ std::istream & vfm::operator >> (std::istream &is, glm::vec3 &v)
             v.z = 0;
             is.clear();
         }
-        else if(is)
+        else if(is.good())
         {
             is >> v.z;
             if (is.fail())
@@ -101,7 +101,7 @@ std::istream & vfm::operator >> (std::istream &is, glm::vec3 &v)
 std::istream & vfm::operator >> (std::istream &is, glm::vec4 &v)
 {
     is >> v.x >> v.y >> v.z;
-    if (is)
+    if (is.good())
     {
         is >> v.w;
         // w is optional, no matter if the stream has not
@@ -118,14 +118,14 @@ std::istream & vfm::operator >> (std::istream &is, glm::vec4 &v)
 std::istream & vfm::operator >> (std::istream &is, VertexIndex &vi)
 {
     is >> vi.vertex;
-    if (is && is.peek() == '/')
+    if (is.good() && is.peek() == '/')
     {
         is.ignore(1);
-        if(is && is.peek() != '/')
+        if(is.good() && is.peek() != '/')
         {
             is >> vi.texture;
         }
-        if(is && is.peek() == '/')
+        if(is.good() && is.peek() == '/')
         {
             is.ignore(1);
             is >> vi.normal;
@@ -137,18 +137,19 @@ std::istream & vfm::operator >> (std::istream &is, VertexIndex &vi)
 std::istream & vfm::operator >> (std::istream &is, VertexIndexVector &viv)
 {
     bool eol = false;
-    while(is && !eol)
+    while(is.good() && !eol)
     {
         VertexIndex vi;
         is >> vi;
         viv.push_back(vi);
-        while (is && !eol)
+        while (is.good())
         {
             int c = is.peek();
             if (c == '#' || c == '\n')
             {
                 is >> eatline;
                 eol = true;
+                break;
             }
             else if (std::isspace(c))
             {
@@ -206,7 +207,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
     VertexIndexVector face;
     Object *object = 0;
 
-    while (is && is >> token)
+    while (is >> token)
     {
         if (! token.empty() && token[0] == '#')
         {
@@ -224,19 +225,19 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
         {
             // read new vertex
             is >> vec4;
-            if(!is.bad()) model.vertices.push_back(vec4);
+            if(!is.fail()) model.vertices.push_back(vec4);
         }
         else if (token == "vt")
         {
             // read texture coordinates
             is >> vec3;
-            if (!is.bad()) model.textures.push_back(vec3);
+            if (!is.fail()) model.textures.push_back(vec3);
         }
         else if (token == "vn")
         {
             // read normals coordinates
             is >> vec3;
-            if (!is.bad()) model.normals.push_back(vec3);
+            if (!is.fail()) model.normals.push_back(vec3);
         }
         else if (token == "f")
         {
@@ -251,7 +252,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
             // read faces indices
             is >> face;
 
-            if(!is.bad())
+            if(!is.fail())
             {
                 polygons.clear();
                 for(vfm::VertexIndexVector::iterator it = face.begin(); it < face.end(); ++it)
@@ -262,7 +263,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
                 createTriangles(polygons, object->triangles);
             }
         }
-        else if(is)
+        else
         {
             // ignore line
             is >> eatline;

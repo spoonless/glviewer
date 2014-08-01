@@ -10,19 +10,6 @@
 #include "ShaderProgram.hpp"
 #include "GlMesh.hpp"
 
-static bool trace(const glv::OperationResult &r, const std::string &context)
-{
-    if (r)
-    {
-        std::cout << "* " << context << " in " << r.duration() << "ms." << std::endl << r.message() << std::endl;
-    }
-    else
-    {
-        std::cerr << "! " << context << ":" << std::endl << r.message() << std::endl;
-    }
-    return r.ok();
-}
-
 bool endsWith (const char *base, const char *str) {
     int blen = std::strlen(base);
     int slen = std::strlen(str);
@@ -75,25 +62,25 @@ public:
 
     typedef glv::OperationResult LoadFileResult;
 
-    GlslViewer(int argc, char **argv)
+    GlslViewer(int argc, char **argv) : failure(false)
     {
-        std::string mesh = defaultMesh;
+        const char *objFilename = 0;
         std::string vertexShader = defaultVertexShader;
         std::string fragmentShader = defaultFragmentShader;
-        for (int i = 1; i < argc; ++i)
+        for (int i = 1; good() && i < argc; ++i)
         {
             if  (endsWith(argv[i], ".obj"))
-                trace(readFile(argv[i], mesh), std::string("loading '") + argv[i] + "'");
+                objFilename = argv[i];
             else if  (endsWith(argv[i], ".vert"))
-                trace(readFile(argv[i], vertexShader), std::string("loading '") + argv[i] + "'");
+                check(readFile(argv[i], vertexShader), std::string("loading '") + argv[i] + "'");
             else if (endsWith(argv[i], ".frag"))
-                trace(readFile(argv[i], fragmentShader), std::string("loading '") + argv[i] + "'");
+                check(readFile(argv[i], fragmentShader), std::string("loading '") + argv[i] + "'");
             else
                 std::cerr << "! Unknown argument '" << argv[i] << "'. Expecting *.obj, *.vert and/or *.frag file path." << std::endl;
         }
-        createMesh(mesh);
-        createProgram(vertexShader, fragmentShader);
-        defineVertexAttributes();
+        if (good()) createMesh(objFilename);
+        if (good()) createProgram(vertexShader, fragmentShader);
+        if (good()) defineVertexAttributes();
     }
 
     LoadFileResult readFile(const char *filename, std::string &content)
@@ -102,49 +89,67 @@ public:
         std::ifstream is(filename);
         std::string tmpContent;
         std::getline(is, tmpContent, '\0');
-        if (is.fail() && !is.eof())
+        if (!is.eof() && is.fail())
         {
-            return LoadFileResult(false, std::string("Cannot read '") + filename + "'!", duration.elapsed());
+            return LoadFileResult(false, "Cannot read file (maybe the path is wrong)!", duration.elapsed());
         }
-        if (content.empty())
+        if (tmpContent.empty())
         {
-            return LoadFileResult(false, std::string("File '") + filename + "' is empty !", duration.elapsed());
+            return LoadFileResult(false, "File is empty!", duration.elapsed());
         }
         content = tmpContent;
         return LoadFileResult(true, "", duration.elapsed());
     }
 
-    void createMesh(const std::string &objectMesh)
+    void createMesh(const char *objFilename)
     {
         vfm::ObjModel model;
-        std::istringstream plane(objectMesh);
-
-        plane >> model;
-        trace(mesh.generate(model), "generating mesh");
+        if(objFilename)
+        {
+            std::ifstream is(objFilename);
+            is >> model;
+            if(!is.eof() && is.fail())
+            {
+                check(LoadFileResult(false, "Cannot read file (maybe the path is wrong)!", 0), std::string("loading '") + objFilename + "'");
+                return;
+            }
+        }
+        else
+        {
+            std::istringstream modelStream(defaultMesh);
+            modelStream >> model;
+        }
+        check(mesh.generate(model), "generating mesh");
     }
 
     void createProgram(const std::string &vertexShader, const std::string &fragmentShader)
     {
         glv::Shader vs(glv::Shader::VERTEX_SHADER);
-        trace(vs.compile(vertexShader), "compiling vertex shader");
+        check(vs.compile(vertexShader), "compiling vertex shader");
 
         glv::Shader fs(glv::Shader::FRAGMENT_SHADER);
-        trace(fs.compile(fragmentShader), "compiling fragment shader");
+        check(fs.compile(fragmentShader), "compiling fragment shader");
 
-        trace(program.attach(vs), "attaching vertex shader to GLSL program");
-        trace(program.attach(fs), "attaching fragment shader to GLSL program");
-        trace(program.link(), "linking GLSL program");
+        if (good())
+        {
+            check(program.attach(vs), "attaching vertex shader to GLSL program");
+            check(program.attach(fs), "attaching fragment shader to GLSL program");
+            check(program.link(), "linking GLSL program");
+        }
 
-        program.use();
+        if(good())
+        {
+            program.use();
 
-        timeUniform = program.getActiveUniform("time");
-        mouseUniform = program.getActiveUniform("mouse");
-        resolutionUniform = program.getActiveUniform("resolution");
-        modelMatrixUniform = program.getActiveUniform("modelMat");
-        viewMatrixUniform = program.getActiveUniform("viewMat");
-        projectionMatrixUniform = program.getActiveUniform("projectionMat");
-        mvMatrixUniform = program.getActiveUniform("mvMat");
-        mvpMatrixUniform = program.getActiveUniform("mvpMat");
+            timeUniform = program.getActiveUniform("time");
+            mouseUniform = program.getActiveUniform("mouse");
+            resolutionUniform = program.getActiveUniform("resolution");
+            modelMatrixUniform = program.getActiveUniform("modelMat");
+            viewMatrixUniform = program.getActiveUniform("viewMat");
+            projectionMatrixUniform = program.getActiveUniform("projectionMat");
+            mvMatrixUniform = program.getActiveUniform("mvMat");
+            mvpMatrixUniform = program.getActiveUniform("mvpMat");
+        }
     }
 
     bool defineVertexAttributes()
@@ -153,7 +158,7 @@ public:
         program.extractActive(vadv);
         for (glv::VertexAttributeDeclarationVector::iterator it = vadv.begin(); it != vadv.end(); ++it)
         {
-            if(!trace(this->mesh.defineVertexAttributeData(*it), "binding vertex attribute"))
+            if(!check(this->mesh.defineVertexAttributeData(*it), "binding vertex attribute"))
             {
                 return false;
             }
@@ -217,7 +222,27 @@ public:
         mesh.render();
     }
 
+    inline bool good() const
+    {
+        return !failure;
+    }
+
 private:
+    bool check(const glv::OperationResult &r, const std::string &context)
+    {
+        if (r)
+        {
+            std::cout << "* " << context << " in " << r.duration() << "ms." << std::endl << "  " << r.message() << std::endl;
+        }
+        else
+        {
+            failure = true;
+            std::cerr << "! " << context << ":" << std::endl << "  " << r.message() << std::endl;
+        }
+        return r.ok();
+    }
+
+    bool failure;
     Duration duration;
     glv::ShaderProgram program;
     glv::UniformDeclaration timeUniform;
@@ -243,16 +268,19 @@ int main(int argc, char **argv)
     std::cout << "OpenGL version " << glGetString(GL_VERSION) << std::endl;
     std::cout << "OpenGLSL version " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
     {
-        glClearColor(0.5f,0.5f,0.5f,1.0f);
-        glEnable(GL_DEPTH_TEST);
         GlslViewer viewer(argc, argv);
 
-        /* Loop until the user closes the window */
-        while (glwc.shouldContinue())
+        if (viewer.good())
         {
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            viewer.update(glwc);
-            glwc.swapAndPollEvents();
+            glClearColor(0.5f,0.5f,0.5f,1.0f);
+            glEnable(GL_DEPTH_TEST);
+            /* Loop until the user closes the window */
+            while (glwc.shouldContinue())
+            {
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                viewer.update(glwc);
+                glwc.swapAndPollEvents();
+            }
         }
     }
     return 0;
