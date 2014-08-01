@@ -149,6 +149,7 @@ public:
             projectionMatrixUniform = program.getActiveUniform("projectionMat");
             mvMatrixUniform = program.getActiveUniform("mvMat");
             mvpMatrixUniform = program.getActiveUniform("mvpMat");
+            normalMatrixUniform = program.getActiveUniform("normalMat");
         }
     }
 
@@ -219,6 +220,11 @@ public:
         {
             *mvpMatrixUniform = projectionMatrix * viewMatrix * modelMatrix;
         }
+
+        if(normalMatrixUniform)
+        {
+            *normalMatrixUniform = glm::transpose(glm::inverse(glm::mat3(viewMatrix * modelMatrix)));
+        }
         mesh.render();
     }
 
@@ -253,6 +259,7 @@ private:
     glv::UniformDeclaration projectionMatrixUniform;
     glv::UniformDeclaration mvMatrixUniform;
     glv::UniformDeclaration mvpMatrixUniform;
+    glv::UniformDeclaration normalMatrixUniform;
     glv::GlMesh mesh;
 };
 
