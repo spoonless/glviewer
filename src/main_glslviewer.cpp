@@ -1,7 +1,10 @@
+#define GLM_FORCE_RADIANS
 #include <iostream>
 #include <sstream>
 #include <cstring>
+#include <cmath>
 #include "gl.hpp"
+#include "glm/gtx/transform.hpp"
 #include "GlWindowContext.hpp"
 #include "Duration.hpp"
 #include "ShaderProgram.hpp"
@@ -137,6 +140,11 @@ public:
         timeUniform = program.getActiveUniform("time");
         mouseUniform = program.getActiveUniform("mouse");
         resolutionUniform = program.getActiveUniform("resolution");
+        modelMatrixUniform = program.getActiveUniform("modelMat");
+        viewMatrixUniform = program.getActiveUniform("viewMat");
+        projectionMatrixUniform = program.getActiveUniform("projectionMat");
+        mvMatrixUniform = program.getActiveUniform("mvMat");
+        mvpMatrixUniform = program.getActiveUniform("mvpMat");
     }
 
     bool defineVertexAttributes()
@@ -153,7 +161,7 @@ public:
         return true;
     }
 
-    void operator()(glv::GlWindowContext& glf)
+    void update(glv::GlWindowContext& glf)
     {
         program.use();
 
@@ -162,16 +170,50 @@ public:
             *timeUniform = duration.elapsed() / 1000.0f;
         }
 
+        glm::vec2 cursorPosition = glf.getCursorPosition();
         if(mouseUniform)
         {
-            *mouseUniform = glf.getCursorPosition();
+            *mouseUniform = cursorPosition;
         }
+
+        glm::vec2 windowSize = glf.getWindowSize();
+        const glv::BoundingBox &boundingBox = mesh.getBoundingBox();
+        glm::mat4x4 modelMatrix = glm::translate(-boundingBox.center());
+        float distance = glm::distance(boundingBox.min, boundingBox.max) / 2 + .55f;
+        glm::mat4x4 viewMatrix = glm::lookAt(glm::vec3(0,0,distance), glm::vec3(0,0,0), glm::normalize(glm::vec3(0,0.5,-0.5)));
+        viewMatrix = glm::rotate(viewMatrix, cursorPosition.x * static_cast<float>(M_PI) * 4, glm::vec3(0,1,0));
+        viewMatrix = glm::rotate(viewMatrix, cursorPosition.y * static_cast<float>(M_PI) * 4, glm::vec3(0,0,1));
+        glm::mat4x4 projectionMatrix = glm::perspectiveFov(static_cast<float>(M_PI_2 *0.9), windowSize.x, windowSize.y, .5f, distance*2.0f);
 
         if(resolutionUniform)
         {
-            *resolutionUniform = glf.getWindowSize();
+            *resolutionUniform = windowSize;
         }
 
+        if(modelMatrixUniform)
+        {
+            *modelMatrixUniform = modelMatrix;
+        }
+
+        if(viewMatrixUniform)
+        {
+            *viewMatrixUniform = viewMatrix;
+        }
+
+        if(projectionMatrixUniform)
+        {
+            *projectionMatrixUniform = projectionMatrix;
+        }
+
+        if(mvMatrixUniform)
+        {
+            *mvMatrixUniform = viewMatrix * modelMatrix;
+        }
+
+        if(mvpMatrixUniform)
+        {
+            *mvpMatrixUniform = projectionMatrix * viewMatrix * modelMatrix;
+        }
         mesh.render();
     }
 
@@ -181,6 +223,11 @@ private:
     glv::UniformDeclaration timeUniform;
     glv::UniformDeclaration mouseUniform;
     glv::UniformDeclaration resolutionUniform;
+    glv::UniformDeclaration modelMatrixUniform;
+    glv::UniformDeclaration viewMatrixUniform;
+    glv::UniformDeclaration projectionMatrixUniform;
+    glv::UniformDeclaration mvMatrixUniform;
+    glv::UniformDeclaration mvpMatrixUniform;
     glv::GlMesh mesh;
 };
 
@@ -196,12 +243,15 @@ int main(int argc, char **argv)
     std::cout << "OpenGL version " << glGetString(GL_VERSION) << std::endl;
     std::cout << "OpenGLSL version " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
     {
+        glClearColor(0.5f,0.5f,0.5f,1.0f);
+        glEnable(GL_DEPTH_TEST);
         GlslViewer viewer(argc, argv);
 
         /* Loop until the user closes the window */
         while (glwc.shouldContinue())
         {
-            viewer(glwc);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            viewer.update(glwc);
             glwc.swapAndPollEvents();
         }
     }
