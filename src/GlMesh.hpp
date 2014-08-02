@@ -58,6 +58,7 @@ private:
     GLuint _vertexArray;
     BoundingBox _boundingBox;
     std::vector<GLuint> _buffers;
+    std::vector<GLuint> _definedVertexAttributes;
     std::vector<GLsizei> _primitivesCount;
 };
 

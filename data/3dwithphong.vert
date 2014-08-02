@@ -4,8 +4,8 @@ uniform mat4 mvMat;
 uniform mat4 mvpMat;
 uniform mat3 normalMat;
 
-in vec3 normal;
 in vec3 position;
+in vec3 normal;
 
 smooth out vec3 normalFrag;
 smooth out vec3 positionFrag;

@@ -387,3 +387,25 @@ TEST(ShaderProgram, canExtractAttributeDeclarationWhenOneAttribute)
     ASSERT_EQ(static_cast<size_t>(1), vector.size());
     ASSERT_EQ(VertexAttributeDeclaration(0, 1, GL_FLOAT_VEC4, "vertices"), vector[0]);
 }
+
+TEST(ShaderProgram, canExtractAttributeDeclarationWhenSeveralAttributes)
+{
+    ShaderProgram shaderProgram;
+    const char* source =
+            GLSL_VERSION_HEADER
+            "in float magnitude;"
+            "layout(location=2) in vec4 vertices;"
+            "void main() {"
+            " gl_Position = vertices * magnitude;"
+            "}";
+
+    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    ASSERT_TRUE(shaderProgram.link());
+
+    VertexAttributeDeclarationVector vector;
+    shaderProgram.extractActive(vector);
+
+    ASSERT_EQ(static_cast<size_t>(2), vector.size());
+    ASSERT_EQ(VertexAttributeDeclaration(0, 1, GL_FLOAT, "magnitude"), vector[0]);
+    ASSERT_EQ(VertexAttributeDeclaration(2, 1, GL_FLOAT_VEC4, "vertices"), vector[1]);
+}

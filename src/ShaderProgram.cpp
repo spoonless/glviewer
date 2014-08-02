@@ -264,7 +264,12 @@ void ShaderProgram::extractActive(VertexAttributeDeclarationVector& vector)
                 vector.clear();
                 break;
             }
-            vector.push_back(VertexAttributeDeclaration(i, activeAttributeSize, activeAttributeType, activeAttributeName));
+            GLuint attributeLocation = glGetAttribLocation(_shaderProgramId, activeAttributeName);
+            if (glError) {
+                vector.clear();
+                break;
+            }
+            vector.push_back(VertexAttributeDeclaration(attributeLocation, activeAttributeSize, activeAttributeType, activeAttributeName));
         }
         delete[]activeAttributeName;
     }

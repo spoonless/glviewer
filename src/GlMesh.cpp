@@ -1,4 +1,5 @@
 #include <limits>
+#include <algorithm>
 #include "GlError.hpp"
 #include "Duration.hpp"
 #include "GlMesh.hpp"
@@ -27,7 +28,7 @@ glv::GlMesh::GlMesh() : _vertexArray(0)
 void glv::GlMesh::render()
 {
     glBindVertexArray(_vertexArray);
-    glEnableVertexAttribArray(0);
+    std::for_each(_definedVertexAttributes.begin(), _definedVertexAttributes.end(), glEnableVertexAttribArray);
 
     GLint firstPrimitive = 0;
     for(std::vector<GLsizei>::iterator it = _primitivesCount.begin(); it != _primitivesCount.end(); ++it)
@@ -35,7 +36,8 @@ void glv::GlMesh::render()
         glDrawArrays(GL_TRIANGLES, firstPrimitive, *it);
         firstPrimitive += *it;
     }
-    glDisableVertexAttribArray(0);
+
+    std::for_each(_definedVertexAttributes.begin(), _definedVertexAttributes.end(), glDisableVertexAttribArray);
     glBindVertexArray(0);
 }
 
@@ -59,6 +61,7 @@ void glv::GlMesh::clear()
     _boundingBox = BoundingBox();
     _buffers.clear();
     _buffers.resize(3);
+    _definedVertexAttributes.clear();
     _primitivesCount.clear();
 }
 
@@ -213,6 +216,7 @@ glv::VertexAttributeDataDefinition glv::GlMesh::defineVertexAttributeData(const 
     {
         return VertexAttributeDataDefinition(false, glError.toString("defining vertex attribute"));
     }
+    _definedVertexAttributes.push_back(vad.getIndex());
     return VertexAttributeDataDefinition(true, "");
 }
 
