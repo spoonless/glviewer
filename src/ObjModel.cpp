@@ -1,8 +1,6 @@
 #include <map>
-#include <limits>
-#include <algorithm>
-#include "ObjModel.hpp"
 #include "glm/geometric.hpp"
+#include "ObjModel.hpp"
 
 namespace
 {
