@@ -290,7 +290,7 @@ void vfm::ObjModel::computeNormals(bool normalized)
             glm::vec3 b(this->vertices[vertexIndices[1]->vertex-1]);
             glm::vec3 c(this->vertices[vertexIndices[2]->vertex-1]);
 
-            glm::vec3 normal = glm::cross(b-a, c-a);
+            glm::vec3 normal = glm::normalize(glm::cross(b-a, c-a));
             for (int i = 0; i < 3; ++i)
             {
                 index_t vertexIndex = vertexIndices[i]->vertex;
