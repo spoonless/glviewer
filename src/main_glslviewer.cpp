@@ -18,9 +18,9 @@ bool endsWith (const char *base, const char *str) {
 
 const char defaultMesh[] =
         "v -1 -1 0\n"
-        "v -1  1 0\n"
-        "v  1  1 0\n"
         "v  1 -1 0\n"
+        "v  1  1 0\n"
+        "v -1  1 0\n"
         "f  1 2 3 4";
 
 const char defaultVertexShader[] =
@@ -119,6 +119,12 @@ public:
             std::istringstream modelStream(defaultMesh);
             modelStream >> model;
         }
+
+        if (model.normals.empty())
+        {
+            model.computeNormals();
+        }
+
         check(mesh.generate(model), "generating mesh");
     }
 
@@ -185,7 +191,7 @@ public:
         glm::vec2 windowSize = glf.getWindowSize();
         const glv::BoundingBox &boundingBox = mesh.getBoundingBox();
         glm::mat4x4 modelMatrix = glm::translate(-boundingBox.center());
-        float distance = glm::distance(boundingBox.min, boundingBox.max);
+        float distance = glm::distance(boundingBox.min, boundingBox.max) * 0.75f;
         glm::mat4x4 viewMatrix = glm::lookAt(glm::vec3(0,0,distance), glm::vec3(0,0,0), glm::normalize(glm::vec3(0,0.5,-0.5)));
         viewMatrix = glm::rotate(viewMatrix, cursorPosition.x * static_cast<float>(M_PI) * 4, glm::vec3(0,1,0));
         viewMatrix = glm::rotate(viewMatrix, cursorPosition.y * static_cast<float>(M_PI) * 4, glm::vec3(0,0,1));
@@ -281,6 +287,8 @@ int main(int argc, char **argv)
         {
             glClearColor(0.5f,0.5f,0.5f,1.0f);
             glEnable(GL_DEPTH_TEST);
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_BACK);
             /* Loop until the user closes the window */
             while (glwc.shouldContinue())
             {

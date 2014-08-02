@@ -1,6 +1,8 @@
 #include <map>
 #include <limits>
+#include <algorithm>
 #include "ObjModel.hpp"
+#include "glm/geometric.hpp"
 
 namespace
 {
@@ -271,4 +273,40 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
     }
 
     return is;
+}
+
+void vfm::ObjModel::computeNormals(bool normalized)
+{
+    this->normals.clear();
+    this->normals.resize(this->vertices.size());
+    VertexIndex *vertexIndices[3];
+    for(ObjectVector::iterator itObj = this->objects.begin(); itObj != this->objects.end(); ++itObj)
+    {
+        Object *o = &(*itObj);
+        for(IndexVector::iterator it = o->triangles.begin(); it != o->triangles.end(); ++it)
+        {
+            vertexIndices[0] = &o->vertexIndices[*it++];
+            vertexIndices[1] = &o->vertexIndices[*it++];
+            vertexIndices[2] = &o->vertexIndices[*it];
+            glm::vec3 a(this->vertices[vertexIndices[0]->vertex-1]);
+            glm::vec3 b(this->vertices[vertexIndices[1]->vertex-1]);
+            glm::vec3 c(this->vertices[vertexIndices[2]->vertex-1]);
+
+            glm::vec3 normal = glm::cross(b-a, c-a);
+            for (int i = 0; i < 3; ++i)
+            {
+                index_t vertexIndex = vertexIndices[i]->vertex;
+                this->normals[vertexIndex - 1] += normal;
+                vertexIndices[i]->normal = vertexIndex;
+            }
+        }
+    }
+
+    if(normalized)
+    {
+        for(Vec3Vector::iterator itNormal = this->normals.begin(); itNormal != this->normals.end(); ++itNormal)
+        {
+            *itNormal = glm::normalize(*itNormal);
+        }
+    }
 }
