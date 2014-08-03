@@ -212,3 +212,36 @@ TEST(ObjModel, canTriangulate)
     ASSERT_EQ(vfm::VertexIndex(4, 0, 0), vertexIndices[triangles[11]]);
 }
 
+TEST(ObjModel, canReadNegativeIndices)
+{
+    vfm::ObjModel model;
+
+    std::istringstream stream(
+        "v 1 0 0\n"
+        "v 2 0 0\n"
+        "v 3 0 0\n"
+        "f 1 2 3\n"
+        "f -3 -2 -1\n"
+    );
+
+    stream >> model;
+
+    ASSERT_EQ(1u, model.objects.size());
+
+    vfm::VertexIndexVector &vertexIndices = model.objects[0].vertexIndices;
+    vfm::IndexVector &triangles = model.objects[0].triangles;
+
+    ASSERT_EQ(3u, vertexIndices.size());
+
+    ASSERT_EQ(vfm::VertexIndex(1, 0, 0), vertexIndices[0]);
+    ASSERT_EQ(vfm::VertexIndex(2, 0, 0), vertexIndices[1]);
+    ASSERT_EQ(vfm::VertexIndex(3, 0, 0), vertexIndices[2]);
+
+    ASSERT_EQ(0u, triangles[0]);
+    ASSERT_EQ(1u, triangles[1]);
+    ASSERT_EQ(2u, triangles[2]);
+
+    ASSERT_EQ(0u, triangles[3]);
+    ASSERT_EQ(1u, triangles[4]);
+    ASSERT_EQ(2u, triangles[5]);
+}

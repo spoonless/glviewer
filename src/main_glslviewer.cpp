@@ -106,12 +106,17 @@ public:
         vfm::ObjModel model;
         if(objFilename)
         {
+            Duration loadfileDuration;
             std::ifstream is(objFilename);
             is >> model;
             if(!is.eof() && is.fail())
             {
                 check(LoadFileResult(false, "Cannot read file (maybe the path is wrong)!", 0), std::string("loading '") + objFilename + "'");
                 return;
+            }
+            else
+            {
+                check(LoadFileResult(true, "", loadfileDuration.elapsed()), std::string("loading '") + objFilename + "'");
             }
         }
         else

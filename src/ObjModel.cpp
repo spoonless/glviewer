@@ -257,6 +257,18 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
                 polygons.clear();
                 for(vfm::VertexIndexVector::iterator it = face.begin(); it < face.end(); ++it)
                 {
+                    if(it->vertex < 0)
+                    {
+                        it->vertex = std::max(0ul, model.vertices.size() + it->vertex + 1);
+                    }
+                    if(it->normal < 0)
+                    {
+                        it->normal = std::max(0ul, model.normals.size() + it->normal + 1);
+                    }
+                    if(it->texture < 0)
+                    {
+                        it->texture = std::max(0ul, model.textures.size() + it->texture + 1);
+                    }
                     polygons.push_back(vertexIndexIndexer.getIndex(*it));
                 }
 

@@ -21,19 +21,19 @@ struct VertexIndex
 
     bool operator == (const VertexIndex &vi) const;
 
-    inline operator index_t*()
+    inline operator long*()
     {
         return &vertex;
     }
 
-    inline operator const index_t*() const
+    inline operator const long*() const
     {
         return &vertex;
     }
 
-    index_t vertex;
-    index_t normal;
-    index_t texture;
+    long vertex;
+    long normal;
+    long texture;
 };
 
 typedef std::vector<VertexIndex> VertexIndexVector;
