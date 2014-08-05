@@ -218,6 +218,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
     vfm::IndexVector polygons;
     VertexIndexVector face(10);
     VertexIndexIndexer vertexIndexIndexer;
+    MaterialActivation materialActivation;
     Object *object = 0;
     size_t lineCapacity = BUFFER_CHUNK_SIZE;
     char *line = static_cast<char*>(std::malloc(lineCapacity));
@@ -228,8 +229,19 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
 
         if(!std::strncmp("o ", line, 2))
         {
+            bool reuseMaterial = false;
+            if (object != 0 && !object->materialActivations.empty())
+            {
+                object->materialActivations.back().end = object->triangles.size();
+                reuseMaterial = true;
+            }
             model.objects.push_back(Object());
             object = &model.objects.back();
+            if (reuseMaterial)
+            {
+                materialActivation.start = object->triangles.size();
+                object->materialActivations.push_back(materialActivation);
+            }
             vertexIndexIndexer << *object;
             object->name = line+2;
         }
@@ -268,6 +280,36 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
 
             createTriangles(polygons, object->triangles);
         }
+        else if (!std::strncmp("usemtl ", line, 7))
+        {
+            if (object == 0)
+            {
+                model.objects.push_back(Object());
+                object = &model.objects.back();
+                vertexIndexIndexer << *object;
+            }
+            materialActivation.name = line + 7;
+            if (!object->materialActivations.empty())
+            {
+                MaterialActivation &previousMaterialActivation = object->materialActivations.back();
+                previousMaterialActivation.end = object->triangles.size();
+                if (previousMaterialActivation.start == previousMaterialActivation.end)
+                {
+                    object->materialActivations.pop_back();
+                }
+            }
+            materialActivation.start = object->triangles.size();
+            object->materialActivations.push_back(materialActivation);
+        }
+        else if (!std::strncmp("mtllib ", line, 7))
+        {
+            model.materialLibraries.push_back(line + 7);
+            materialActivation.materialLibrary = model.materialLibraries.size();
+        }
+    }
+    if (object != 0 && !object->materialActivations.empty())
+    {
+        object->materialActivations.back().end = object->triangles.size();
     }
 
     std::free(line);

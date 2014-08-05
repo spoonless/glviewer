@@ -245,3 +245,60 @@ TEST(ObjModel, canReadNegativeIndices)
     ASSERT_EQ(1u, triangles[4]);
     ASSERT_EQ(2u, triangles[5]);
 }
+
+TEST(ObjModel, canLoadMaterial)
+{
+    vfm::ObjModel model;
+
+    std::istringstream stream(
+        "mtllib test\n"
+        "f 1 2 3\n"
+        "f 1 2 3\n"
+        "usemtl t\n"
+        "f 1 2 3\n"
+        "usemtl t1\n"
+        "f 1 2 3\n"
+        "f 1 2 3\n"
+        "f 1 2 3\n"
+        "f 1 2 3\n"
+        "f 1 2 3\n"
+        "usemtl t\n"
+        "f 1 2 3\n"
+        "o another object\n"
+        "f 1 2 3\n"
+    );
+
+    stream >> model;
+
+    ASSERT_EQ(2u, model.objects.size());
+
+    vfm::MaterialActivationVector *materialActivations = &model.objects[0].materialActivations;
+    ASSERT_EQ(3u, materialActivations->size());
+
+    vfm::MaterialActivation *materialActivation = &materialActivations->at(0);
+    ASSERT_EQ("t", materialActivation->name);
+    ASSERT_EQ(1u, materialActivation->materialLibrary);
+    ASSERT_EQ(6u, materialActivation->start);
+    ASSERT_EQ(9u, materialActivation->end);
+
+    materialActivation = &materialActivations->at(1);
+    ASSERT_EQ("t1", materialActivation->name);
+    ASSERT_EQ(1u, materialActivation->materialLibrary);
+    ASSERT_EQ(9u, materialActivation->start);
+    ASSERT_EQ(24u, materialActivation->end);
+
+    materialActivation = &materialActivations->at(2);
+    ASSERT_EQ("t", materialActivation->name);
+    ASSERT_EQ(1u, materialActivation->materialLibrary);
+    ASSERT_EQ(24u, materialActivation->start);
+    ASSERT_EQ(27u, materialActivation->end);
+
+    materialActivations = &model.objects[1].materialActivations;
+    ASSERT_EQ(1u, materialActivations->size());
+
+    materialActivation = &materialActivations->at(0);
+    ASSERT_EQ("t", materialActivation->name);
+    ASSERT_EQ(1u, materialActivation->materialLibrary);
+    ASSERT_EQ(0u, materialActivation->start);
+    ASSERT_EQ(3u, materialActivation->end);
+}
