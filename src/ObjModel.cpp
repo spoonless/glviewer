@@ -155,6 +155,50 @@ inline void createTriangles(const vfm::IndexVector &polygons, vfm::IndexVector &
     }
 }
 
+void read (const char *line, const vfm::ObjModel &model, vfm::VertexIndexVector &face)
+{
+    const char *token = line;
+    char* endToken = 0;
+    vfm::VertexIndex vertexIndex;
+    while(*token != 0 && std::isspace(*token))
+    {
+        vertexIndex.vertex = vertexIndex.normal = vertexIndex.texture = 0;
+
+        vertexIndex.vertex = std::strtol(token, &endToken, 10);
+        if(vertexIndex.vertex < 0)
+        {
+            vertexIndex.vertex = std::max(0ul, model.vertices.size() + vertexIndex.vertex + 1);
+        }
+
+        if (token == endToken)
+        {
+            break;
+        }
+
+        token = endToken;
+        if (*endToken == '/')
+        {
+            vertexIndex.texture = std::strtol(++token, &endToken, 10);
+            if(vertexIndex.texture < 0)
+            {
+                vertexIndex.texture = std::max(0ul, model.textures.size() + vertexIndex.texture + 1);
+            }
+            token = endToken;
+        }
+        if (*endToken == '/')
+        {
+            vertexIndex.normal = std::strtol(++token, &endToken, 10);
+            if(vertexIndex.normal < 0)
+            {
+                vertexIndex.normal = std::max(0ul, model.normals.size() + vertexIndex.normal + 1);
+            }
+            token = endToken;
+        }
+
+        face.push_back(vertexIndex);
+    }
+}
+
 }
 
 vfm::VertexIndex::VertexIndex (index_t vertex, index_t normal, index_t texture)
@@ -180,34 +224,31 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
 
     while(is.good() && !is.eof())
     {
-        char *token = readline(is, line, lineCapacity);
+        line = readline(is, line, lineCapacity);
 
-        if(!std::strncmp("o ", token, 2))
+        if(!std::strncmp("o ", line, 2))
         {
             model.objects.push_back(Object());
             object = &model.objects.back();
             vertexIndexIndexer << *object;
-            object->name = token+2;
+            object->name = line+2;
         }
-        else if(!std::strncmp("v ", token, 2))
+        else if(!std::strncmp("v ", line, 2))
         {
-            token +=2;
-            read(token, vec4);
+            read(line+2, vec4);
             model.vertices.push_back(vec4);
         }
-        else if(!std::strncmp("vt ", token, 3))
+        else if(!std::strncmp("vt ", line, 3))
         {
-            token +=3;
-            read(token, vec3);
+            read(line+3, vec3);
             model.textures.push_back(vec3);
         }
-        else if(!std::strncmp("vn ", token, 3))
+        else if(!std::strncmp("vn ", line, 3))
         {
-            token +=3;
-            read(token, vec3);
+            read(line+3, vec3);
             model.normals.push_back(vec3);
         }
-        else if (!std::strncmp("f ", token, 2))
+        else if (!std::strncmp("f ", line, 2))
         {
             if (object == 0)
             {
@@ -217,51 +258,11 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
             }
 
             face.clear();
-            ++token;
-            while(*token != 0 && std::isspace(*token))
-            {
-                long vertexIndice = 0;
-                long textureIndice = 0;
-                long normalIndice = 0;
-
-                char *endToken = 0;
-                vertexIndice = std::strtol(token, &endToken, 10);
-
-                if (token == endToken)
-                {
-                    break;
-                }
-
-                token = endToken;
-                if (*endToken == '/')
-                {
-                    textureIndice = std::strtol(++token, &endToken, 10);
-                    token = endToken;
-                }
-                if (*endToken == '/')
-                {
-                    normalIndice = std::strtol(++token, &endToken, 10);
-                    token = endToken;
-                }
-
-                face.push_back(VertexIndex(vertexIndice, normalIndice, textureIndice));
-            }
+            read(line+1, model, face);
 
             polygons.clear();
             for(vfm::VertexIndexVector::iterator it = face.begin(); it < face.end(); ++it)
             {
-                if(it->vertex < 0)
-                {
-                    it->vertex = std::max(0ul, model.vertices.size() + it->vertex + 1);
-                }
-                if(it->normal < 0)
-                {
-                    it->normal = std::max(0ul, model.normals.size() + it->normal + 1);
-                }
-                if(it->texture < 0)
-                {
-                    it->texture = std::max(0ul, model.textures.size() + it->texture + 1);
-                }
                 polygons.push_back(vertexIndexIndexer.getIndex(*it));
             }
 
