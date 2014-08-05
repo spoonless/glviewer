@@ -1,3 +1,6 @@
+#include <cstdlib>
+#include <cstring>
+#include <sstream>
 #include <map>
 #include "glm/geometric.hpp"
 #include "ObjModel.hpp"
@@ -56,114 +59,69 @@ private:
     VertexIndexMap _vertexIndexPtrMap;
 };
 
-inline std::istream& eatline (std::istream& is)
-{
-    return is.ignore(std::numeric_limits<long>::max(), '\n');
-}
+const size_t BUFFER_CHUNK_SIZE = 1024 * sizeof(char);
 
-}
-
-vfm::VertexIndex::VertexIndex (index_t vertex, index_t normal, index_t texture)
-    : vertex(vertex), normal(normal), texture(texture)
+inline char* readline(std::istream &is, char *&line, size_t &lineCapacity)
 {
-}
-
-bool vfm::VertexIndex::operator == (const VertexIndex &vi) const
-{
-    return this->vertex == vi.vertex && this->normal == vi.normal && this->texture == vi.texture;
-}
-
-std::istream & vfm::operator >> (std::istream &is, glm::vec3 &v)
-{
-    is >> v.x;
-    if(is.good())
+    is.getline(line, lineCapacity);
+    std::streamsize nbRead = 0;
+    while((is.rdstate() & std::istream::failbit) && is.gcount() > 0 && !is.eof())
     {
-        is >> v.y;
-        if (is.fail())
+        nbRead += is.gcount();
+        is.clear();
+        line = static_cast<char*>(std::realloc(line, lineCapacity + BUFFER_CHUNK_SIZE));
+        is.getline(line + nbRead, BUFFER_CHUNK_SIZE);
+        lineCapacity += BUFFER_CHUNK_SIZE;
+    }
+
+    for(char *end = line; *end != 0; ++end)
+    {
+        if (*end == '#' || *end == '\r')
         {
-            v.y = 0;
-            v.z = 0;
-            is.clear();
-        }
-        else if(is.good())
-        {
-            is >> v.z;
-            if (is.fail())
-            {
-                v.z = 0;
-                is.clear();
-            }
+            *end = 0;
+            break;
         }
     }
-    return is;
+
+    return line;
 }
 
-std::istream & vfm::operator >> (std::istream &is, glm::vec4 &v)
+inline char* read(const char *line, glm::vec4 &vec4)
 {
-    is >> v.x >> v.y >> v.z;
-    if (is.good())
+    const char *token = line;
+    vec4.x = vec4.y = vec4.z = 0;
+    vec4.w = 1;
+    char *endToken = 0;
+    for (int i = 0; i < 4; ++i)
     {
-        is >> v.w;
-        // w is optional, no matter if the stream has not
-        // succeeded in reading it
-        if (is.fail())
+        vec4[i] = static_cast<float>(strtod(token, &endToken));
+        token = endToken;
+        if(!std::isspace(*token))
         {
-            v.w = 1;
-            is.clear();
+            break;
         }
     }
-    return is;
+    return endToken;
 }
 
-std::istream & vfm::operator >> (std::istream &is, VertexIndex &vi)
+inline char* read(const char *line, glm::vec3 &vec3)
 {
-    is >> vi.vertex;
-    if (is.good() && is.peek() == '/')
+    const char *token = line;
+    vec3.x = vec3.y = vec3.z = 0;
+    char *endToken = 0;
+    for (int i = 0; i < 3; ++i)
     {
-        is.ignore(1);
-        if(is.good() && is.peek() != '/')
+        vec3[i] = static_cast<float>(strtod(token, &endToken));
+        token = endToken;
+        if(!std::isspace(*token))
         {
-            is >> vi.texture;
-        }
-        if(is.good() && is.peek() == '/')
-        {
-            is.ignore(1);
-            is >> vi.normal;
+            break;
         }
     }
-    return is;
+    return endToken;
 }
 
-std::istream & vfm::operator >> (std::istream &is, VertexIndexVector &viv)
-{
-    bool eol = false;
-    while(is.good() && !eol)
-    {
-        VertexIndex vi;
-        is >> vi;
-        viv.push_back(vi);
-        while (is.good())
-        {
-            int c = is.peek();
-            if (c == '#' || c == '\n')
-            {
-                is >> eatline;
-                eol = true;
-                break;
-            }
-            else if (std::isspace(c))
-            {
-                is.get();
-            }
-            else {
-                break;
-            }
-        }
-    }
-    return is;
-}
-
-static void createTriangles(const vfm::IndexVector &polygons, vfm::IndexVector &triangles)
+inline void createTriangles(const vfm::IndexVector &polygons, vfm::IndexVector &triangles)
 {
     vfm::index_t nbIndices = polygons.size();
     if (nbIndices < 3)
@@ -197,49 +155,59 @@ static void createTriangles(const vfm::IndexVector &polygons, vfm::IndexVector &
     }
 }
 
+}
+
+vfm::VertexIndex::VertexIndex (index_t vertex, index_t normal, index_t texture)
+    : vertex(vertex), normal(normal), texture(texture)
+{
+}
+
+bool vfm::VertexIndex::operator == (const VertexIndex &vi) const
+{
+    return this->vertex == vi.vertex && this->normal == vi.normal && this->texture == vi.texture;
+}
+
 std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
 {
-    std::string token;
-    glm::vec4 vec4;
     glm::vec3 vec3;
-    VertexIndexIndexer vertexIndexIndexer;
+    glm::vec4 vec4;
     vfm::IndexVector polygons;
-    VertexIndexVector face;
+    VertexIndexVector face(10);
+    VertexIndexIndexer vertexIndexIndexer;
     Object *object = 0;
+    size_t lineCapacity = BUFFER_CHUNK_SIZE;
+    char *line = static_cast<char*>(std::malloc(lineCapacity));
 
-    while (is >> token)
+    while(is.good() && !is.eof())
     {
-        if (! token.empty() && token[0] == '#')
-        {
-            // ignore comments
-            is >> eatline;
-        }
-        else if (token == "o")
+        char *token = readline(is, line, lineCapacity);
+
+        if(!std::strncmp("o ", token, 2))
         {
             model.objects.push_back(Object());
             object = &model.objects.back();
             vertexIndexIndexer << *object;
-            is >> object->name;
+            object->name = token+2;
         }
-        else if (token == "v")
+        else if(!std::strncmp("v ", token, 2))
         {
-            // read new vertex
-            is >> vec4;
-            if(!is.fail()) model.vertices.push_back(vec4);
+            token +=2;
+            read(token, vec4);
+            model.vertices.push_back(vec4);
         }
-        else if (token == "vt")
+        else if(!std::strncmp("vt ", token, 3))
         {
-            // read texture coordinates
-            is >> vec3;
-            if (!is.fail()) model.textures.push_back(vec3);
+            token +=3;
+            read(token, vec3);
+            model.textures.push_back(vec3);
         }
-        else if (token == "vn")
+        else if(!std::strncmp("vn ", token, 3))
         {
-            // read normals coordinates
-            is >> vec3;
-            if (!is.fail()) model.normals.push_back(vec3);
+            token +=3;
+            read(token, vec3);
+            model.normals.push_back(vec3);
         }
-        else if (token == "f")
+        else if (!std::strncmp("f ", token, 2))
         {
             if (object == 0)
             {
@@ -249,38 +217,59 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
             }
 
             face.clear();
-            // read faces indices
-            is >> face;
-
-            if(!is.fail())
+            ++token;
+            while(*token != 0 && std::isspace(*token))
             {
-                polygons.clear();
-                for(vfm::VertexIndexVector::iterator it = face.begin(); it < face.end(); ++it)
+                long vertexIndice = 0;
+                long textureIndice = 0;
+                long normalIndice = 0;
+
+                char *endToken = 0;
+                vertexIndice = std::strtol(token, &endToken, 10);
+
+                if (token == endToken)
                 {
-                    if(it->vertex < 0)
-                    {
-                        it->vertex = std::max(0ul, model.vertices.size() + it->vertex + 1);
-                    }
-                    if(it->normal < 0)
-                    {
-                        it->normal = std::max(0ul, model.normals.size() + it->normal + 1);
-                    }
-                    if(it->texture < 0)
-                    {
-                        it->texture = std::max(0ul, model.textures.size() + it->texture + 1);
-                    }
-                    polygons.push_back(vertexIndexIndexer.getIndex(*it));
+                    break;
                 }
 
-                createTriangles(polygons, object->triangles);
+                token = endToken;
+                if (*endToken == '/')
+                {
+                    textureIndice = std::strtol(++token, &endToken, 10);
+                    token = endToken;
+                }
+                if (*endToken == '/')
+                {
+                    normalIndice = std::strtol(++token, &endToken, 10);
+                    token = endToken;
+                }
+
+                face.push_back(VertexIndex(vertexIndice, normalIndice, textureIndice));
             }
-        }
-        else
-        {
-            // ignore line
-            is >> eatline;
+
+            polygons.clear();
+            for(vfm::VertexIndexVector::iterator it = face.begin(); it < face.end(); ++it)
+            {
+                if(it->vertex < 0)
+                {
+                    it->vertex = std::max(0ul, model.vertices.size() + it->vertex + 1);
+                }
+                if(it->normal < 0)
+                {
+                    it->normal = std::max(0ul, model.normals.size() + it->normal + 1);
+                }
+                if(it->texture < 0)
+                {
+                    it->texture = std::max(0ul, model.textures.size() + it->texture + 1);
+                }
+                polygons.push_back(vertexIndexIndexer.getIndex(*it));
+            }
+
+            createTriangles(polygons, object->triangles);
         }
     }
+
+    std::free(line);
 
     return is;
 }
