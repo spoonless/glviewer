@@ -61,6 +61,18 @@ private:
 
 const size_t BUFFER_CHUNK_SIZE = 1024 * sizeof(char);
 
+inline char* tokenize(char *line)
+{
+    char *start = line;
+    for(; std::isspace(*start) && *start != 0; ++start);
+
+    char *end = start;
+    for(; !std::isspace(*end) && *end != 0; ++end);
+    *end = 0;
+
+    return start;
+}
+
 inline char* readline(std::istream &is, char *&line, size_t &lineCapacity)
 {
     is.getline(line, lineCapacity);
@@ -223,7 +235,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
     size_t lineCapacity = BUFFER_CHUNK_SIZE;
     char *line = static_cast<char*>(std::malloc(lineCapacity));
 
-    while(is.good() && !is.eof())
+    while(is.good())
     {
         line = readline(is, line, lineCapacity);
 
@@ -243,7 +255,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
                 object->materialActivations.push_back(materialActivation);
             }
             vertexIndexIndexer << *object;
-            object->name = line+2;
+            object->name = tokenize(line+2);
         }
         else if(!std::strncmp("v ", line, 2))
         {
@@ -288,7 +300,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
                 object = &model.objects.back();
                 vertexIndexIndexer << *object;
             }
-            materialActivation.name = line + 7;
+            materialActivation.name = tokenize(line + 7);
             if (!object->materialActivations.empty())
             {
                 MaterialActivation &previousMaterialActivation = object->materialActivations.back();
@@ -303,7 +315,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
         }
         else if (!std::strncmp("mtllib ", line, 7))
         {
-            model.materialLibraries.push_back(line + 7);
+            model.materialLibraries.push_back(tokenize(line + 7));
             materialActivation.materialLibrary = model.materialLibraries.size();
         }
     }
@@ -316,6 +328,53 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
 
     return is;
 }
+
+std::istream & vfm::operator >> (std::istream &is, vfm::MaterialMap &materialMap)
+{
+    size_t lineCapacity = BUFFER_CHUNK_SIZE;
+    char *line = static_cast<char*>(std::malloc(lineCapacity));
+    vfm::Material *material = 0;
+
+    while(is.good())
+    {
+        line = readline(is, line, lineCapacity);
+
+        if (!std::strncmp(line, "newmtl ", 7))
+        {
+            material = &materialMap[std::string(tokenize(line+7))];
+        }
+        else if (material != 0)
+        {
+            if (!std::strncmp(line, "Ka ", 3))
+            {
+                read(line+3, material->color.ambiant);
+            }
+            else if (!std::strncmp(line, "Kd ", 3))
+            {
+                read(line+3, material->color.diffuse);
+            }
+            else if (!std::strncmp(line, "Ks ", 3))
+            {
+                read(line+3, material->color.specular);
+            }
+            else if (!std::strncmp(line, "d ", 2))
+            {
+                material->color.dissolved = static_cast<float>(std::atof(line+2));
+            }
+            else if (!std::strncmp(line, "Tr ", 3))
+            {
+                material->color.dissolved = static_cast<float>(std::atof(line+3));
+            }
+            else if (!std::strncmp(line, "Ns ", 3))
+            {
+                material->color.specularCoeff = static_cast<float>(std::max(0.0, std::min(1000.0, std::atof(line+3))));
+            }
+        }
+    }
+
+    return is;
+}
+
 
 void vfm::ObjModel::computeNormals(bool normalized)
 {

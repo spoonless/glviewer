@@ -246,7 +246,7 @@ TEST(ObjModel, canReadNegativeIndices)
     ASSERT_EQ(2u, triangles[5]);
 }
 
-TEST(ObjModel, canLoadMaterial)
+TEST(ObjModel, canLoadMaterialActivation)
 {
     vfm::ObjModel model;
 
@@ -301,4 +301,30 @@ TEST(ObjModel, canLoadMaterial)
     ASSERT_EQ(1u, materialActivation->materialLibrary);
     ASSERT_EQ(0u, materialActivation->start);
     ASSERT_EQ(3u, materialActivation->end);
+}
+
+TEST(ObjModel, canLoadMaterialLibrary)
+{
+    vfm::MaterialMap materialMap;
+
+    std::istringstream stream(
+        "newmtl test\n"
+        "Ka 1.000 1.000 1.000\n"
+        "Kd 1.000 0.000 1.000\n"
+        "Ks 0.000 0.000 1.000\n"
+        "Ns 10\n"
+        "d 0.9\n"
+    );
+
+    stream >> materialMap;
+
+    ASSERT_TRUE(materialMap.find("test") != materialMap.end());
+
+    vfm::Material &material = materialMap["test"];
+
+    ASSERT_EQ(glm::vec3(1.0 ,1.0, 1.0), material.color.ambiant);
+    ASSERT_EQ(glm::vec3(1.0 ,0.0, 1.0), material.color.diffuse);
+    ASSERT_EQ(glm::vec3(0.0 ,0.0, 1.0), material.color.specular);
+    ASSERT_EQ(0.9f, material.color.dissolved);
+    ASSERT_EQ(10.0f, material.color.specularCoeff);
 }

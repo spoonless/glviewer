@@ -4,6 +4,7 @@
 #include <vector>
 #include <fstream>
 #include <string>
+#include <map>
 
 #include "glm/vec4.hpp"
 #include "glm/vec3.hpp"
@@ -14,6 +15,24 @@ namespace vfm
 typedef unsigned int index_t;
 typedef std::vector<glm::vec4> Vec4Vector;
 typedef std::vector<glm::vec3> Vec3Vector;
+
+struct Color
+{
+    Color() : ambiant(1.0f, 1.0f, 1.0f), diffuse(1.0f, 1.0f, 1.0f), specularCoeff(0.0f), dissolved(0.0f) {}
+
+    glm::vec3 ambiant;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+    float specularCoeff;
+    float dissolved;
+};
+
+struct Material
+{
+    Color color;
+};
+
+typedef std::map<std::string, Material> MaterialMap;
 
 struct VertexIndex
 {
@@ -74,6 +93,7 @@ struct ObjModel
 
 std::istream & operator >> (std::istream &is, ObjModel &vfm);
 
+std::istream & operator >> (std::istream &is, MaterialMap &materialMap);
 }
 
 #endif // OBJMODEL_HPP
