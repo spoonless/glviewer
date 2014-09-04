@@ -34,6 +34,8 @@ include_directories("${GLM_INCLUDE_DIR}")
 add_library(core_sources STATIC
     src/gl.hpp
     src/glad.c
+    src/Path.hpp
+    src/Path.cpp
     src/Duration.hpp
     src/Duration.cpp
     src/GlError.hpp
