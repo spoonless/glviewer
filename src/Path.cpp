@@ -2,14 +2,14 @@
 #include "Path.hpp"
 
 #ifdef WIN32
-const char system::Path::SEPARATOR = '\\';
+const char sys::Path::SEPARATOR = '\\';
 #define ALTERNATE_SEPARATOR '/'
 #else
-const char system::Path::SEPARATOR = '/';
+const char sys::Path::SEPARATOR = '/';
 #define ALTERNATE_SEPARATOR '\\'
 #endif
 
-system::Path::Path(const char *path): _length(0), _absoluteSectionLength(0), _path(0)
+sys::Path::Path(const char *path): _length(0), _absoluteSectionLength(0), _path(0)
 {
     if(path != 0)
     {
@@ -24,7 +24,7 @@ system::Path::Path(const char *path): _length(0), _absoluteSectionLength(0), _pa
     }
 }
 
-system::Path::Path(const Path &path): _length(path._length), _absoluteSectionLength(path._absoluteSectionLength), _path(0)
+sys::Path::Path(const Path &path): _length(path._length), _absoluteSectionLength(path._absoluteSectionLength), _path(0)
 {
     if(this->_length > 0)
     {
@@ -33,7 +33,7 @@ system::Path::Path(const Path &path): _length(path._length), _absoluteSectionLen
     }
 }
 
-system::Path::Path(const Path &parent, const Path &path): _length(path._length), _absoluteSectionLength(0), _path(0)
+sys::Path::Path(const Path &parent, const Path &path): _length(path._length), _absoluteSectionLength(0), _path(0)
 {
     if(path.absolute())
     {
@@ -43,21 +43,34 @@ system::Path::Path(const Path &parent, const Path &path): _length(path._length),
     }
     else
     {
-        // TODO handle the case where parent path does not end with a separator
+        bool need_separator = parent._length > 0 && parent._path[parent._length - 1] != Path::SEPARATOR;
         this->_absoluteSectionLength = parent._absoluteSectionLength;
-        this->_length += parent._length;
-        this->_path = new char[this->_length+1];
-        std::memcpy(this->_path, parent._path, parent._length * sizeof(char));
-        std::memcpy(this->_path + parent._length, path._path, (path._length +1) * sizeof(char));
+        this->_length += parent._length + need_separator;
+        if (this->_length > 0) {
+            this->_path = new char[this->_length + 1];
+            if (parent._length > 0)
+            {
+                std::memcpy(this->_path, parent._path, parent._length * sizeof(char));
+                if (need_separator)
+                {
+                    this->_path[parent._length] = Path::SEPARATOR;
+                    this->_path[parent._length + 1] = 0;
+                }
+            }
+            if (path._length > 0)
+            {
+                std::memcpy(this->_path + parent._length + need_separator, path._path, (path._length + 1) * sizeof(char));
+            }
+        }
     }
 }
 
-system::Path::~Path()
+sys::Path::~Path()
 {
     delete[] this->_path;
 }
 
-system::Path& system::Path::operator = (const Path &path)
+sys::Path& sys::Path::operator = (const Path &path)
 {
     if(this->_length < path._length)
     {
@@ -66,18 +79,20 @@ system::Path& system::Path::operator = (const Path &path)
     }
     this->_length = path._length;
     this->_absoluteSectionLength = path._absoluteSectionLength;
-    std::memcpy(this->_path, path._path, (this->_length +1) * sizeof(char));
+    if (this->_path)
+    {
+        this->_path[0] = 0;
+        if(path._path)
+        {
+            std::memcpy(this->_path, path._path, (this->_length + 1) * sizeof(char));
+        }
+    }
     return *this;
-}
-
-system::Path::operator const char*() const
-{
-    return this->_path;
 }
 
 #ifdef WIN32
 
-void system::Path::computeAbsoluteSectionLength()
+void sys::Path::computeAbsoluteSectionLength()
 {
     this->_absoluteSectionLength = 0;
     if(this->_length > 0)
@@ -108,14 +123,36 @@ void system::Path::computeAbsoluteSectionLength()
 
 #else
 
-void system::Path::computeAbsoluteSectionLength()
+sys::Path::operator const char*() const
+{
+    return this->_path != 0 ? this->_path : "";
+}
+
+
+const char *sys::Path::basename() const
+{
+    if (this->_length == 0)
+    {
+        return "";
+    }
+    for (int i = this->_length - 1; i >= 0; --i)
+    {
+        if(this->_path[i] == Path::SEPARATOR)
+        {
+            return &this->_path[i+1];
+        }
+    }
+    return this->_path;
+}
+
+void sys::Path::computeAbsoluteSectionLength()
 {
     this->_absoluteSectionLength = this->_length > 0 && this->_path[0] == Path::SEPARATOR ? 1 : 0;
 }
 
 #endif
 
-void system::Path::normalize()
+void sys::Path::normalize()
 {
     if(this->_path != 0)
     {

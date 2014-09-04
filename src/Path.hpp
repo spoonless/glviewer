@@ -1,7 +1,7 @@
 #ifndef PATH_H
 #define PATH_H
 
-namespace system
+namespace sys
 {
 
 class Path
@@ -15,12 +15,15 @@ public:
     ~Path();
 
     Path& operator = (const Path &path);
+
     operator const char*() const;
 
     inline bool absolute() const
     {
         return _absoluteSectionLength > 0;
     }
+
+    const char *basename() const;
 
 private:
     void normalize();

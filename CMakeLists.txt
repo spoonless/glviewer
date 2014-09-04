@@ -91,6 +91,7 @@ if(BUILD_UNITTESTS)
     include("EmbedGtest")
     add_executable(unittest
         tests/main.cpp
+        tests/Path_test.cpp
         tests/GlError_test.cpp
         tests/ObjModel_test.cpp
         tests/Shader_test.cpp
