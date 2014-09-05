@@ -61,14 +61,13 @@ struct MaterialActivation
 
     unsigned long start;
     unsigned long end;
-    unsigned long materialLibrary;
+    std::string materialLibrary;
     std::string name;
 };
 
 typedef std::vector<MaterialActivation> MaterialActivationVector;
 typedef std::vector<VertexIndex> VertexIndexVector;
 typedef std::vector<index_t> IndexVector;
-typedef std::vector<std::string> MaterialLibraryVector;
 
 struct Object
 {
@@ -86,7 +85,6 @@ struct ObjModel
     Vec3Vector normals;
     Vec3Vector textures;
     ObjectVector objects;
-    MaterialLibraryVector materialLibraries;
 
     void computeNormals(bool normalized = false);
 };

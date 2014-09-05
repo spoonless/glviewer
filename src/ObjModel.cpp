@@ -315,8 +315,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
         }
         else if (!std::strncmp("mtllib ", line, 7))
         {
-            model.materialLibraries.push_back(tokenize(line + 7));
-            materialActivation.materialLibrary = model.materialLibraries.size();
+            materialActivation.materialLibrary = tokenize(line + 7);
         }
     }
     if (object != 0 && !object->materialActivations.empty())
