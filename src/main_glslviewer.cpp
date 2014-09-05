@@ -6,6 +6,7 @@
 #include "gl.hpp"
 #include "glm/gtx/transform.hpp"
 #include "GlWindowContext.hpp"
+#include "Path.hpp"
 #include "Duration.hpp"
 #include "ShaderProgram.hpp"
 #include "GlMesh.hpp"
@@ -130,7 +131,43 @@ public:
             model.computeNormals();
         }
 
+        std::map<std::string, vfm::MaterialMap> materialMaps;
+        loadMaterialMaps(objFilename, model, materialMaps);
+
         check(mesh.generate(model), "generating mesh");
+    }
+
+    void loadMaterialMaps(const char *objFilename,  vfm::ObjModel &model, std::map<std::string, vfm::MaterialMap> &materialMaps)
+    {
+        sys::Path objFilepath(objFilename);
+        sys::Path currentPath = objFilepath.dirpath();
+        std::string defaultMaterialLibrary = std::string(objFilepath.withoutExtension()) + ".mtl";
+        for(vfm::ObjectVector::iterator objit = model.objects.begin(); objit != model.objects.end(); ++objit)
+        {
+            for(vfm::MaterialActivationVector::iterator matit = objit->materialActivations.begin(); matit != objit->materialActivations.end(); ++matit)
+            {
+                if (matit->materialLibrary.empty())
+                {
+                    matit->materialLibrary = defaultMaterialLibrary;
+                }
+                if (materialMaps.find(matit->materialLibrary) == materialMaps.end())
+                {
+                    sys::Path mtlfile(currentPath, matit->materialLibrary.c_str());
+                    sys::Duration loadfileDuration;
+                    std::ifstream isMat(mtlfile);
+                    isMat >> materialMaps[matit->materialLibrary];
+                    if(!isMat.eof() && isMat.fail())
+                    {
+                        check(LoadFileResult(false, "Cannot read file (maybe the path is wrong)!", 0), std::string("loading '") + static_cast<const char*>(mtlfile) + "'");
+                        materialMaps.erase(matit->materialLibrary);
+                    }
+                    else
+                    {
+                        check(LoadFileResult(true, "", loadfileDuration.elapsed()), std::string("loading '") + static_cast<const char*>(mtlfile) + "'");
+                    }
+                }
+            }
+        }
     }
 
     void createProgram(const std::string &vertexShader, const std::string &fragmentShader)
