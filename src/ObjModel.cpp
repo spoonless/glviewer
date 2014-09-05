@@ -372,6 +372,8 @@ std::istream & vfm::operator >> (std::istream &is, vfm::MaterialMap &materialMap
         }
     }
 
+    std::free(line);
+
     return is;
 }
 
