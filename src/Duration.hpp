@@ -1,6 +1,9 @@
 #ifndef DURATION_H
 #define DURATION_H
 
+namespace sys
+{
+
 class Duration
 {
 public:
@@ -15,5 +18,8 @@ public:
 private:
     unsigned long _start;
 };
+
+}
+
 
 #endif // DURATION_H

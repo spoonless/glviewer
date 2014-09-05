@@ -12,19 +12,19 @@ inline unsigned long getTime()
 
 }
 
-Duration::Duration()
+sys::Duration::Duration()
     :_start(getTime())
 {
 
 }
 
-Duration::Duration(const Duration& duration)
+sys::Duration::Duration(const Duration& duration)
     :_start(duration._start)
 {
 
 }
 
-Duration& Duration::operator = (const Duration& duration)
+sys::Duration& sys::Duration::operator = (const Duration& duration)
 {
     if (this != &duration)
     {
@@ -33,7 +33,7 @@ Duration& Duration::operator = (const Duration& duration)
     return *this;
 }
 
-unsigned long Duration::elapsed() const
+unsigned long sys::Duration::elapsed() const
 {
     return static_cast<unsigned long>(getTime() - _start);
 }

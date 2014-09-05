@@ -128,7 +128,7 @@ CompilationResult Shader::compile(const char* source)
         return CompilationResult(false, error.toString("Error while attaching source to shader (glShaderSource)"));
     }
 
-    Duration duration;
+    sys::Duration duration;
     glCompileShader(_shaderId);
     unsigned int compilationDuration = duration.elapsed();
     if (error.hasOccured())

@@ -138,7 +138,7 @@ LinkResult ShaderProgram::link()
         return LinkResult(false, "Cannot link program because no shader is attached!");
     }
 
-    Duration duration;
+    sys::Duration duration;
     glLinkProgram(_shaderProgramId);
     unsigned long linkageDuration = duration.elapsed();
     if (error)

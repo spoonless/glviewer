@@ -69,7 +69,7 @@ glv::GlMeshGeneration glv::GlMesh::generate(const vfm::ObjModel &objModel)
 {
     clear();
     GlError glError;
-    Duration duration;
+    sys::Duration duration;
 
     glGenVertexArrays(1, &_vertexArray);
     if (glError)

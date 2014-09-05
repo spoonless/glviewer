@@ -85,7 +85,7 @@ public:
 
     LoadFileResult readFile(const char *filename, std::string &content)
     {
-        Duration duration;
+        sys::Duration duration;
         std::ifstream is(filename);
         std::string tmpContent;
         std::getline(is, tmpContent, '\0');
@@ -106,7 +106,7 @@ public:
         vfm::ObjModel model;
         if(objFilename)
         {
-            Duration loadfileDuration;
+            sys::Duration loadfileDuration;
             std::ifstream is(objFilename);
             is >> model;
             if(!is.eof() && is.fail())
@@ -260,7 +260,7 @@ private:
     }
 
     bool failure;
-    Duration duration;
+    sys::Duration duration;
     glv::ShaderProgram program;
     glv::UniformDeclaration timeUniform;
     glv::UniformDeclaration mouseUniform;
