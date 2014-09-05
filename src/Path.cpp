@@ -9,15 +9,16 @@ const char sys::Path::SEPARATOR = '/';
 #define ALTERNATE_SEPARATOR '\\'
 #endif
 
-sys::Path::Path(const char *path): _length(0), _absoluteSectionLength(0), _path(0)
+sys::Path::Path(const char *path, size_t size): _length(0), _absoluteSectionLength(0), _path(0)
 {
     if(path != 0)
     {
-        this->_length = std::strlen(path);
+        this->_length = size == 0 ? std::strlen(path) : size;
         if(this->_length > 0)
         {
             this->_path = new char[this->_length+1];
-            std::memcpy(this->_path, path, (this->_length +1) * sizeof(char));
+            std::memcpy(this->_path, path, (this->_length) * sizeof(char));
+            this->_path[this->_length] = 0;
             this->normalize();
             this->computeAbsoluteSectionLength();
         }
@@ -110,6 +111,19 @@ const char *sys::Path::basename() const
         }
     }
     return this->_path;
+}
+
+sys::Path sys::Path::dirpath() const
+{
+    size_t i = this->_length;
+    for(; i > this->_absoluteSectionLength; --i)
+    {
+        if (this->_path[i-1] == Path::SEPARATOR && i < this->_length)
+        {
+            return Path(this->_path, i-1);
+        }
+    }
+    return i == 0 ? Path(".") : Path(this->_path, i);
 }
 
 #ifdef WIN32

@@ -85,3 +85,27 @@ TEST(Path, canGetBasename)
     ASSERT_STREQ("test", Path("/test").basename());
     ASSERT_STREQ("test", Path("a/b/c/test").basename());
 }
+
+TEST(Path, canGetDirpath)
+{
+    ASSERT_STREQ(".", static_cast<const char*>(Path().dirpath()));
+    ASSERT_STREQ(".", static_cast<const char*>(Path(".").dirpath()));
+    ASSERT_STREQ(".", static_cast<const char*>(Path("test").dirpath()));
+    ASSERT_STREQ(".", static_cast<const char*>(Path("test/").dirpath()));
+    ASSERT_STREQ("a", static_cast<const char*>(Path("a/test").dirpath()));
+    ASSERT_STREQ("a", static_cast<const char*>(Path("a/test/").dirpath()));
+
+#ifdef WIN32
+    ASSERT_STREQ("a\\b", static_cast<const char*>(Path("a/b/test").dirpath()));
+    ASSERT_STREQ("\\a\\b", static_cast<const char*>(Path("/a/b/test").dirpath()));
+    ASSERT_STREQ("\\", static_cast<const char*>(Path("/test").dirpath()));
+    ASSERT_STREQ("c:\\", static_cast<const char*>(Path("c:/test").dirpath()));
+    ASSERT_STREQ("c:\\test", static_cast<const char*>(Path("c:/test/a").dirpath()));
+    ASSERT_STREQ("c:\\", static_cast<const char*>(Path("c:/").dirpath()));
+    ASSERT_STREQ(".", static_cast<const char*>(Path("c:").dirpath()));
+#else
+    ASSERT_STREQ("a/b", static_cast<const char*>(Path("a/b/test").dirpath()));
+    ASSERT_STREQ("/a/b", static_cast<const char*>(Path("/a/b/test").dirpath()));
+    ASSERT_STREQ("/", static_cast<const char*>(Path("/test").dirpath()));
+#endif
+}

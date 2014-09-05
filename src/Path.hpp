@@ -1,6 +1,8 @@
 #ifndef PATH_H
 #define PATH_H
 
+#include <cstddef>
+
 namespace sys
 {
 
@@ -9,7 +11,7 @@ class Path
 public:
     static const char SEPARATOR;
 
-    Path(const char *path = 0);
+    Path(const char *path = 0, size_t size = 0);
     Path(const Path &path);
     Path(const Path &parent, const Path &path);
     ~Path();
@@ -25,11 +27,13 @@ public:
 
     const char *basename() const;
 
+    Path dirpath() const;
+
 private:
     void normalize();
     void computeAbsoluteSectionLength();
-    unsigned int _length;
-    unsigned int _absoluteSectionLength;
+    size_t _length;
+    size_t _absoluteSectionLength;
     char *_path;
 };
 
