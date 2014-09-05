@@ -26,8 +26,10 @@ public:
     }
 
     const char *basename() const;
+    const char *extension() const;
 
     Path dirpath() const;
+    Path withoutExtension() const;
 
 private:
     void normalize();

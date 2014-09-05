@@ -86,6 +86,33 @@ TEST(Path, canGetBasename)
     ASSERT_STREQ("test", Path("a/b/c/test").basename());
 }
 
+TEST(Path, canGetExtension)
+{
+    ASSERT_STREQ("", Path().extension());
+    ASSERT_STREQ("", Path("a/b/c/").extension());
+    ASSERT_STREQ("", Path("test").extension());
+    ASSERT_STREQ("", Path(".test").extension());
+    ASSERT_STREQ("", Path("/a/b/.test").extension());
+    ASSERT_STREQ("txt", Path("test.txt").extension());
+    ASSERT_STREQ("txt", Path("a/b/c/test.txt").extension());
+    ASSERT_STREQ("", Path("/a/b/c.txt/").extension());
+    ASSERT_STREQ("", Path("/a/b/c.txt/d").extension());
+}
+
+TEST(Path, canGetWithoutExtension)
+{
+    ASSERT_STREQ("", static_cast<const char*>(Path().withoutExtension()));
+    ASSERT_STREQ("test", static_cast<const char*>(Path("test").withoutExtension()));
+    ASSERT_STREQ("test", static_cast<const char*>(Path("test.txt").withoutExtension()));
+    ASSERT_STREQ("test.txt", static_cast<const char*>(Path("test.txt.txt").withoutExtension()));
+    ASSERT_STREQ(".txt", static_cast<const char*>(Path(".txt").withoutExtension()));
+#ifdef WIN32
+    ASSERT_STREQ("a\\.txt", static_cast<const char*>(Path("a/.txt").withoutExtension()));
+#else
+    ASSERT_STREQ("a/.txt", static_cast<const char*>(Path("a/.txt").withoutExtension()));
+#endif
+}
+
 TEST(Path, canGetDirpath)
 {
     ASSERT_STREQ(".", static_cast<const char*>(Path().dirpath()));

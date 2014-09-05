@@ -1,4 +1,5 @@
 #include <cstring>
+#include <algorithm>
 #include "Path.hpp"
 
 #ifdef WIN32
@@ -8,6 +9,11 @@ const char sys::Path::SEPARATOR = '\\';
 const char sys::Path::SEPARATOR = '/';
 #define ALTERNATE_SEPARATOR '\\'
 #endif
+
+namespace
+{
+const char* EMPTY_PATH="";
+}
 
 sys::Path::Path(const char *path, size_t size): _length(0), _absoluteSectionLength(0), _path(0)
 {
@@ -93,15 +99,14 @@ sys::Path& sys::Path::operator = (const Path &path)
 
 sys::Path::operator const char*() const
 {
-    return this->_path != 0 ? this->_path : "";
+    return this->_path != 0 ? this->_path : EMPTY_PATH;
 }
-
 
 const char *sys::Path::basename() const
 {
     if (this->_length == 0)
     {
-        return "";
+        return EMPTY_PATH;
     }
     for (int i = this->_length - 1; i >= 0; --i)
     {
@@ -111,6 +116,40 @@ const char *sys::Path::basename() const
         }
     }
     return this->_path;
+}
+
+const char *sys::Path::extension() const
+{
+    char *extension = 0;
+    for (unsigned int i = this->_length; i > std::max(1u, this->_absoluteSectionLength); --i)
+    {
+        if (this->_path[i-1] == '.')
+        {
+            if (this->_path[i-2] != Path::SEPARATOR)
+            {
+                extension = &this->_path[i];
+            }
+            break;
+        }
+        else if (this->_path[i-1] == Path::SEPARATOR)
+        {
+            break;
+        }
+    }
+    return extension == 0 ? EMPTY_PATH : extension;
+}
+
+sys::Path sys::Path::withoutExtension() const
+{
+    const char *currentExtension = this->extension();
+    if(currentExtension[0] == 0)
+    {
+        return *this;
+    }
+    else
+    {
+        return Path(this->_path, (currentExtension - 1) - this->_path);
+    }
 }
 
 sys::Path sys::Path::dirpath() const
