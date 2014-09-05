@@ -90,6 +90,28 @@ sys::Path& sys::Path::operator = (const Path &path)
     return *this;
 }
 
+sys::Path::operator const char*() const
+{
+    return this->_path != 0 ? this->_path : "";
+}
+
+
+const char *sys::Path::basename() const
+{
+    if (this->_length == 0)
+    {
+        return "";
+    }
+    for (int i = this->_length - 1; i >= 0; --i)
+    {
+        if(this->_path[i] == Path::SEPARATOR)
+        {
+            return &this->_path[i+1];
+        }
+    }
+    return this->_path;
+}
+
 #ifdef WIN32
 
 void sys::Path::computeAbsoluteSectionLength()
@@ -122,28 +144,6 @@ void sys::Path::computeAbsoluteSectionLength()
 }
 
 #else
-
-sys::Path::operator const char*() const
-{
-    return this->_path != 0 ? this->_path : "";
-}
-
-
-const char *sys::Path::basename() const
-{
-    if (this->_length == 0)
-    {
-        return "";
-    }
-    for (int i = this->_length - 1; i >= 0; --i)
-    {
-        if(this->_path[i] == Path::SEPARATOR)
-        {
-            return &this->_path[i+1];
-        }
-    }
-    return this->_path;
-}
 
 void sys::Path::computeAbsoluteSectionLength()
 {
