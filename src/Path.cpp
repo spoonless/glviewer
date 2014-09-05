@@ -121,7 +121,7 @@ const char *sys::Path::basename() const
 const char *sys::Path::extension() const
 {
     char *extension = 0;
-    for (unsigned int i = this->_length; i > std::max(1u, this->_absoluteSectionLength); --i)
+    for (unsigned int i = this->_length; i > std::max(static_cast<size_t>(1), this->_absoluteSectionLength); --i)
     {
         if (this->_path[i-1] == '.')
         {
