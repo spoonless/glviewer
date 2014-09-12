@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 #include "gl.hpp"
-
 #include "glm/fwd.hpp"
 
 namespace glv
