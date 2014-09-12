@@ -8,9 +8,9 @@
 #define MAX_FLOAT std::numeric_limits<float>::max()
 #define MIN_FLOAT -std::numeric_limits<float>::max()
 
-const unsigned int glv::MaterialGroup::NO_MATERIAL_INDEX = MAX_UINT;
+const glv::MaterialIndex glv::MaterialHandler::NO_MATERIAL_INDEX = MAX_UINT;
 
-glv::MaterialGroup::MaterialGroup(unsigned int index, unsigned long size) : index(index), size(size) {}
+glv::GlMesh::MaterialGroup::MaterialGroup(unsigned int index, unsigned long size) : index(index), size(size) {}
 
 glv::BoundingBox::BoundingBox() : min(MAX_FLOAT, MAX_FLOAT, MAX_FLOAT), max(MIN_FLOAT, MIN_FLOAT, MIN_FLOAT)
 {
@@ -30,15 +30,19 @@ glv::GlMesh::GlMesh() : _vertexArray(0)
 {
 }
 
-void glv::GlMesh::render()
+void glv::GlMesh::render(glv::MaterialHandler *handler)
 {
     glBindVertexArray(_vertexArray);
     std::for_each(_definedVertexAttributes.begin(), _definedVertexAttributes.end(), glEnableVertexAttribArray);
 
     GLint firstPrimitive = 0;
-    for(glv::MaterialGroupVector::iterator it = _materialGroups.begin(); it != _materialGroups.end(); ++it)
+    for(glv::GlMesh::MaterialGroupVector::iterator it = _materialGroups.begin(); it != _materialGroups.end(); ++it)
     {
-        glv::MaterialGroup &materialGroup = *it;
+        glv::GlMesh::MaterialGroup &materialGroup = *it;
+        if (handler)
+        {
+            handler->use(materialGroup.index);
+        }
         glDrawArrays(GL_TRIANGLES, firstPrimitive, materialGroup.size);
         firstPrimitive += materialGroup.size;
     }
@@ -89,13 +93,13 @@ glv::GlMeshGeneration glv::GlMesh::generate(const vfm::ObjModel &objModel)
         const vfm::Object &o = *it;
         if(o.materialActivations.empty())
         {
-            _materialGroups.push_back(MaterialGroup(MaterialGroup::NO_MATERIAL_INDEX, o.triangles.size()));
+            _materialGroups.push_back(MaterialGroup(MaterialHandler::NO_MATERIAL_INDEX, o.triangles.size()));
         }
         else
         {
             if(o.materialActivations[0].start > 0)
             {
-                _materialGroups.push_back(MaterialGroup(MaterialGroup::NO_MATERIAL_INDEX, o.materialActivations[0].start));
+                _materialGroups.push_back(MaterialGroup(MaterialHandler::NO_MATERIAL_INDEX, o.materialActivations[0].start));
             }
             for(vfm::MaterialActivationVector::const_iterator it = o.materialActivations.begin(); it != o.materialActivations.end(); ++it)
             {

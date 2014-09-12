@@ -4,7 +4,6 @@
 #include <vector>
 #include "gl.hpp"
 #include "glm/vec3.hpp"
-#include "glm/geometric.hpp"
 #include "OperationResult.hpp"
 #include "ObjModel.hpp"
 #include "UniformDeclaration.hpp"
@@ -31,17 +30,16 @@ public:
     }
 };
 
-struct MaterialGroup
+typedef unsigned int MaterialIndex;
+
+class MaterialHandler
 {
-    static const unsigned int NO_MATERIAL_INDEX;
+public:
+    static const MaterialIndex NO_MATERIAL_INDEX;
 
-    MaterialGroup(unsigned int index, unsigned long size);
-
-    unsigned int index;
-    unsigned long size;
+    virtual ~MaterialHandler() {}
+    virtual void use(MaterialIndex index) = 0;
 };
-
-typedef std::vector<MaterialGroup> MaterialGroupVector;
 
 class GlMesh
 {
@@ -52,15 +50,24 @@ public:
     GlMeshGeneration generate(const vfm::ObjModel &objModel);
     VertexAttributeDataDefinition defineVertexAttributeData(const VertexAttributeDeclaration& vad);
 
-    void render();
+    void render(MaterialHandler *handler = 0);
 
     inline const BoundingBox &getBoundingBox() const
     {
         return _boundingBox;
     }
 
-
 private:
+    struct MaterialGroup
+    {
+        MaterialGroup(unsigned int index, unsigned long size);
+
+        MaterialIndex index;
+        unsigned long size;
+    };
+
+    typedef std::vector<MaterialGroup> MaterialGroupVector;
+
     GlMesh(const GlMesh&);
     GlMesh& operator = (const GlMesh&);
     size_t getBufferIndex(const std::string &name);
