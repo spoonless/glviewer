@@ -251,7 +251,7 @@ TEST(ObjModel, canLoadMaterialActivation)
     vfm::ObjModel model;
 
     std::istringstream stream(
-        "mtllib test\n"
+        "mtllib test test\n"
         "f 1 2 3\n"
         "f 1 2 3\n"
         "usemtl t\n"
@@ -299,8 +299,8 @@ TEST(ObjModel, canLoadMaterialActivation)
     ASSERT_EQ(3u, materialActivation->end);
 
     ASSERT_EQ(2u, model.materialIds.size());
-    ASSERT_EQ(vfm::MaterialId("test", "t"), model.materialIds[0]);
-    ASSERT_EQ(vfm::MaterialId("test", "t1"), model.materialIds[1]);
+    ASSERT_EQ(vfm::MaterialId("test test", "t"), model.materialIds[0]);
+    ASSERT_EQ(vfm::MaterialId("test test", "t1"), model.materialIds[1]);
 }
 
 TEST(ObjModel, canLoadMaterialLibrary)

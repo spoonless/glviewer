@@ -332,7 +332,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
         }
         else if (!std::strncmp("mtllib ", line, 7))
         {
-            mtllib = tokenize(line + 7);
+            mtllib = line + 7;
         }
     }
     if (object != 0 && !object->materialActivations.empty())
