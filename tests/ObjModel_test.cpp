@@ -276,20 +276,17 @@ TEST(ObjModel, canLoadMaterialActivation)
     ASSERT_EQ(3u, materialActivations->size());
 
     vfm::MaterialActivation *materialActivation = &materialActivations->at(0);
-    ASSERT_EQ("t", materialActivation->name);
-    ASSERT_EQ("test", materialActivation->materialLibrary);
+    ASSERT_EQ(0u, materialActivation->materialIndex);
     ASSERT_EQ(6u, materialActivation->start);
     ASSERT_EQ(9u, materialActivation->end);
 
     materialActivation = &materialActivations->at(1);
-    ASSERT_EQ("t1", materialActivation->name);
-    ASSERT_EQ("test", materialActivation->materialLibrary);
+    ASSERT_EQ(1u, materialActivation->materialIndex);
     ASSERT_EQ(9u, materialActivation->start);
     ASSERT_EQ(24u, materialActivation->end);
 
     materialActivation = &materialActivations->at(2);
-    ASSERT_EQ("t", materialActivation->name);
-    ASSERT_EQ("test", materialActivation->materialLibrary);
+    ASSERT_EQ(0u, materialActivation->materialIndex);
     ASSERT_EQ(24u, materialActivation->start);
     ASSERT_EQ(27u, materialActivation->end);
 
@@ -297,10 +294,13 @@ TEST(ObjModel, canLoadMaterialActivation)
     ASSERT_EQ(1u, materialActivations->size());
 
     materialActivation = &materialActivations->at(0);
-    ASSERT_EQ("t", materialActivation->name);
-    ASSERT_EQ("test", materialActivation->materialLibrary);
+    ASSERT_EQ(0u, materialActivation->materialIndex);
     ASSERT_EQ(0u, materialActivation->start);
     ASSERT_EQ(3u, materialActivation->end);
+
+    ASSERT_EQ(2u, model.materialIds.size());
+    ASSERT_EQ(vfm::MaterialId("test", "t"), model.materialIds[0]);
+    ASSERT_EQ(vfm::MaterialId("test", "t1"), model.materialIds[1]);
 }
 
 TEST(ObjModel, canLoadMaterialLibrary)

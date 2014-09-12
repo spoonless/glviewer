@@ -31,6 +31,18 @@ public:
     }
 };
 
+struct MaterialGroup
+{
+    static const unsigned int NO_MATERIAL_INDEX;
+
+    MaterialGroup(unsigned int index, unsigned long size);
+
+    unsigned int index;
+    unsigned long size;
+};
+
+typedef std::vector<MaterialGroup> MaterialGroupVector;
+
 class GlMesh
 {
 public:
@@ -59,7 +71,7 @@ private:
     BoundingBox _boundingBox;
     std::vector<GLuint> _buffers;
     std::vector<GLuint> _definedVertexAttributes;
-    std::vector<GLsizei> _primitivesCount;
+    MaterialGroupVector _materialGroups;
 };
 
 }

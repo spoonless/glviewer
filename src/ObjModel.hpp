@@ -55,16 +55,35 @@ struct VertexIndex
     long texture;
 };
 
-struct MaterialActivation
+struct MaterialId
 {
-    MaterialActivation() : start(0), end(0) {}
+    MaterialId() {}
+    MaterialId(const std::string &library, const std::string &name) : library(library), name(name) {}
 
-    unsigned long start;
-    unsigned long end;
-    std::string materialLibrary;
+    std::string library;
     std::string name;
+
+    bool operator == (const MaterialId &materialId) const
+    {
+        return this == &materialId || (this->library == materialId.library && this->name == materialId.name);
+    }
+
+    bool operator < (const MaterialId &materialId) const
+    {
+        return this->library < materialId.library && this->name < materialId.name;
+    }
 };
 
+struct MaterialActivation
+{
+    MaterialActivation() : materialIndex(0), start(0), end(0) {}
+
+    unsigned int materialIndex;
+    unsigned long start;
+    unsigned long end;
+};
+
+typedef std::vector<MaterialId> MaterialIdVector;
 typedef std::vector<MaterialActivation> MaterialActivationVector;
 typedef std::vector<VertexIndex> VertexIndexVector;
 typedef std::vector<index_t> IndexVector;
@@ -85,6 +104,7 @@ struct ObjModel
     Vec3Vector normals;
     Vec3Vector textures;
     ObjectVector objects;
+    MaterialIdVector materialIds;
 
     void computeNormals(bool normalized = false);
 };

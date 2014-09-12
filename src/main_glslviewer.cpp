@@ -142,29 +142,26 @@ public:
         sys::Path objFilepath(objFilename);
         sys::Path currentPath = objFilepath.dirpath();
         std::string defaultMaterialLibrary = std::string(objFilepath.withoutExtension()) + ".mtl";
-        for(vfm::ObjectVector::iterator objit = model.objects.begin(); objit != model.objects.end(); ++objit)
+        for(vfm::MaterialIdVector::iterator it = model.materialIds.begin(); it != model.materialIds.end(); ++it)
         {
-            for(vfm::MaterialActivationVector::iterator matit = objit->materialActivations.begin(); matit != objit->materialActivations.end(); ++matit)
+            if (it->library.empty())
             {
-                if (matit->materialLibrary.empty())
+                it->library = defaultMaterialLibrary;
+            }
+            if (materialMaps.find(it->library) == materialMaps.end())
+            {
+                sys::Path mtlfile(currentPath, it->library.c_str());
+                sys::Duration loadfileDuration;
+                std::ifstream isMat(mtlfile);
+                isMat >> materialMaps[it->library];
+                if(!isMat.eof() && isMat.fail())
                 {
-                    matit->materialLibrary = defaultMaterialLibrary;
+                    check(LoadFileResult(false, "Cannot read file (maybe the path is wrong)!", 0), std::string("loading '") + static_cast<const char*>(mtlfile) + "'");
+                    materialMaps.erase(it->library);
                 }
-                if (materialMaps.find(matit->materialLibrary) == materialMaps.end())
+                else
                 {
-                    sys::Path mtlfile(currentPath, matit->materialLibrary.c_str());
-                    sys::Duration loadfileDuration;
-                    std::ifstream isMat(mtlfile);
-                    isMat >> materialMaps[matit->materialLibrary];
-                    if(!isMat.eof() && isMat.fail())
-                    {
-                        check(LoadFileResult(false, "Cannot read file (maybe the path is wrong)!", 0), std::string("loading '") + static_cast<const char*>(mtlfile) + "'");
-                        materialMaps.erase(matit->materialLibrary);
-                    }
-                    else
-                    {
-                        check(LoadFileResult(true, "", loadfileDuration.elapsed()), std::string("loading '") + static_cast<const char*>(mtlfile) + "'");
-                    }
+                    check(LoadFileResult(true, "", loadfileDuration.elapsed()), std::string("loading '") + static_cast<const char*>(mtlfile) + "'");
                 }
             }
         }

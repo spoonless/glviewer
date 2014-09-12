@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <sstream>
@@ -211,6 +212,20 @@ void read (const char *line, const vfm::ObjModel &model, vfm::VertexIndexVector 
     }
 }
 
+unsigned int getMaterialIndex (vfm::ObjModel &model, const vfm::MaterialId &materialId)
+{
+    vfm::MaterialIdVector::iterator itFound = std::find(model.materialIds.begin(), model.materialIds.end(), materialId);
+    if (itFound == model.materialIds.end())
+    {
+        model.materialIds.push_back(materialId);
+        return model.materialIds.size() - 1;
+    }
+    else
+    {
+        return std::distance(model.materialIds.begin(), itFound);
+    }
+}
+
 }
 
 vfm::VertexIndex::VertexIndex (index_t vertex, index_t normal, index_t texture)
@@ -233,6 +248,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
     MaterialActivation materialActivation;
     Object *object = 0;
     size_t lineCapacity = BUFFER_CHUNK_SIZE;
+    std::string mtllib;
     char *line = static_cast<char*>(std::malloc(lineCapacity));
 
     while(is.good())
@@ -300,7 +316,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
                 object = &model.objects.back();
                 vertexIndexIndexer << *object;
             }
-            materialActivation.name = tokenize(line + 7);
+
             if (!object->materialActivations.empty())
             {
                 MaterialActivation &previousMaterialActivation = object->materialActivations.back();
@@ -310,12 +326,13 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
                     object->materialActivations.pop_back();
                 }
             }
+            materialActivation.materialIndex = getMaterialIndex(model, MaterialId(mtllib, tokenize(line + 7)));
             materialActivation.start = object->triangles.size();
             object->materialActivations.push_back(materialActivation);
         }
         else if (!std::strncmp("mtllib ", line, 7))
         {
-            materialActivation.materialLibrary = tokenize(line + 7);
+            mtllib = tokenize(line + 7);
         }
     }
     if (object != 0 && !object->materialActivations.empty())
