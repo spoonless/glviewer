@@ -2,6 +2,15 @@
 #include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
 #include "glm/vec4.hpp"
+#include "glm/mat2x2.hpp"
+#include "glm/mat2x3.hpp"
+#include "glm/mat2x4.hpp"
+#include "glm/mat3x3.hpp"
+#include "glm/mat3x2.hpp"
+#include "glm/mat3x4.hpp"
+#include "glm/mat4x4.hpp"
+#include "glm/mat4x2.hpp"
+#include "glm/mat4x3.hpp"
 #include "ShaderProgram.hpp"
 
 using namespace glv;
@@ -413,7 +422,7 @@ TEST(ShaderProgram, canExtractAttributeDeclarationWhenSeveralAttributes)
     ASSERT_EQ(VertexAttributeDeclaration(2, 1, GL_FLOAT_VEC4, "vertices"), vector[1]);
 }
 
-TEST(ShaderProgram, canExtractUniformFloatValue)
+TEST(ShaderProgram, canExtractUniformFloatVectorValue)
 {
     ShaderProgram shaderProgram;
     const char* source =
@@ -441,7 +450,7 @@ TEST(ShaderProgram, canExtractUniformFloatValue)
     ASSERT_EQ(glm::fvec4(10.0f, 20.0f, 30.0f, 40.0f), fvec4);
 }
 
-TEST(ShaderProgram, canExtractUniformIntegerValue)
+TEST(ShaderProgram, canExtractUniformIntegerVectorValue)
 {
     ShaderProgram shaderProgram;
     const char* source =
@@ -495,4 +504,79 @@ TEST(ShaderProgram, canExtractUniformUnsignedIntegerValue)
 
     glm::uvec4 uvec4 = *shaderProgram.getActiveUniform("value4");
     ASSERT_EQ(glm::uvec4(10, 20, 30, 40), uvec4);
+}
+
+TEST(ShaderProgram, canExtractUniformMatrix2Value)
+{
+    ShaderProgram shaderProgram;
+    const char* source =
+            GLSL_VERSION_HEADER
+            "uniform mat2 value = mat2x2(1,2,10,20);"
+            "uniform mat2x3 value2 = mat2x3(1,2,3,10,20,30);"
+            "uniform mat2x4 value3 = mat2x4(1,2,3,4,10,20,30,40);"
+            "void main() {"
+            " gl_Position = vec4(value[0][0], value2[0][0], value3[0][0], 0);"
+            "}";
+
+    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    ASSERT_TRUE(shaderProgram.link());
+
+    glm::f32mat2x2 mat2 = *shaderProgram.getActiveUniform("value");
+    ASSERT_EQ(glm::f32mat2x2(1,2,10,20), mat2);
+
+    glm::f32mat2x3 mat2x3 = *shaderProgram.getActiveUniform("value2");
+    ASSERT_EQ(glm::f32mat2x3(1,2,3,10,20,30), mat2x3);
+
+    glm::f32mat2x4 mat2x4 = *shaderProgram.getActiveUniform("value3");
+    ASSERT_EQ(glm::f32mat2x4(1,2,3,4,10,20,30,40), mat2x4);
+}
+
+TEST(ShaderProgram, canExtractUniformMatrix3Value)
+{
+    ShaderProgram shaderProgram;
+    const char* source =
+            GLSL_VERSION_HEADER
+            "uniform mat3 value = mat3x3(1,2,3,10,20,30,100,200,300);"
+            "uniform mat3x2 value2 = mat3x2(1,2,10,20,100,200);"
+            "uniform mat3x4 value3 = mat3x4(1,2,3,4,10,20,30,40,100,200,300,400);"
+            "void main() {"
+            " gl_Position = vec4(value[0][0], value2[0][0], value3[0][0], 0);"
+            "}";
+
+    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    ASSERT_TRUE(shaderProgram.link());
+
+    glm::f32mat3x3 mat3 = *shaderProgram.getActiveUniform("value");
+    ASSERT_EQ(glm::f32mat3(1,2,3,10,20,30,100,200,300), mat3);
+
+    glm::f32mat3x2 mat3x2 = *shaderProgram.getActiveUniform("value2");
+    ASSERT_EQ(glm::f32mat3x2(1,2,10,20,100,200), mat3x2);
+
+    glm::f32mat3x4 mat3x4 = *shaderProgram.getActiveUniform("value3");
+    ASSERT_EQ(glm::f32mat3x4(1,2,3,4,10,20,30,40,100,200,300,400), mat3x4);
+}
+
+TEST(ShaderProgram, canExtractUniformMatrix4Value)
+{
+    ShaderProgram shaderProgram;
+    const char* source =
+            GLSL_VERSION_HEADER
+            "uniform mat4 value = mat4x4(1,2,3,4,10,20,30,40,100,200,300,400,1000,2000,3000,4000);"
+            "uniform mat4x2 value2 = mat4x2(1,2,10,20,100,200,1000,2000);"
+            "uniform mat4x3 value3 = mat4x3(1,2,3,4,10,20,30,40,100,200,300,400);"
+            "void main() {"
+            " gl_Position = vec4(value[0][0], value2[0][0], value3[0][0], 0);"
+            "}";
+
+    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    ASSERT_TRUE(shaderProgram.link());
+
+    glm::f32mat4x4 mat4 = *shaderProgram.getActiveUniform("value");
+    ASSERT_EQ(glm::f32mat4(1,2,3,4,10,20,30,40,100,200,300,400,1000,2000,3000,4000), mat4);
+
+    glm::f32mat4x2 mat4x2 = *shaderProgram.getActiveUniform("value2");
+    ASSERT_EQ(glm::f32mat4x2(1,2,10,20,100,200,1000,2000), mat4x2);
+
+    glm::f32mat4x3 mat4x3 = *shaderProgram.getActiveUniform("value3");
+    ASSERT_EQ(glm::f32mat4x3(1,2,3,4,10,20,30,40,100,200,300,400), mat4x3);
 }

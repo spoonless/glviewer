@@ -32,11 +32,14 @@ public:
     UniformBinder& operator = (const glm::f32mat2 &v);
     UniformBinder& operator = (const glm::f32mat3 &v);
     UniformBinder& operator = (const glm::f32mat4 &v);
+
     UniformBinder& operator = (const glm::f32mat2x3 &v);
-    UniformBinder& operator = (const glm::f32mat3x2 &v);
     UniformBinder& operator = (const glm::f32mat2x4 &v);
-    UniformBinder& operator = (const glm::f32mat4x2 &v);
+
+    UniformBinder& operator = (const glm::f32mat3x2 &v);
     UniformBinder& operator = (const glm::f32mat3x4 &v);
+
+    UniformBinder& operator = (const glm::f32mat4x2 &v);
     UniformBinder& operator = (const glm::f32mat4x3 &v);
 
     operator glm::f32() const;
@@ -53,6 +56,19 @@ public:
     operator glm::uvec2() const;
     operator glm::uvec3() const;
     operator glm::uvec4() const;
+
+    operator glm::f32mat2() const;
+    operator glm::f32mat3() const;
+    operator glm::f32mat4() const;
+
+    operator glm::f32mat2x3() const;
+    operator glm::f32mat2x4() const;
+
+    operator glm::f32mat3x2() const;
+    operator glm::f32mat3x4() const;
+
+    operator glm::f32mat4x2() const;
+    operator glm::f32mat4x3() const;
 
 private:
     UniformBinder(GLuint programId = 0, GLint index = -1, GLint size = 0, GLenum type = GL_INT);

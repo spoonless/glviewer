@@ -303,6 +303,104 @@ glv::UniformBinder::operator glm::uvec4() const
 
 //##############################################################
 
+glv::UniformBinder::operator glm::f32mat2() const
+{
+    glm::f32mat2 v;
+    if (_type == GL_FLOAT_MAT2 && _size == 1)
+    {
+        glGetUniformfv(_programId, _index, &v[0][0]);
+    }
+    return v;
+}
+
+glv::UniformBinder::operator glm::f32mat3() const
+{
+    glm::f32mat3 v;
+    if (_type == GL_FLOAT_MAT3 && _size == 1)
+    {
+        glGetUniformfv(_programId, _index, &v[0][0]);
+    }
+    return v;
+}
+
+glv::UniformBinder::operator glm::f32mat4() const
+{
+    glm::f32mat4 v;
+    if (_type == GL_FLOAT_MAT4 && _size == 1)
+    {
+        glGetUniformfv(_programId, _index, &v[0][0]);
+    }
+    return v;
+}
+
+//##############################################################
+
+glv::UniformBinder::operator glm::f32mat2x3() const
+{
+    glm::f32mat2x3 v;
+    if (_type == GL_FLOAT_MAT2x3 && _size == 1)
+    {
+        glGetUniformfv(_programId, _index, &v[0][0]);
+    }
+    return v;
+}
+
+glv::UniformBinder::operator glm::f32mat2x4() const
+{
+    glm::f32mat2x4 v;
+    if (_type == GL_FLOAT_MAT2x4 && _size == 1)
+    {
+        glGetUniformfv(_programId, _index, &v[0][0]);
+    }
+    return v;
+}
+
+//##############################################################
+
+glv::UniformBinder::operator glm::f32mat3x2() const
+{
+    glm::f32mat3x2 v;
+    if (_type == GL_FLOAT_MAT3x2 && _size == 1)
+    {
+        glGetUniformfv(_programId, _index, &v[0][0]);
+    }
+    return v;
+}
+
+glv::UniformBinder::operator glm::f32mat3x4() const
+{
+    glm::f32mat3x4 v;
+    if (_type == GL_FLOAT_MAT3x4 && _size == 1)
+    {
+        glGetUniformfv(_programId, _index, &v[0][0]);
+    }
+    return v;
+}
+
+//##############################################################
+
+glv::UniformBinder::operator glm::f32mat4x2() const
+{
+    glm::f32mat4x2 v;
+    if (_type == GL_FLOAT_MAT4x2 && _size == 1)
+    {
+        glGetUniformfv(_programId, _index, &v[0][0]);
+    }
+    return v;
+}
+
+glv::UniformBinder::operator glm::f32mat4x3() const
+{
+    glm::f32mat4x3 v;
+    if (_type == GL_FLOAT_MAT4x3 && _size == 1)
+    {
+        glGetUniformfv(_programId, _index, &v[0][0]);
+    }
+    return v;
+}
+
+//##############################################################
+
 glv::UniformDeclaration::UniformDeclaration()
 {
 }
