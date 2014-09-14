@@ -1,4 +1,4 @@
-#version 420
+#version 330
 
 uniform mat4 mvMat;
 uniform mat4 mvpMat;

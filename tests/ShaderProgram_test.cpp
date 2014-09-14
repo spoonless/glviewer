@@ -1,4 +1,7 @@
 #include "gtest/gtest.h"
+#include "glm/vec2.hpp"
+#include "glm/vec3.hpp"
+#include "glm/vec4.hpp"
 #include "ShaderProgram.hpp"
 
 using namespace glv;
@@ -204,7 +207,7 @@ TEST(ShaderProgram, canExtractUniformDeclarationWhenOneUniform)
     shaderProgram.extractActive(uniformDeclarationVector);
 
     ASSERT_EQ(static_cast<size_t>(1), uniformDeclarationVector.size());
-    ASSERT_EQ(UniformDeclaration(0, 1, GL_FLOAT_VEC4, "position"), uniformDeclarationVector[0]);
+    ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 0, 1, GL_FLOAT_VEC4, "position"), uniformDeclarationVector[0]);
 }
 
 TEST(ShaderProgram, canGetActiveUniformDeclaration)
@@ -223,7 +226,7 @@ TEST(ShaderProgram, canGetActiveUniformDeclaration)
     UniformDeclaration result = shaderProgram.getActiveUniform("position");
 
     ASSERT_TRUE(result);
-    ASSERT_EQ(UniformDeclaration(0, 1, GL_FLOAT_VEC4, "position"), result);
+    ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 0, 1, GL_FLOAT_VEC4, "position"), result);
 }
 
 TEST(ShaderProgram, canExtractFixedArrayUniformDeclaration)
@@ -243,7 +246,7 @@ TEST(ShaderProgram, canExtractFixedArrayUniformDeclaration)
     shaderProgram.extractActive(uniformDeclarationVector);
 
     ASSERT_EQ(static_cast<size_t>(1), uniformDeclarationVector.size());
-    ASSERT_EQ(UniformDeclaration(0, 2, GL_FLOAT_VEC4, "position[0]"), uniformDeclarationVector[0]);
+    ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 0, 2, GL_FLOAT_VEC4, "position[0]"), uniformDeclarationVector[0]);
 }
 
 TEST(ShaderProgram, canExtractArrayUniformDeclaration)
@@ -263,7 +266,7 @@ TEST(ShaderProgram, canExtractArrayUniformDeclaration)
     shaderProgram.extractActive(uniformDeclarationVector);
 
     ASSERT_EQ(static_cast<size_t>(1), uniformDeclarationVector.size());
-    ASSERT_EQ(UniformDeclaration(0, 4, GL_FLOAT_VEC4, "position[0]"), uniformDeclarationVector[0]);
+    ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 0, 4, GL_FLOAT_VEC4, "position[0]"), uniformDeclarationVector[0]);
 }
 
 TEST(ShaderProgram, canExtractStructUniformDeclaration)
@@ -287,8 +290,8 @@ TEST(ShaderProgram, canExtractStructUniformDeclaration)
     shaderProgram.extractActive(uniformDeclarationVector);
 
     ASSERT_EQ(static_cast<size_t>(2), uniformDeclarationVector.size());
-    ASSERT_EQ(UniformDeclaration(0, 1, GL_FLOAT_VEC4, "ms.position1"), uniformDeclarationVector[0]);
-    ASSERT_EQ(UniformDeclaration(1, 1, GL_FLOAT_VEC3, "ms.position2"), uniformDeclarationVector[1]);
+    ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 0, 1, GL_FLOAT_VEC4, "ms.position1"), uniformDeclarationVector[0]);
+    ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 1, 1, GL_FLOAT_VEC3, "ms.position2"), uniformDeclarationVector[1]);
 }
 
 TEST(ShaderProgram, canExtractStructArrayUniformDeclaration)
@@ -312,8 +315,8 @@ TEST(ShaderProgram, canExtractStructArrayUniformDeclaration)
     shaderProgram.extractActive(uniformDeclarationVector);
 
     ASSERT_EQ(static_cast<size_t>(2), uniformDeclarationVector.size());
-    ASSERT_EQ(UniformDeclaration(0, 2, GL_FLOAT_VEC4, "ms[1].position1[0]"), uniformDeclarationVector[0]);
-    ASSERT_EQ(UniformDeclaration(1, 1, GL_FLOAT_VEC3, "ms[1].position2"), uniformDeclarationVector[1]);
+    ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 0, 2, GL_FLOAT_VEC4, "ms[1].position1[0]"), uniformDeclarationVector[0]);
+    ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 1, 1, GL_FLOAT_VEC3, "ms[1].position2"), uniformDeclarationVector[1]);
 }
 
 TEST(ShaderProgram, canExtractMultipleUniformDeclaration)
@@ -408,4 +411,32 @@ TEST(ShaderProgram, canExtractAttributeDeclarationWhenSeveralAttributes)
     ASSERT_EQ(static_cast<size_t>(2), vector.size());
     ASSERT_EQ(VertexAttributeDeclaration(0, 1, GL_FLOAT, "magnitude"), vector[0]);
     ASSERT_EQ(VertexAttributeDeclaration(2, 1, GL_FLOAT_VEC4, "vertices"), vector[1]);
+}
+
+TEST(ShaderProgram, canExtractUniformValue)
+{
+    ShaderProgram shaderProgram;
+    const char* source =
+            GLSL_VERSION_HEADER
+            "uniform float value = -12.45;"
+            "uniform vec2 value2 = vec2(10.0,20.0);"
+            "uniform vec3 value3 = vec3(10.0,20.0,30.0);"
+            "uniform vec4 value4 = vec4(10.0,20.0,30.0,40.0);"
+            "void main() {"
+            " gl_Position = vec4(value, value2.x, value3.x, value4.x);"
+            "}";
+
+    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    ASSERT_TRUE(shaderProgram.link());
+
+    ASSERT_EQ(-12.45f, *shaderProgram.getActiveUniform("value"));
+
+    glm::fvec2 fvec2 = *shaderProgram.getActiveUniform("value2");
+    ASSERT_EQ(glm::fvec2(10.0f, 20.0f), fvec2);
+
+    glm::fvec3 fvec3 = *shaderProgram.getActiveUniform("value3");
+    ASSERT_EQ(glm::fvec3(10.0f, 20.0f, 30.0f), fvec3);
+
+    glm::fvec4 fvec4 = *shaderProgram.getActiveUniform("value4");
+    ASSERT_EQ(glm::fvec4(10.0f, 20.0f, 30.0f, 40.0f), fvec4);
 }

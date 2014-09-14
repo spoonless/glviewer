@@ -16,132 +16,171 @@ using namespace glv;
 
 UniformBinder& UniformBinder::operator = (const glm::f32 &v)
 {
-    glUniform1f(_location, v);
+    glUniform1f(_uniformDeclaration->getIndex(), v);
     return *this;
 }
 
 UniformBinder& UniformBinder::operator = (const glm::fvec2 &v)
 {
-    glUniform2f(_location, v.x, v.y);
+    glUniform2f(_uniformDeclaration->getIndex(), v.x, v.y);
     return *this;
 }
 
 UniformBinder& UniformBinder::operator = (const glm::fvec3 &v)
 {
-    glUniform3f(_location, v.x, v.y, v.z);
+    glUniform3f(_uniformDeclaration->getIndex(), v.x, v.y, v.z);
     return *this;
 }
 
 UniformBinder& UniformBinder::operator = (const glm::fvec4 &v)
 {
-    glUniform4f(_location, v.x, v.y, v.z, v.w);
+    glUniform4f(_uniformDeclaration->getIndex(), v.x, v.y, v.z, v.w);
     return *this;
 }
 
 
 UniformBinder& UniformBinder::operator = (const glm::i32 &v)
 {
-    glUniform1i(_location, v);
+    glUniform1i(_uniformDeclaration->getIndex(), v);
     return *this;
 }
 
 UniformBinder& UniformBinder::operator = (const glm::i32vec2 &v)
 {
-    glUniform2i(_location, v.x, v.y);
+    glUniform2i(_uniformDeclaration->getIndex(), v.x, v.y);
     return *this;
 }
 
 UniformBinder& UniformBinder::operator = (const glm::i32vec3 &v)
 {
-    glUniform3i(_location, v.x, v.y, v.z);
+    glUniform3i(_uniformDeclaration->getIndex(), v.x, v.y, v.z);
     return *this;
 }
 
 UniformBinder& UniformBinder::operator = (const glm::i32vec4 &v)
 {
-    glUniform4i(_location, v.x, v.y, v.z, v.w);
+    glUniform4i(_uniformDeclaration->getIndex(), v.x, v.y, v.z, v.w);
     return *this;
 }
 
 
 UniformBinder& UniformBinder::operator = (const glm::u32 &v)
 {
-    glUniform1ui(_location, v);
+    glUniform1ui(_uniformDeclaration->getIndex(), v);
     return *this;
 }
 
 UniformBinder& UniformBinder::operator = (const glm::u32vec2 &v)
 {
-    glUniform2ui(_location, v.x, v.y);
+    glUniform2ui(_uniformDeclaration->getIndex(), v.x, v.y);
     return *this;
 }
 
 UniformBinder& UniformBinder::operator = (const glm::u32vec3 &v)
 {
-    glUniform3ui(_location, v.x, v.y, v.z);
+    glUniform3ui(_uniformDeclaration->getIndex(), v.x, v.y, v.z);
     return *this;
 }
 
 UniformBinder& UniformBinder::operator = (const glm::u32vec4 &v)
 {
-    glUniform4ui(_location, v.x, v.y, v.z, v.w);
+    glUniform4ui(_uniformDeclaration->getIndex(), v.x, v.y, v.z, v.w);
     return *this;
 }
 
 UniformBinder& UniformBinder::operator = (const glm::f32mat2 &v)
 {
-    glUniformMatrix2fv(_location, 1, false, &v[0][0]);
+    glUniformMatrix2fv(_uniformDeclaration->getIndex(), 1, false, &v[0][0]);
     return *this;
 }
 
 UniformBinder& UniformBinder::operator = (const glm::f32mat3 &v)
 {
-    glUniformMatrix3fv(_location, 1, false, &v[0][0]);
+    glUniformMatrix3fv(_uniformDeclaration->getIndex(), 1, false, &v[0][0]);
     return *this;
 }
 
 UniformBinder& UniformBinder::operator = (const glm::f32mat4 &v)
 {
-    glUniformMatrix4fv(_location, 1, false, &v[0][0]);
+    glUniformMatrix4fv(_uniformDeclaration->getIndex(), 1, false, &v[0][0]);
     return *this;
 }
 
 UniformBinder& UniformBinder::operator = (const glm::f32mat2x3 &v)
 {
-    glUniformMatrix2x3fv(_location, 1, false, &v[0][0]);
+    glUniformMatrix2x3fv(_uniformDeclaration->getIndex(), 1, false, &v[0][0]);
     return *this;
 }
 
 UniformBinder& UniformBinder::operator = (const glm::f32mat3x2 &v)
 {
-    glUniformMatrix3x2fv(_location, 1, false, &v[0][0]);
+    glUniformMatrix3x2fv(_uniformDeclaration->getIndex(), 1, false, &v[0][0]);
     return *this;
 }
 
 UniformBinder& UniformBinder::operator = (const glm::f32mat2x4 &v)
 {
-    glUniformMatrix2x4fv(_location, 1, false, &v[0][0]);
+    glUniformMatrix2x4fv(_uniformDeclaration->getIndex(), 1, false, &v[0][0]);
     return *this;
 }
 
 UniformBinder& UniformBinder::operator = (const glm::f32mat4x2 &v)
 {
-    glUniformMatrix4x2fv(_location, 1, false, &v[0][0]);
+    glUniformMatrix4x2fv(_uniformDeclaration->getIndex(), 1, false, &v[0][0]);
     return *this;
 }
 
 UniformBinder& UniformBinder::operator = (const glm::f32mat3x4 &v)
 {
-    glUniformMatrix3x4fv(_location, 1, false, &v[0][0]);
+    glUniformMatrix3x4fv(_uniformDeclaration->getIndex(), 1, false, &v[0][0]);
     return *this;
 }
 
 UniformBinder& UniformBinder::operator = (const glm::f32mat4x3 &v)
 {
-    glUniformMatrix4x3fv(_location, 1, false, &v[0][0]);
+    glUniformMatrix4x3fv(_uniformDeclaration->getIndex(), 1, false, &v[0][0]);
     return *this;
 }
 
+UniformBinder::operator glm::f32() const
+{
+    glm::f32 v = .0f;
+    if (_uniformDeclaration->getType() == GL_FLOAT && _uniformDeclaration->getSize() == 1)
+    {
+        glGetUniformfv(_uniformDeclaration->getProgramId(), _uniformDeclaration->getIndex(), &v);
+    }
+    return v;
+}
+
+UniformBinder::operator glm::fvec2() const
+{
+    glm::fvec2 v;
+    if (_uniformDeclaration->getType() == GL_FLOAT_VEC2 && _uniformDeclaration->getSize() == 1)
+    {
+        glGetUniformfv(_uniformDeclaration->getProgramId(), _uniformDeclaration->getIndex(), &v[0]);
+    }
+    return v;
+}
+
+UniformBinder::operator glm::fvec3() const
+{
+    glm::fvec3 v;
+    if (_uniformDeclaration->getType() == GL_FLOAT_VEC3 && _uniformDeclaration->getSize() == 1)
+    {
+        glGetUniformfv(_uniformDeclaration->getProgramId(), _uniformDeclaration->getIndex(), &v[0]);
+    }
+    return v;
+}
+
+UniformBinder::operator glm::fvec4() const
+{
+    glm::fvec4 v;
+    if (_uniformDeclaration->getType() == GL_FLOAT_VEC4 && _uniformDeclaration->getSize() == 1)
+    {
+        glGetUniformfv(_uniformDeclaration->getProgramId(), _uniformDeclaration->getIndex(), &v[0]);
+    }
+    return v;
+}
 
 #define ARRAY_NORMALIZATION_SUFFIX_LENGTH 3
 #define ARRAY_NORMALIZATION_SUFFIX "[0]"
@@ -186,7 +225,7 @@ UniformDeclaration::UniformDeclaration()
 {
 }
 
-UniformDeclaration::UniformDeclaration(GLint index, GLint size, GLenum type, const char *name) : ShaderValueDeclaration(index, size, type, name)
+UniformDeclaration::UniformDeclaration(GLuint programId, GLint index, GLint size, GLenum type, const char *name) : ShaderValueDeclaration(index, size, type, name), _programId(programId)
 {
 }
 

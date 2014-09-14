@@ -9,42 +9,6 @@
 namespace glv
 {
 
-class UniformBinder
-{
-public:
-    UniformBinder(GLint location) : _location(location)
-    {
-    }
-
-    UniformBinder& operator = (const glm::f32 &v);
-    UniformBinder& operator = (const glm::fvec2 &v);
-    UniformBinder& operator = (const glm::fvec3 &v);
-    UniformBinder& operator = (const glm::fvec4 &v);
-
-    UniformBinder& operator = (const glm::i32 &v);
-    UniformBinder& operator = (const glm::i32vec2 &v);
-    UniformBinder& operator = (const glm::i32vec3 &v);
-    UniformBinder& operator = (const glm::i32vec4 &v);
-
-    UniformBinder& operator = (const glm::u32 &v);
-    UniformBinder& operator = (const glm::u32vec2 &v);
-    UniformBinder& operator = (const glm::u32vec3 &v);
-    UniformBinder& operator = (const glm::u32vec4 &v);
-    UniformBinder& operator = (const glm::f32mat2 &v);
-    UniformBinder& operator = (const glm::f32mat3 &v);
-    UniformBinder& operator = (const glm::f32mat4 &v);
-    UniformBinder& operator = (const glm::f32mat2x3 &v);
-    UniformBinder& operator = (const glm::f32mat3x2 &v);
-    UniformBinder& operator = (const glm::f32mat2x4 &v);
-    UniformBinder& operator = (const glm::f32mat4x2 &v);
-    UniformBinder& operator = (const glm::f32mat3x4 &v);
-    UniformBinder& operator = (const glm::f32mat4x3 &v);
-
-private:
-    GLint _location;
-};
-
-
 class ShaderValueDeclaration
 {
 protected:
@@ -105,17 +69,7 @@ public:
         return _size != 0;
     }
 
-    UniformBinder bind()
-    {
-        return UniformBinder(_index);
-    }
-
-    UniformBinder operator* ()
-    {
-        return UniformBinder(_index);
-    }
-
-private:
+protected:
     void normalizeArrayName();
     GLint _index;
     GLint _size;
@@ -123,11 +77,66 @@ private:
     std::string _name;
 };
 
+class UniformDeclaration;
+
+class UniformBinder
+{
+public:
+    UniformBinder(const UniformDeclaration *uniformDeclaration) : _uniformDeclaration(uniformDeclaration)
+    {
+    }
+
+    UniformBinder& operator = (const glm::f32 &v);
+    UniformBinder& operator = (const glm::fvec2 &v);
+    UniformBinder& operator = (const glm::fvec3 &v);
+    UniformBinder& operator = (const glm::fvec4 &v);
+
+    UniformBinder& operator = (const glm::i32 &v);
+    UniformBinder& operator = (const glm::i32vec2 &v);
+    UniformBinder& operator = (const glm::i32vec3 &v);
+    UniformBinder& operator = (const glm::i32vec4 &v);
+
+    UniformBinder& operator = (const glm::u32 &v);
+    UniformBinder& operator = (const glm::u32vec2 &v);
+    UniformBinder& operator = (const glm::u32vec3 &v);
+    UniformBinder& operator = (const glm::u32vec4 &v);
+    UniformBinder& operator = (const glm::f32mat2 &v);
+    UniformBinder& operator = (const glm::f32mat3 &v);
+    UniformBinder& operator = (const glm::f32mat4 &v);
+    UniformBinder& operator = (const glm::f32mat2x3 &v);
+    UniformBinder& operator = (const glm::f32mat3x2 &v);
+    UniformBinder& operator = (const glm::f32mat2x4 &v);
+    UniformBinder& operator = (const glm::f32mat4x2 &v);
+    UniformBinder& operator = (const glm::f32mat3x4 &v);
+    UniformBinder& operator = (const glm::f32mat4x3 &v);
+
+    operator glm::f32() const;
+    operator glm::fvec2() const;
+    operator glm::fvec3() const;
+    operator glm::fvec4() const;
+
+private:
+    const UniformDeclaration *_uniformDeclaration;
+};
+
 class UniformDeclaration : public ShaderValueDeclaration
 {
 public:
     UniformDeclaration();
-    UniformDeclaration(GLint index, GLint size, GLenum type, const char *name);
+    UniformDeclaration(GLuint programId, GLint index, GLint size, GLenum type, const char *name);
+
+    inline GLuint getProgramId() const
+    {
+        return _programId;
+    }
+
+    UniformBinder operator* ()
+    {
+        return UniformBinder(this);
+    }
+private:
+    GLuint _programId;
+
 };
 
 typedef std::vector<UniformDeclaration> UniformDeclarationVector;

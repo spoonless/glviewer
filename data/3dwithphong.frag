@@ -1,14 +1,15 @@
-#version 420
+#version 330
 
 smooth in vec3 normalFrag;
 smooth in vec3 positionFrag;
 
-out vec4 color;
+uniform vec3 color = vec3(1, 1, .8) - .2;
+
+out vec4 frag_color;
 
 void main()
 {
   vec3 lightPosition = vec3(2, 2, 50);
-  vec3 lightColor = vec3(1, 1, 1) - 0.02;
   vec3 ambientContrib = vec3(0.01, 0.0, 0.01);
   
   vec3 normal = normalize(normalFrag);
@@ -20,9 +21,9 @@ void main()
   float spec = max(dot(reflectVec, viewVec), 0.0);
   spec = pow(spec, 16.0);
   
-  vec3 specContrib = lightColor * spec;
-  vec3 diffContrib = lightColor * max(dot(lightVec, normal), 0.0);
+  vec3 specContrib = color * spec;
+  vec3 diffContrib = color * max(dot(lightVec, normal), 0.0);
 
   vec3 lightContribution = ambientContrib + diffContrib;
-  color = vec4(lightContribution, 1.0);
+  frag_color = vec4(lightContribution, 1.0);
 }
