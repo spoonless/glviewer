@@ -212,7 +212,7 @@ void ShaderProgram::extractActive(UniformDeclarationVector& vector)
             }
             if (strncmp(activeUniformName, "gl_", 3))
             {
-                vector.push_back(UniformDeclaration(i, activeUniformSize, activeUniformType, activeUniformName));
+                vector.push_back(UniformDeclaration(_shaderProgramId, i, activeUniformSize, activeUniformType, activeUniformName));
             }
         }
         delete[]activeUniformName;
@@ -232,7 +232,7 @@ UniformDeclaration ShaderProgram::getActiveUniform(const char *name) const
     char tmp[1];
     glGetActiveUniform(_shaderProgramId, location, 1, 0, &activeUniformSize, &activeUniformType, tmp);
 
-    return UniformDeclaration(location, activeUniformSize, activeUniformType, name);
+    return UniformDeclaration(_shaderProgramId, location, activeUniformSize, activeUniformType, name);
 
 }
 
