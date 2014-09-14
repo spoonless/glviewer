@@ -1,7 +1,6 @@
 #ifndef GL_WINDOW_CONTEXT_HPP
 #define GL_WINDOW_CONTEXT_HPP
 
-#include <string>
 #include "glm/vec2.hpp"
 
 struct GLFWwindow;
