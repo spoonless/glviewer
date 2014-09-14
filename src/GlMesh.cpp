@@ -202,19 +202,19 @@ size_t glv::GlMesh::getBufferIndex(const std::string &name)
 glv::VertexAttributeDataDefinition glv::GlMesh::defineVertexAttributeData(const VertexAttributeDeclaration& vad)
 {
     GlError glError;
-    GLuint bufferIndex = getBufferIndex(vad.getName());
+    GLuint bufferIndex = getBufferIndex(vad.name());
     if (bufferIndex >= _buffers.size() || _buffers[bufferIndex] == 0)
     {
-        return VertexAttributeDataDefinition(false, std::string("No buffer available for vertex attribute '") + vad.getName() + "'");
+        return VertexAttributeDataDefinition(false, std::string("No buffer available for vertex attribute '") + vad.name() + "'");
     }
-    if (vad.getSize() > 1)
+    if (vad.size() > 1)
     {
-        return VertexAttributeDataDefinition(false, std::string("Vertex attribute '") + vad.getName() + "' cannot be an array");
+        return VertexAttributeDataDefinition(false, std::string("Vertex attribute '") + vad.name() + "' cannot be an array");
     }
 
     GLint vertexAttributeSize = 0;
     GLsizei stride = 0;
-    switch(vad.getType())
+    switch(vad.type())
     {
     case GL_FLOAT_VEC3:
         vertexAttributeSize = 3;
@@ -229,19 +229,19 @@ glv::VertexAttributeDataDefinition glv::GlMesh::defineVertexAttributeData(const 
         stride = 3*sizeof(GL_FLOAT);
         break;
     default:
-        return VertexAttributeDataDefinition(false, std::string("Invalid type for vertex attribute '") + vad.getName() + "': expected float, vec2 or vec3.");
+        return VertexAttributeDataDefinition(false, std::string("Invalid type for vertex attribute '") + vad.name() + "': expected float, vec2 or vec3.");
     }
 
     glBindVertexArray(_vertexArray);
     glBindBuffer(GL_ARRAY_BUFFER, _buffers[bufferIndex]);
-    glVertexAttribPointer(vad.getIndex(), vertexAttributeSize, GL_FLOAT, (bufferIndex == 1 ? GL_TRUE : GL_FALSE), stride, (void*)0);
+    glVertexAttribPointer(vad.index(), vertexAttributeSize, GL_FLOAT, (bufferIndex == 1 ? GL_TRUE : GL_FALSE), stride, (void*)0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     if (glError)
     {
         return VertexAttributeDataDefinition(false, glError.toString("defining vertex attribute"));
     }
-    _definedVertexAttributes.push_back(vad.getIndex());
+    _definedVertexAttributes.push_back(vad.index());
     return VertexAttributeDataDefinition(true, "");
 }
 

@@ -341,16 +341,16 @@ TEST(ShaderProgram, canExtractMultipleUniformDeclaration)
     for (unsigned int i = 0; i < uniformDeclarationVector.size(); ++i)
     {
         UniformDeclaration& uniformDeclaration = uniformDeclarationVector[i];
-        ASSERT_EQ(static_cast<GLuint>(i), uniformDeclaration.getIndex());
-        if (uniformDeclaration.getName() == "position")
+        ASSERT_EQ(static_cast<GLuint>(i), uniformDeclaration.index());
+        if (uniformDeclaration.name() == "position")
         {
-            ASSERT_EQ(1, uniformDeclaration.getSize());
-            ASSERT_EQ(static_cast<GLenum>(GL_FLOAT_VEC4), uniformDeclaration.getType());
+            ASSERT_EQ(1, uniformDeclaration.size());
+            ASSERT_EQ(static_cast<GLenum>(GL_FLOAT_VEC4), uniformDeclaration.type());
         }
-        else if (uniformDeclaration.getName() == "mvp")
+        else if (uniformDeclaration.name() == "mvp")
         {
-            ASSERT_EQ(1, uniformDeclaration.getSize());
-            ASSERT_EQ(static_cast<GLenum>(GL_FLOAT_MAT4), uniformDeclaration.getType());
+            ASSERT_EQ(1, uniformDeclaration.size());
+            ASSERT_EQ(static_cast<GLenum>(GL_FLOAT_MAT4), uniformDeclaration.type());
         }
         else
         {
@@ -413,7 +413,7 @@ TEST(ShaderProgram, canExtractAttributeDeclarationWhenSeveralAttributes)
     ASSERT_EQ(VertexAttributeDeclaration(2, 1, GL_FLOAT_VEC4, "vertices"), vector[1]);
 }
 
-TEST(ShaderProgram, canExtractUniformValue)
+TEST(ShaderProgram, canExtractUniformFloatValue)
 {
     ShaderProgram shaderProgram;
     const char* source =
@@ -429,7 +429,7 @@ TEST(ShaderProgram, canExtractUniformValue)
     addShader(shaderProgram, Shader::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
 
-    ASSERT_EQ(-12.45f, *shaderProgram.getActiveUniform("value"));
+    ASSERT_EQ(-12.45f, static_cast<glm::f32>(*shaderProgram.getActiveUniform("value")));
 
     glm::fvec2 fvec2 = *shaderProgram.getActiveUniform("value2");
     ASSERT_EQ(glm::fvec2(10.0f, 20.0f), fvec2);
@@ -439,4 +439,60 @@ TEST(ShaderProgram, canExtractUniformValue)
 
     glm::fvec4 fvec4 = *shaderProgram.getActiveUniform("value4");
     ASSERT_EQ(glm::fvec4(10.0f, 20.0f, 30.0f, 40.0f), fvec4);
+}
+
+TEST(ShaderProgram, canExtractUniformIntegerValue)
+{
+    ShaderProgram shaderProgram;
+    const char* source =
+            GLSL_VERSION_HEADER
+            "uniform int value = -1;"
+            "uniform ivec2 value2 = ivec2(10,20);"
+            "uniform ivec3 value3 = ivec3(10,20,30);"
+            "uniform ivec4 value4 = ivec4(10,20,30,40);"
+            "void main() {"
+            " gl_Position = vec4(value, value2.x, value3.x, value4.x);"
+            "}";
+
+    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    ASSERT_TRUE(shaderProgram.link());
+
+    ASSERT_EQ(-1, static_cast<glm::i32>(*shaderProgram.getActiveUniform("value")));
+
+    glm::ivec2 ivec2 = *shaderProgram.getActiveUniform("value2");
+    ASSERT_EQ(glm::ivec2(10, 20), ivec2);
+
+    glm::ivec3 ivec3 = *shaderProgram.getActiveUniform("value3");
+    ASSERT_EQ(glm::ivec3(10, 20, 30), ivec3);
+
+    glm::ivec4 ivec4 = *shaderProgram.getActiveUniform("value4");
+    ASSERT_EQ(glm::ivec4(10, 20, 30, 40), ivec4);
+}
+
+TEST(ShaderProgram, canExtractUniformUnsignedIntegerValue)
+{
+    ShaderProgram shaderProgram;
+    const char* source =
+            GLSL_VERSION_HEADER
+            "uniform uint value = 1;"
+            "uniform uvec2 value2 = uvec2(10,20);"
+            "uniform uvec3 value3 = uvec3(10,20,30);"
+            "uniform uvec4 value4 = uvec4(10,20,30,40);"
+            "void main() {"
+            " gl_Position = vec4(value, value2.x, value3.x, value4.x);"
+            "}";
+
+    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    ASSERT_TRUE(shaderProgram.link());
+
+    ASSERT_EQ(1u, static_cast<glm::u32>(*shaderProgram.getActiveUniform("value")));
+
+    glm::uvec2 uvec2 = *shaderProgram.getActiveUniform("value2");
+    ASSERT_EQ(glm::uvec2(10, 20), uvec2);
+
+    glm::uvec3 uvec3 = *shaderProgram.getActiveUniform("value3");
+    ASSERT_EQ(glm::uvec3(10, 20, 30), uvec3);
+
+    glm::uvec4 uvec4 = *shaderProgram.getActiveUniform("value4");
+    ASSERT_EQ(glm::uvec4(10, 20, 30, 40), uvec4);
 }

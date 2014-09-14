@@ -233,7 +233,6 @@ UniformDeclaration ShaderProgram::getActiveUniform(const char *name) const
     glGetActiveUniform(_shaderProgramId, location, 1, 0, &activeUniformSize, &activeUniformType, tmp);
 
     return UniformDeclaration(_shaderProgramId, location, activeUniformSize, activeUniformType, name);
-
 }
 
 void ShaderProgram::extractActive(VertexAttributeDeclarationVector& vector)

@@ -17,8 +17,8 @@ TEST(UniformDeclaration, canCopyUniformDeclaration)
 TEST(UniformDeclaration, canNormalizeArrayUniformDeclaration)
 {
     UniformDeclaration uniformDeclaration(10u, 1, 10, GL_FLOAT_MAT2, "array[0]");
-    ASSERT_EQ("array", uniformDeclaration.getName());
+    ASSERT_EQ("array", uniformDeclaration.name());
 
     uniformDeclaration = UniformDeclaration(10u, 1, 10, GL_FLOAT_MAT2, "anotherArray");
-    ASSERT_EQ("anotherArray", uniformDeclaration.getName());
+    ASSERT_EQ("anotherArray", uniformDeclaration.name());
 }
