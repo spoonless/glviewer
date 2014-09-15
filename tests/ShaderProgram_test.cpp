@@ -483,10 +483,10 @@ TEST(ShaderProgram, canExtractUniformUnsignedIntegerValue)
     ShaderProgram shaderProgram;
     const char* source =
             GLSL_VERSION_HEADER
-            "uniform uint value = 1;"
-            "uniform uvec2 value2 = uvec2(10,20);"
-            "uniform uvec3 value3 = uvec3(10,20,30);"
-            "uniform uvec4 value4 = uvec4(10,20,30,40);"
+            "uniform uint value = 1u;"
+            "uniform uvec2 value2 = uvec2(10u,20u);"
+            "uniform uvec3 value3 = uvec3(10u,20u,30u);"
+            "uniform uvec4 value4 = uvec4(10u,20u,30u,40u);"
             "void main() {"
             " gl_Position = vec4(value, value2.x, value3.x, value4.x);"
             "}";
