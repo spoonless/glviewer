@@ -14,6 +14,11 @@ class UniformBinder
     friend class UniformDeclaration;
 public:
 
+    UniformBinder& operator = (bool v);
+    UniformBinder& operator = (const glm::bvec2 &v);
+    UniformBinder& operator = (const glm::bvec3 &v);
+    UniformBinder& operator = (const glm::bvec4 &v);
+
     UniformBinder& operator = (const glm::f32 &v);
     UniformBinder& operator = (const glm::fvec2 &v);
     UniformBinder& operator = (const glm::fvec3 &v);
@@ -41,6 +46,11 @@ public:
 
     UniformBinder& operator = (const glm::f32mat4x2 &v);
     UniformBinder& operator = (const glm::f32mat4x3 &v);
+
+    operator bool() const;
+    operator glm::bvec2() const;
+    operator glm::bvec3() const;
+    operator glm::bvec4() const;
 
     operator glm::f32() const;
     operator glm::fvec2() const;

@@ -49,6 +49,30 @@ bool glv::UniformBinder::operator == (const glv::UniformBinder &binder) const
     return _programId == binder._programId && _index == binder._index && _size == binder._size && _type == binder._type;
 }
 
+glv::UniformBinder& glv::UniformBinder::operator = (bool v)
+{
+    glUniform1ui(_index, v);
+    return *this;
+}
+
+glv::UniformBinder& glv::UniformBinder::operator = (const glm::bvec2 &v)
+{
+    glUniform2ui(_index, v.x, v.y);
+    return *this;
+}
+
+glv::UniformBinder& glv::UniformBinder::operator = (const glm::bvec3 &v)
+{
+    glUniform3ui(_index, v.x, v.y, v.z);
+    return *this;
+}
+
+glv::UniformBinder& glv::UniformBinder::operator = (const glm::bvec4 &v)
+{
+    glUniform4ui(_index, v.x, v.y, v.z, v.w);
+    return *this;
+}
+
 glv::UniformBinder& glv::UniformBinder::operator = (const glm::f32 &v)
 {
     glUniform1f(_index, v);
@@ -176,6 +200,48 @@ glv::UniformBinder& glv::UniformBinder::operator = (const glm::f32mat4x3 &v)
     glUniformMatrix4x3fv(_index, 1, false, &v[0][0]);
     return *this;
 }
+
+glv::UniformBinder::operator bool() const
+{
+    unsigned int v = 0;
+    if (_type == GL_BOOL && _size == 1)
+    {
+        glGetUniformuiv(_programId, _index, &v);
+    }
+    return v != 0;
+}
+
+glv::UniformBinder::operator glm::bvec2() const
+{
+    glm::uvec2 v;
+    if (_type == GL_BOOL_VEC2 && _size == 1)
+    {
+        glGetUniformuiv(_programId, _index, &v[0]);
+    }
+    return glm::bvec2(v);
+}
+
+glv::UniformBinder::operator glm::bvec3() const
+{
+    glm::uvec3 v;
+    if (_type == GL_BOOL_VEC3 && _size == 1)
+    {
+        glGetUniformuiv(_programId, _index, &v[0]);
+    }
+    return glm::bvec3(v);
+}
+
+glv::UniformBinder::operator glm::bvec4() const
+{
+    glm::uvec4 v;
+    if (_type == GL_BOOL_VEC4 && _size == 1)
+    {
+        glGetUniformuiv(_programId, _index, &v[0]);
+    }
+    return glm::bvec4(v);
+}
+
+//##############################################################
 
 glv::UniformBinder::operator glm::f32() const
 {

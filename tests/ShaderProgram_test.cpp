@@ -32,6 +32,19 @@ void addShader(ShaderProgram& shaderProgram, Shader::ShaderType type, const char
     ASSERT_TRUE(shaderProgram.attach(vertexShader));
 }
 
+template<typename T> void checkUniform(ShaderProgram &shaderProgram, const char *uniformName, const T &expectedValue)
+{
+    UniformDeclaration u = shaderProgram.getActiveUniform(uniformName);
+
+    T v = *u;
+    ASSERT_EQ(expectedValue, v);
+
+    T modifiedValue = v + v;
+    *u = modifiedValue;
+    v = *u;
+    ASSERT_EQ(modifiedValue, v);
+}
+
 }
 
 TEST(ShaderProgram, canCreateShaderProgram)
@@ -437,17 +450,38 @@ TEST(ShaderProgram, canExtractUniformFloatVectorValue)
 
     addShader(shaderProgram, Shader::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
+    shaderProgram.use();
 
-    ASSERT_EQ(-12.45f, static_cast<glm::f32>(*shaderProgram.getActiveUniform("value")));
+    checkUniform(shaderProgram, "value", -12.45f);
+    checkUniform(shaderProgram, "value2", glm::fvec2(10.0f, 20.0f));
+    checkUniform(shaderProgram, "value3", glm::fvec3(10.0f, 20.0f, 30.0f));
+    checkUniform(shaderProgram, "value4", glm::fvec4(10.0f, 20.0f, 30.0f, 40.0f));
+}
 
-    glm::fvec2 fvec2 = *shaderProgram.getActiveUniform("value2");
-    ASSERT_EQ(glm::fvec2(10.0f, 20.0f), fvec2);
+TEST(ShaderProgram, canExtractUniformBooleanVectorValue)
+{
+    ShaderProgram shaderProgram;
+    const char* source =
+            GLSL_VERSION_HEADER
+            "uniform bool value = true;"
+            "uniform bvec2 value2 = bvec2(true,false);"
+            "uniform bvec3 value3 = bvec3(true, false, true);"
+            "uniform bvec4 value4 = bvec4(true, false, true, false);"
+            "void main() {"
+            " if (value && value2.x && value3.x && value4.x)"
+            " {"
+            "   gl_Position = vec4(1.0);"
+            " }"
+            "}";
 
-    glm::fvec3 fvec3 = *shaderProgram.getActiveUniform("value3");
-    ASSERT_EQ(glm::fvec3(10.0f, 20.0f, 30.0f), fvec3);
+    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    ASSERT_TRUE(shaderProgram.link());
+    shaderProgram.use();
 
-    glm::fvec4 fvec4 = *shaderProgram.getActiveUniform("value4");
-    ASSERT_EQ(glm::fvec4(10.0f, 20.0f, 30.0f, 40.0f), fvec4);
+    checkUniform(shaderProgram, "value", true);
+    checkUniform(shaderProgram, "value2", glm::bvec2(true, false));
+    checkUniform(shaderProgram, "value3", glm::bvec3(true, false, true));
+    checkUniform(shaderProgram, "value4", glm::bvec4(true, false, true, false));
 }
 
 TEST(ShaderProgram, canExtractUniformIntegerVectorValue)
@@ -465,20 +499,15 @@ TEST(ShaderProgram, canExtractUniformIntegerVectorValue)
 
     addShader(shaderProgram, Shader::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
+    shaderProgram.use();
 
-    ASSERT_EQ(-1, static_cast<glm::i32>(*shaderProgram.getActiveUniform("value")));
-
-    glm::ivec2 ivec2 = *shaderProgram.getActiveUniform("value2");
-    ASSERT_EQ(glm::ivec2(10, 20), ivec2);
-
-    glm::ivec3 ivec3 = *shaderProgram.getActiveUniform("value3");
-    ASSERT_EQ(glm::ivec3(10, 20, 30), ivec3);
-
-    glm::ivec4 ivec4 = *shaderProgram.getActiveUniform("value4");
-    ASSERT_EQ(glm::ivec4(10, 20, 30, 40), ivec4);
+    checkUniform(shaderProgram, "value", -1);
+    checkUniform(shaderProgram, "value2", glm::ivec2(10, 20));
+    checkUniform(shaderProgram, "value3", glm::ivec3(10, 20, 30));
+    checkUniform(shaderProgram, "value4", glm::ivec4(10, 20, 30, 40));
 }
 
-TEST(ShaderProgram, canExtractUniformUnsignedIntegerValue)
+TEST(ShaderProgram, canExtractUniformUnsignedIntegerVectorValue)
 {
     ShaderProgram shaderProgram;
     const char* source =
@@ -493,17 +522,12 @@ TEST(ShaderProgram, canExtractUniformUnsignedIntegerValue)
 
     addShader(shaderProgram, Shader::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
+    shaderProgram.use();
 
-    ASSERT_EQ(1u, static_cast<glm::u32>(*shaderProgram.getActiveUniform("value")));
-
-    glm::uvec2 uvec2 = *shaderProgram.getActiveUniform("value2");
-    ASSERT_EQ(glm::uvec2(10, 20), uvec2);
-
-    glm::uvec3 uvec3 = *shaderProgram.getActiveUniform("value3");
-    ASSERT_EQ(glm::uvec3(10, 20, 30), uvec3);
-
-    glm::uvec4 uvec4 = *shaderProgram.getActiveUniform("value4");
-    ASSERT_EQ(glm::uvec4(10, 20, 30, 40), uvec4);
+    checkUniform(shaderProgram, "value", 1u);
+    checkUniform(shaderProgram, "value2", glm::uvec2(10, 20));
+    checkUniform(shaderProgram, "value3", glm::uvec3(10, 20, 30));
+    checkUniform(shaderProgram, "value4", glm::uvec4(10, 20, 30, 40));
 }
 
 TEST(ShaderProgram, canExtractUniformMatrix2Value)
@@ -520,15 +544,11 @@ TEST(ShaderProgram, canExtractUniformMatrix2Value)
 
     addShader(shaderProgram, Shader::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
+    shaderProgram.use();
 
-    glm::f32mat2x2 mat2 = *shaderProgram.getActiveUniform("value");
-    ASSERT_EQ(glm::f32mat2x2(1,2,10,20), mat2);
-
-    glm::f32mat2x3 mat2x3 = *shaderProgram.getActiveUniform("value2");
-    ASSERT_EQ(glm::f32mat2x3(1,2,3,10,20,30), mat2x3);
-
-    glm::f32mat2x4 mat2x4 = *shaderProgram.getActiveUniform("value3");
-    ASSERT_EQ(glm::f32mat2x4(1,2,3,4,10,20,30,40), mat2x4);
+    checkUniform(shaderProgram, "value", glm::f32mat2x2(1,2,10,20));
+    checkUniform(shaderProgram, "value2", glm::f32mat2x3(1,2,3,10,20,30));
+    checkUniform(shaderProgram, "value3", glm::f32mat2x4(1,2,3,4,10,20,30,40));
 }
 
 TEST(ShaderProgram, canExtractUniformMatrix3Value)
@@ -545,15 +565,11 @@ TEST(ShaderProgram, canExtractUniformMatrix3Value)
 
     addShader(shaderProgram, Shader::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
+    shaderProgram.use();
 
-    glm::f32mat3x3 mat3 = *shaderProgram.getActiveUniform("value");
-    ASSERT_EQ(glm::f32mat3(1,2,3,10,20,30,100,200,300), mat3);
-
-    glm::f32mat3x2 mat3x2 = *shaderProgram.getActiveUniform("value2");
-    ASSERT_EQ(glm::f32mat3x2(1,2,10,20,100,200), mat3x2);
-
-    glm::f32mat3x4 mat3x4 = *shaderProgram.getActiveUniform("value3");
-    ASSERT_EQ(glm::f32mat3x4(1,2,3,4,10,20,30,40,100,200,300,400), mat3x4);
+    checkUniform(shaderProgram, "value", glm::f32mat3(1,2,3,10,20,30,100,200,300));
+    checkUniform(shaderProgram, "value2", glm::f32mat3x2(1,2,10,20,100,200));
+    checkUniform(shaderProgram, "value3", glm::f32mat3x4(1,2,3,4,10,20,30,40,100,200,300,400));
 }
 
 TEST(ShaderProgram, canExtractUniformMatrix4Value)
@@ -570,13 +586,9 @@ TEST(ShaderProgram, canExtractUniformMatrix4Value)
 
     addShader(shaderProgram, Shader::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
+    shaderProgram.use();
 
-    glm::f32mat4x4 mat4 = *shaderProgram.getActiveUniform("value");
-    ASSERT_EQ(glm::f32mat4(1,2,3,4,10,20,30,40,100,200,300,400,1000,2000,3000,4000), mat4);
-
-    glm::f32mat4x2 mat4x2 = *shaderProgram.getActiveUniform("value2");
-    ASSERT_EQ(glm::f32mat4x2(1,2,10,20,100,200,1000,2000), mat4x2);
-
-    glm::f32mat4x3 mat4x3 = *shaderProgram.getActiveUniform("value3");
-    ASSERT_EQ(glm::f32mat4x3(1,2,3,4,10,20,30,40,100,200,300,400), mat4x3);
+    checkUniform(shaderProgram, "value", glm::f32mat4(1,2,3,4,10,20,30,40,100,200,300,400,1000,2000,3000,4000));
+    checkUniform(shaderProgram, "value2", glm::f32mat4x2(1,2,10,20,100,200,1000,2000));
+    checkUniform(shaderProgram, "value3", glm::f32mat4x3(1,2,3,4,10,20,30,40,100,200,300,400));
 }
