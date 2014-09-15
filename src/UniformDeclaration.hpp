@@ -1,5 +1,5 @@
-#ifndef ShaderValueDeclaration_H
-#define ShaderValueDeclaration_H
+#ifndef UNIFORM_DECLARATION_H
+#define UNIFORM_DECLARATION_H
 
 #include <string>
 #include <vector>
@@ -210,4 +210,4 @@ typedef std::vector<VertexAttributeDeclaration> VertexAttributeDeclarationVector
 
 }
 
-#endif // ShaderValueDeclaration_H
+#endif // UNIFORM_DECLARATION_H

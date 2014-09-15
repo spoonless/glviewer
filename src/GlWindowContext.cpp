@@ -59,6 +59,7 @@ bool glv::GlWindowContext::init (std::string title, unsigned int width, unsigned
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
     /* Create a windowed mode window and its OpenGL context */
     _window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);

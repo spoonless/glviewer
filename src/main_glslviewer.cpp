@@ -63,7 +63,11 @@ public:
 
     void loadUniforms(const glv::ShaderProgram &shaderProgram)
     {
-        _diffuseColor = shaderProgram.getActiveUniform("color");
+        _ambiantColor = shaderProgram.getActiveUniform("materialAmbiant");
+        _diffuseColor = shaderProgram.getActiveUniform("materialDiffuse");
+        _specularColor = shaderProgram.getActiveUniform("materialSpecular");
+        _specularCoeff = shaderProgram.getActiveUniform("materialShininess");
+
     }
 
     void loadMaterials(const char *objFilename,  const vfm::ObjModel &model)
@@ -115,9 +119,22 @@ public:
     {
         if (index != NO_MATERIAL_INDEX && index < _materials.size())
         {
+            vfm::Material &material = _materials[index];
+            if (_ambiantColor)
+            {
+                *_ambiantColor = material.color.ambiant;
+            }
             if (_diffuseColor)
             {
-                *_diffuseColor = _materials[index].color.diffuse;
+                *_diffuseColor = material.color.diffuse;
+            }
+            if (_specularColor)
+            {
+                *_specularColor = material.color.specular;
+            }
+            if (_specularCoeff)
+            {
+                *_specularCoeff = material.color.specularCoeff;
             }
         }
     }
@@ -133,7 +150,10 @@ private:
         std::cout << "* " << "loading '" << filename << "' in " << duration << "ms." << std::endl << std::endl;
     }
 
+    glv::UniformDeclaration _ambiantColor;
     glv::UniformDeclaration _diffuseColor;
+    glv::UniformDeclaration _specularColor;
+    glv::UniformDeclaration _specularCoeff;
     std::vector<vfm::Material> _materials;
 };
 
