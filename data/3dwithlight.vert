@@ -5,9 +5,9 @@ in vec3 normal;
 out vec3 lightIntensity;
 
 uniform vec4 lightPosition = vec4(20,10,30,1);
-uniform vec3 lightAmbiant = vec3(0.6);
+uniform vec3 lightAmbiant = vec3(0.3);
 uniform vec3 lightDiffuse = vec3(1.0);
-uniform vec3 lightSpecular = vec3(1.0);
+uniform vec3 lightSpecular = vec3(0.1);
 
 uniform vec3 materialAmbiant = vec3(.8,.8,.8);
 uniform vec3 materialDiffuse = vec3(0);
