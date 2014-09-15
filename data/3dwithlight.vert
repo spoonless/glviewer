@@ -2,7 +2,7 @@
 in vec3 position;
 in vec3 normal;
 
-out vec3 lightIntensity;
+smooth out vec3 lightIntensity;
 
 uniform vec4 lightPosition = vec4(20,10,30,1);
 uniform vec3 lightAmbiant = vec3(0.3);
@@ -19,17 +19,13 @@ uniform mat4 mvMat;
 uniform mat4 projectionMat;
 uniform mat4 mvpMat;
 
-void main()
+vec3 phongModel(in vec3 eyeNormal, in vec4 eyePosition)
 {
-  // Convert normal and position to eye coords
-  vec4 eyeCoords = mvMat * vec4(position,1.0);
+  vec3 s = normalize(vec3(lightPosition - eyePosition));
+  vec3 v = normalize(-eyePosition.xyz);
+  vec3 r = reflect(-s, eyeNormal);
 
-  vec3 n = normalize(normalMat * normal);
-  vec3 s = normalize(vec3(lightPosition - eyeCoords));
-  vec3 v = normalize(-eyeCoords.xyz);
-  vec3 r = reflect(-s, n);
-
-  float cos_sn = max(dot(s, n), 0.0);
+  float cos_sn = max(dot(s, eyeNormal), 0.0);
 
   vec3 ambiant = lightAmbiant * materialAmbiant;
   vec3 diffuse = lightDiffuse * materialDiffuse * cos_sn;
@@ -38,9 +34,15 @@ void main()
   {
     specular = lightSpecular * materialSpecular * pow(max(dot(r,v), .0), materialShininess);
   }
+  return ambiant + diffuse + specular;
+}
 
-  lightIntensity = ambiant + diffuse + specular;
+void main()
+{
+  vec3 eyeNormal = normalize(normalMat * normal);
+  vec4 eyePosition = mvMat * vec4(position,1.0);
 
-  // Convert position to clip coordinates and pass along
+  lightIntensity = phongModel(eyeNormal, eyePosition);
+
   gl_Position = mvpMat * vec4(position,1.0);
 }
