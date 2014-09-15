@@ -57,6 +57,86 @@ const char defaultFragmentShader[] =
           "color=vec4(col, 1.0);\n"
         "}\n";
 
+class MaterialHandler : public glv::MaterialHandler
+{
+public:
+
+    void loadUniforms(const glv::ShaderProgram &shaderProgram)
+    {
+        _diffuseColor = shaderProgram.getActiveUniform("color");
+    }
+
+    void loadMaterials(const char *objFilename,  const vfm::ObjModel &model)
+    {
+        std::map<std::string, vfm::MaterialMap> materialMaps;
+        sys::Path objFilepath(objFilename);
+        sys::Path currentPath = objFilepath.dirpath();
+        std::string defaultMaterialLibrary = std::string(objFilepath.withoutExtension()) + ".mtl";
+
+        _materials.clear();
+
+        for(vfm::MaterialIdVector::const_iterator it = model.materialIds.begin(); it != model.materialIds.end(); ++it)
+        {
+            const std::string *libraryName = &it->library;
+            if (libraryName->empty())
+            {
+                libraryName = &defaultMaterialLibrary;
+            }
+            if (materialMaps.find(*libraryName) == materialMaps.end())
+            {
+                sys::Path mtlfile(currentPath, libraryName->c_str());
+                sys::Duration loadfileDuration;
+                std::ifstream isMat(mtlfile);
+                isMat >> materialMaps[*libraryName];
+                if(!isMat.eof() && isMat.fail())
+                {
+                    warn(mtlfile, "Cannot read file (maybe the path is wrong)!");
+                    materialMaps.erase(*libraryName);
+                }
+                else
+                {
+                    message(mtlfile, loadfileDuration.elapsed());
+                }
+            }
+
+            _materials.push_back(vfm::Material());
+            if (materialMaps.find(*libraryName) != materialMaps.end())
+            {
+                vfm::MaterialMap &materialMap = materialMaps[*libraryName];
+                if (materialMap.find(it->name) != materialMap.end())
+                {
+                    _materials.back() = materialMap[it->name];
+                }
+            }
+        }
+    }
+
+    virtual void use(glv::MaterialIndex index)
+    {
+        if (index != NO_MATERIAL_INDEX && index < _materials.size())
+        {
+            if (_diffuseColor)
+            {
+                *_diffuseColor = _materials[index].color.diffuse;
+            }
+        }
+    }
+
+private:
+    void warn(const char *filename, const char *message)
+    {
+        std::cerr << "! " << "error while loading '" << filename << "':" << std::endl << "  " << message << std::endl;
+    }
+
+    void message(const char *filename, unsigned long duration)
+    {
+        std::cout << "* " << "loading '" << filename << "' in " << duration << "ms." << std::endl << std::endl;
+    }
+
+    glv::UniformDeclaration _diffuseColor;
+    std::vector<vfm::Material> _materials;
+};
+
 class GlslViewer
 {
 public:
@@ -131,40 +211,9 @@ public:
             model.computeNormals();
         }
 
-        std::map<std::string, vfm::MaterialMap> materialMaps;
-        loadMaterialMaps(objFilename, model, materialMaps);
+        materialHandler.loadMaterials(objFilename, model);
 
         check(mesh.generate(model), "generating mesh");
-    }
-
-    void loadMaterialMaps(const char *objFilename,  vfm::ObjModel &model, std::map<std::string, vfm::MaterialMap> &materialMaps)
-    {
-        sys::Path objFilepath(objFilename);
-        sys::Path currentPath = objFilepath.dirpath();
-        std::string defaultMaterialLibrary = std::string(objFilepath.withoutExtension()) + ".mtl";
-        for(vfm::MaterialIdVector::iterator it = model.materialIds.begin(); it != model.materialIds.end(); ++it)
-        {
-            if (it->library.empty())
-            {
-                it->library = defaultMaterialLibrary;
-            }
-            if (materialMaps.find(it->library) == materialMaps.end())
-            {
-                sys::Path mtlfile(currentPath, it->library.c_str());
-                sys::Duration loadfileDuration;
-                std::ifstream isMat(mtlfile);
-                isMat >> materialMaps[it->library];
-                if(!isMat.eof() && isMat.fail())
-                {
-                    check(LoadFileResult(false, "Cannot read file (maybe the path is wrong)!", 0), std::string("loading '") + static_cast<const char*>(mtlfile) + "'");
-                    materialMaps.erase(it->library);
-                }
-                else
-                {
-                    check(LoadFileResult(true, "", loadfileDuration.elapsed()), std::string("loading '") + static_cast<const char*>(mtlfile) + "'");
-                }
-            }
-        }
     }
 
     void createProgram(const std::string &vertexShader, const std::string &fragmentShader)
@@ -195,6 +244,8 @@ public:
             mvMatrixUniform = program.getActiveUniform("mvMat");
             mvpMatrixUniform = program.getActiveUniform("mvpMat");
             normalMatrixUniform = program.getActiveUniform("normalMat");
+
+            materialHandler.loadUniforms(program);
         }
     }
 
@@ -270,7 +321,7 @@ public:
         {
             *normalMatrixUniform = glm::transpose(glm::inverse(glm::mat3(viewMatrix * modelMatrix)));
         }
-        mesh.render();
+        mesh.render(&materialHandler);
     }
 
     inline bool good() const
@@ -306,6 +357,7 @@ private:
     glv::UniformDeclaration mvpMatrixUniform;
     glv::UniformDeclaration normalMatrixUniform;
     glv::GlMesh mesh;
+    MaterialHandler materialHandler;
 };
 
 int main(int argc, char **argv)
