@@ -4,8 +4,8 @@ in vec3 normal;
 
 smooth out vec3 lightIntensity;
 
-uniform vec4 lightPosition = vec4(20,10,30,1);
-uniform vec3 lightColor = vec3(0.8, 0.8, 0.8);
+const vec4 lightPosition[2] = vec4[2](vec4(0,1,1,0), vec4(200,100,30,1));
+const vec3 lightColor[2] = vec3[2](vec3(0.6), vec3(0.8));
 
 uniform vec3 materialAmbient = vec3(.2,.2,.2);
 uniform vec3 materialDiffuse = vec3(.7);
@@ -19,7 +19,15 @@ uniform mat4 mvpMat;
 
 vec3 phongModel(in vec4 lightPosition, in vec3 eyeNormal, in vec4 eyePosition)
 {
-  vec3 s = normalize(vec3(lightPosition - eyePosition));
+  vec3 s;
+  if (lightPosition.w == .0)
+  {
+      s = normalize(vec3(lightPosition));
+  }
+  else
+  {
+      s = normalize(vec3(lightPosition - eyePosition));
+  }
   vec3 v = normalize(-eyePosition.xyz);
   vec3 r = reflect(-s, eyeNormal);
 
@@ -39,7 +47,11 @@ void main()
   vec3 eyeNormal = normalize(normalMat * normal);
   vec4 eyePosition = mvMat * vec4(position,1.0);
 
-  lightIntensity = lightColor * phongModel(lightPosition, eyeNormal, eyePosition);
+  lightIntensity = vec3(.0);
+  for (int i = 0; i < 2; ++i)
+  {
+      lightIntensity += lightColor[i] * phongModel(lightPosition[i], eyeNormal, eyePosition);
+  }
 
   gl_Position = mvpMat * vec4(position,1.0);
 }
