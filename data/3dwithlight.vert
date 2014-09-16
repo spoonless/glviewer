@@ -5,9 +5,7 @@ in vec3 normal;
 smooth out vec3 lightIntensity;
 
 uniform vec4 lightPosition = vec4(20,10,30,1);
-uniform vec3 lightAmbient = vec3(0.3);
-uniform vec3 lightDiffuse = vec3(1.0);
-uniform vec3 lightSpecular = vec3(0.5);
+uniform vec3 lightColor = vec3(0.8, 0.8, 0.8);
 
 uniform vec3 materialAmbient = vec3(.2,.2,.2);
 uniform vec3 materialDiffuse = vec3(.7);
@@ -19,7 +17,7 @@ uniform mat4 mvMat;
 uniform mat4 projectionMat;
 uniform mat4 mvpMat;
 
-vec3 phongModel(in vec3 eyeNormal, in vec4 eyePosition)
+vec3 phongModel(in vec4 lightPosition, in vec3 eyeNormal, in vec4 eyePosition)
 {
   vec3 s = normalize(vec3(lightPosition - eyePosition));
   vec3 v = normalize(-eyePosition.xyz);
@@ -27,14 +25,13 @@ vec3 phongModel(in vec3 eyeNormal, in vec4 eyePosition)
 
   float cos_sn = max(dot(s, eyeNormal), 0.0);
 
-  vec3 ambient = lightAmbient * materialAmbient;
-  vec3 diffuse = lightDiffuse * materialDiffuse * cos_sn;
+  vec3 diffuse = materialDiffuse * cos_sn;
   if (cos_sn > .0 && materialShininess > .0)
   {
-    vec3 specular = lightSpecular * materialSpecular * pow(max(dot(r,v), .000000000000001), materialShininess);
-    return ambient + diffuse + specular;
+    vec3 specular = materialSpecular * pow(max(dot(r,v), .000000000000001), materialShininess);
+    return materialAmbient + diffuse + specular;
   }
-  return ambient + diffuse;
+  return materialAmbient + diffuse;
 }
 
 void main()
@@ -42,7 +39,7 @@ void main()
   vec3 eyeNormal = normalize(normalMat * normal);
   vec4 eyePosition = mvMat * vec4(position,1.0);
 
-  lightIntensity = phongModel(eyeNormal, eyePosition);
+  lightIntensity = lightColor * phongModel(lightPosition, eyeNormal, eyePosition);
 
   gl_Position = mvpMat * vec4(position,1.0);
 }
