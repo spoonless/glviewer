@@ -5,7 +5,7 @@ in vec3 normal;
 smooth out vec3 lightIntensity;
 
 const vec4 lightPosition[2] = vec4[2](vec4(0,1,1,0), vec4(200,100,30,1));
-const vec3 lightColor[2] = vec3[2](vec3(0.6), vec3(0.8));
+const vec3 lightColor[2] = vec3[2](vec3(0.4), vec3(0.6));
 
 uniform vec3 materialAmbient = vec3(.2,.2,.2);
 uniform vec3 materialDiffuse = vec3(.7);

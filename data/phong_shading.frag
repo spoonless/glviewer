@@ -15,27 +15,28 @@ out vec4 fragColor;
 
 vec3 phongModel(in vec4 lightPosition)
 {
-  vec3 s;
-  if (lightPosition.w == .0)
-  {
-      s = normalize(lightPosition.xyz);
-  }
-  else
-  {
-      s = normalize(lightPosition.xyz - fragPosition);
-  }
-  vec3 v = normalize(-fragPosition.xyz);
-  vec3 r = reflect(-s, fragNormal);
+    vec3 n = normalize(fragNormal);
+    vec3 s;
+    if (lightPosition.w == .0)
+    {
+        s = normalize(lightPosition.xyz);
+    }
+    else
+    {
+        s = normalize(lightPosition.xyz - fragPosition);
+    }
+    vec3 v = normalize(-fragPosition.xyz);
+    vec3 r = reflect(-s, n);
 
-  float cos_sn = max(dot(s, fragNormal), 0.0);
+    float cos_sn = max(dot(s, n), 0.0);
 
-  vec3 diffuse = materialDiffuse * cos_sn;
-  if (cos_sn > .0 && materialShininess > .0)
-  {
-    vec3 specular = materialSpecular * pow(max(dot(r,v), .000000000000001), materialShininess);
-    return materialAmbient + diffuse + specular;
-  }
-  return materialAmbient + diffuse;
+    vec3 diffuse = materialDiffuse * cos_sn;
+    if (cos_sn > .0 && materialShininess > .0)
+    {
+        vec3 specular = materialSpecular * pow(max(dot(r,v), .000000000000001), materialShininess);
+        return materialAmbient + diffuse + specular;
+    }
+    return materialAmbient + diffuse;
 }
 
 void main() {
