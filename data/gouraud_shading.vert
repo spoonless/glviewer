@@ -14,7 +14,6 @@ uniform float materialShininess = 2;
 
 uniform mat3 normalMat;
 uniform mat4 mvMat;
-uniform mat4 projectionMat;
 uniform mat4 mvpMat;
 
 vec3 phongModel(in vec4 lightPosition, in vec3 eyeNormal, in vec4 eyePosition)
