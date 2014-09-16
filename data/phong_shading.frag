@@ -31,12 +31,13 @@ uniform LightSource lightSources[nbLights] = {
     }
 };
 
+uniform vec3 ambientColor = vec3(1.0);
 
 uniform Material material = {
-    vec3(.2,.2,.2),
+    vec3(.1,.1,.1),
     vec3(.7),
-    vec3(.2),
-    2
+    vec3(.6),
+    40
 };
 
 vec3 phongModel(in vec4 lightPosition)
@@ -51,7 +52,7 @@ vec3 phongModel(in vec4 lightPosition)
     {
         s = normalize(lightPosition.xyz - fragPosition);
     }
-    vec3 v = normalize(-fragPosition.xyz);
+    vec3 v = normalize(-fragPosition);
     vec3 r = reflect(-s, n);
 
     float cos_sn = max(dot(s, n), 0.0);
@@ -60,13 +61,13 @@ vec3 phongModel(in vec4 lightPosition)
     if (cos_sn > .0 && material.specularShininess > .0)
     {
         vec3 specular = material.specular * pow(max(dot(r,v), .000000000000001), material.specularShininess);
-        return material.ambient + diffuse + specular;
+        return diffuse + specular;
     }
-    return material.ambient + diffuse;
+    return diffuse;
 }
 
 void main() {
-    vec3 lightIntensity = vec3(.0);
+    vec3 lightIntensity = material.ambient * ambientColor;
     for (int i = 0; i < nbLights; ++i)
     {
         lightIntensity += lightSources[i].color * phongModel(lightSources[i].position);

@@ -30,6 +30,8 @@ uniform LightSource lightSources[nbLights] = {
     }
 };
 
+uniform vec3 ambientColor = vec3(1.0);
+
 uniform Material material = {
     vec3(.2,.2,.2),
     vec3(.7),
@@ -61,9 +63,9 @@ vec3 phongModel(in vec4 lightPosition, in vec3 eyeNormal, in vec4 eyePosition)
   if (cos_sn > .0 && material.specularShininess > .0)
   {
     vec3 specular = material.specular * pow(max(dot(r,v), .000000000000001), material.specularShininess);
-    return material.ambient + diffuse + specular;
+    return diffuse + specular;
   }
-  return material.ambient + diffuse;
+  return diffuse;
 }
 
 void main()
@@ -71,7 +73,7 @@ void main()
   vec3 eyeNormal = normalize(normalMat * normal);
   vec4 eyePosition = mvMat * vec4(position,1.0);
 
-  lightIntensity = vec3(.0);
+  lightIntensity = material.ambient * ambientColor;
   for (uint i = 0; i < nbLights; ++i)
   {
       lightIntensity += lightSources[i].color * phongModel(lightSources[i].position, eyeNormal, eyePosition);
