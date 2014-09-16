@@ -53,14 +53,16 @@ vec3 phongModel(in vec4 lightPosition)
         s = normalize(lightPosition.xyz - fragPosition);
     }
     vec3 v = normalize(-fragPosition);
-    vec3 r = reflect(-s, n);
+    // using halfway vector instead of real reflection vector
+    vec3 r = normalize(v+s);
 
     float cos_sn = max(dot(s, n), 0.0);
 
     vec3 diffuse = material.diffuse * cos_sn;
     if (cos_sn > .0 && material.specularShininess > .0)
     {
-        vec3 specular = material.specular * pow(max(dot(r,v), .000000000000001), material.specularShininess);
+        // using specularShininess * 2 to correct halfway vector optimization
+        vec3 specular = material.specular * pow(max(dot(r,n), .0), material.specularShininess*2);
         return diffuse + specular;
     }
     return diffuse;
