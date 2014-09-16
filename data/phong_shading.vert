@@ -7,7 +7,6 @@ smooth out vec3 fragNormal;
 
 uniform mat3 normalMat;
 uniform mat4 mvMat;
-uniform mat4 projectionMat;
 uniform mat4 mvpMat;
 
 void main()

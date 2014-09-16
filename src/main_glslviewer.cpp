@@ -63,10 +63,10 @@ public:
 
     void loadUniforms(const glv::ShaderProgram &shaderProgram)
     {
-        _ambiantColor = shaderProgram.getActiveUniform("materialAmbient");
-        _diffuseColor = shaderProgram.getActiveUniform("materialDiffuse");
-        _specularColor = shaderProgram.getActiveUniform("materialSpecular");
-        _specularCoeff = shaderProgram.getActiveUniform("materialShininess");
+        _ambiantColor = shaderProgram.getActiveUniform("material.ambient");
+        _diffuseColor = shaderProgram.getActiveUniform("material.diffuse");
+        _specularColor = shaderProgram.getActiveUniform("material.specular");
+        _specularCoeff = shaderProgram.getActiveUniform("material.specularShininess");
 
     }
 

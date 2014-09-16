@@ -4,13 +4,38 @@ in vec3 normal;
 
 smooth out vec3 lightIntensity;
 
-const vec4 lightPosition[2] = vec4[2](vec4(0,1,1,0), vec4(200,100,30,1));
-const vec3 lightColor[2] = vec3[2](vec3(0.4), vec3(0.6));
+struct LightSource
+{
+    vec4 position;
+    vec3 color;
+};
 
-uniform vec3 materialAmbient = vec3(.2,.2,.2);
-uniform vec3 materialDiffuse = vec3(.7);
-uniform vec3 materialSpecular = vec3(.2);
-uniform float materialShininess = 2;
+struct Material
+{
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float specularShininess;
+};
+
+const uint nbLights = 2;
+uniform LightSource lightSources[nbLights] = {
+    {
+        vec4(0,1,1,0),
+        vec3(0.4)
+    },
+    {
+        vec4(200,100,30,1),
+        vec3(0.6)
+    }
+};
+
+uniform Material material = {
+    vec3(.2,.2,.2),
+    vec3(.7),
+    vec3(.2),
+    2
+};
 
 uniform mat3 normalMat;
 uniform mat4 mvMat;
@@ -32,13 +57,13 @@ vec3 phongModel(in vec4 lightPosition, in vec3 eyeNormal, in vec4 eyePosition)
 
   float cos_sn = max(dot(s, eyeNormal), 0.0);
 
-  vec3 diffuse = materialDiffuse * cos_sn;
-  if (cos_sn > .0 && materialShininess > .0)
+  vec3 diffuse = material.diffuse * cos_sn;
+  if (cos_sn > .0 && material.specularShininess > .0)
   {
-    vec3 specular = materialSpecular * pow(max(dot(r,v), .000000000000001), materialShininess);
-    return materialAmbient + diffuse + specular;
+    vec3 specular = material.specular * pow(max(dot(r,v), .000000000000001), material.specularShininess);
+    return material.ambient + diffuse + specular;
   }
-  return materialAmbient + diffuse;
+  return material.ambient + diffuse;
 }
 
 void main()
@@ -47,9 +72,9 @@ void main()
   vec4 eyePosition = mvMat * vec4(position,1.0);
 
   lightIntensity = vec3(.0);
-  for (int i = 0; i < 2; ++i)
+  for (uint i = 0; i < nbLights; ++i)
   {
-      lightIntensity += lightColor[i] * phongModel(lightPosition[i], eyeNormal, eyePosition);
+      lightIntensity += lightSources[i].color * phongModel(lightSources[i].position, eyeNormal, eyePosition);
   }
 
   gl_Position = mvpMat * vec4(position,1.0);
