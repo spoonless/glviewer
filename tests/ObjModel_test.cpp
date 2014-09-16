@@ -322,7 +322,7 @@ TEST(ObjModel, canLoadMaterialLibrary)
 
     vfm::Material &material = materialMap["test"];
 
-    ASSERT_EQ(glm::vec3(1.0 ,1.0, 1.0), material.color.ambiant);
+    ASSERT_EQ(glm::vec3(1.0 ,1.0, 1.0), material.color.ambient);
     ASSERT_EQ(glm::vec3(1.0 ,0.0, 1.0), material.color.diffuse);
     ASSERT_EQ(glm::vec3(0.0 ,0.0, 1.0), material.color.specular);
     ASSERT_EQ(0.9f, material.color.dissolved);

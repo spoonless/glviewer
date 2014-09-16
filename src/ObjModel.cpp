@@ -363,7 +363,7 @@ std::istream & vfm::operator >> (std::istream &is, vfm::MaterialMap &materialMap
         {
             if (!std::strncmp(line, "Ka ", 3))
             {
-                read(line+3, material->color.ambiant);
+                read(line+3, material->color.ambient);
             }
             else if (!std::strncmp(line, "Kd ", 3))
             {

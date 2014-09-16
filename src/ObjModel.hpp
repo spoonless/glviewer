@@ -18,9 +18,9 @@ typedef std::vector<glm::vec3> Vec3Vector;
 
 struct Color
 {
-    Color() : ambiant(1.0f, 1.0f, 1.0f), diffuse(1.0f, 1.0f, 1.0f), specularCoeff(0.0f), dissolved(0.0f) {}
+    Color() : ambient(1.0f, 1.0f, 1.0f), diffuse(1.0f, 1.0f, 1.0f), specularCoeff(0.0f), dissolved(0.0f) {}
 
-    glm::vec3 ambiant;
+    glm::vec3 ambient;
     glm::vec3 diffuse;
     glm::vec3 specular;
     float specularCoeff;
