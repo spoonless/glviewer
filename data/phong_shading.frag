@@ -5,6 +5,13 @@ smooth in vec3 fragNormal;
 
 out vec4 fragColor;
 
+struct FogInfo
+{
+    float minDistance;
+    float maxDistance;
+    vec3 color;
+};
+
 struct LightSource
 {
     vec4 position;
@@ -18,6 +25,8 @@ struct Material
     vec3 specular;
     float specularShininess;
 };
+
+uniform FogInfo fogInfo = {.0, 10.0, {.5,.5,.5}};
 
 const uint nbLights = 2u;
 uniform LightSource lightSources[nbLights] = {
@@ -39,6 +48,14 @@ uniform Material material = {
     vec3(.6),
     40
 };
+
+float computeFogFactor()
+{
+    float dist = abs(fragPosition.z);
+    float fogFactor = (fogInfo.maxDistance - abs(fragPosition.z)) / (fogInfo.maxDistance - fogInfo.minDistance);
+    fogFactor = clamp(fogFactor, 0.0, 1.0);
+    return fogFactor;
+}
 
 vec3 phongModel(in vec4 lightPosition)
 {
@@ -70,9 +87,15 @@ vec3 phongModel(in vec4 lightPosition)
 
 void main() {
     vec3 lightIntensity = material.ambient * ambientColor;
-    for (uint i = 0u; i < nbLights; ++i)
+    float fogFactor = computeFogFactor();
+    if (fogFactor < 1.0)
     {
-        lightIntensity += lightSources[i].color * phongModel(lightSources[i].position);
+        for (uint i = 0u; i < nbLights; ++i)
+        {
+            lightIntensity += lightSources[i].color * phongModel(lightSources[i].position);
+        }
     }
+    lightIntensity = mix(fogInfo.color, lightIntensity, fogFactor);
+
     fragColor = vec4(lightIntensity, 1.0);
 }
