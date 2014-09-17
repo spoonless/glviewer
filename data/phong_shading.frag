@@ -19,7 +19,7 @@ struct Material
     float specularShininess;
 };
 
-const uint nbLights = 2;
+const uint nbLights = 2u;
 uniform LightSource lightSources[nbLights] = {
     {
         vec4(0,1,1,0),
@@ -70,7 +70,7 @@ vec3 phongModel(in vec4 lightPosition)
 
 void main() {
     vec3 lightIntensity = material.ambient * ambientColor;
-    for (int i = 0; i < nbLights; ++i)
+    for (uint i = 0u; i < nbLights; ++i)
     {
         lightIntensity += lightSources[i].color * phongModel(lightSources[i].position);
     }
