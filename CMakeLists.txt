@@ -58,7 +58,7 @@ add_library(core_sources STATIC
 
 add_dependencies(core_sources glm)
 
-config_executable(core_sources GLFW OPENGL SOIL)
+config_executable(core_sources GLFW SOIL OPENGL)
 
 if(UNIX)
   target_link_libraries(core_sources Xrandr Xi)
