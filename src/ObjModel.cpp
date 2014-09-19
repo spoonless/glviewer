@@ -62,18 +62,6 @@ private:
 
 const size_t BUFFER_CHUNK_SIZE = 1024 * sizeof(char);
 
-inline char* tokenize(char *line)
-{
-    char *start = line;
-    for(; std::isspace(*start) && *start != 0; ++start);
-
-    char *end = start;
-    for(; !std::isspace(*end) && *end != 0; ++end);
-    *end = 0;
-
-    return start;
-}
-
 inline char* readline(std::istream &is, char *&line, size_t &lineCapacity)
 {
     is.getline(line, lineCapacity);
@@ -271,7 +259,8 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
                 object->materialActivations.push_back(materialActivation);
             }
             vertexIndexIndexer << *object;
-            object->name = tokenize(line+2);
+            // TODO should trim
+            object->name = line+2;
         }
         else if(!std::strncmp("v ", line, 2))
         {
@@ -281,6 +270,8 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
         else if(!std::strncmp("vt ", line, 3))
         {
             read(line+3, vec3);
+            // changing texture origin to lower left position
+            vec3.y = 1 - vec3.y;
             model.textures.push_back(vec3);
         }
         else if(!std::strncmp("vn ", line, 3))
@@ -326,7 +317,8 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
                     object->materialActivations.pop_back();
                 }
             }
-            materialActivation.materialIndex = getMaterialIndex(model, MaterialId(mtllib, tokenize(line + 7)));
+            // TODO should trim
+            materialActivation.materialIndex = getMaterialIndex(model, MaterialId(mtllib, line + 7));
             materialActivation.start = object->triangles.size();
             object->materialActivations.push_back(materialActivation);
         }
@@ -357,7 +349,8 @@ std::istream & vfm::operator >> (std::istream &is, vfm::MaterialMap &materialMap
 
         if (!std::strncmp(line, "newmtl ", 7))
         {
-            material = &materialMap[std::string(tokenize(line+7))];
+            // TODO should trim
+            material = &materialMap[std::string(line+7)];
         }
         else if (material != 0)
         {

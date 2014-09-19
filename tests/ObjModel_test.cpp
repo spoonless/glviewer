@@ -53,7 +53,7 @@ TEST(ObjModel, canLoadNormals)
     ASSERT_EQ(glm::vec3(1,1,1), model.normals[2]);
 }
 
-TEST(ObjModel, canLoadTextures)
+TEST(ObjModel, canLoadTextureCoordsAndChangeTextureCoordOrigin)
 {
     vfm::ObjModel model;
 
@@ -67,9 +67,9 @@ TEST(ObjModel, canLoadTextures)
     stream >> model;
 
     ASSERT_EQ(3u, model.textures.size());
-    ASSERT_EQ(glm::vec3(1,0,0), model.textures[0]);
-    ASSERT_EQ(glm::vec3(10,20,0), model.textures[1]);
-    ASSERT_EQ(glm::vec3(100,200,300), model.textures[2]);
+    ASSERT_EQ(glm::vec3(1,1,0), model.textures[0]);
+    ASSERT_EQ(glm::vec3(10,-19,0), model.textures[1]);
+    ASSERT_EQ(glm::vec3(100,-199,300), model.textures[2]);
 }
 
 TEST(ObjModel, canHaveMultipleObjects)
