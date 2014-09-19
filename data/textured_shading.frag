@@ -6,14 +6,14 @@ smooth in vec2 fragTextureCoord;
 
 out vec4 fragColor;
 
-struct Texture
+struct Sampler
 {
     sampler2D diffuse;
 };
 
-uniform Texture texture;
+uniform Sampler sampler;
 
 void main() {
-    vec4 textureColor = texture(texture.diffuse, fragTextureCoord);
+    vec4 textureColor = texture(sampler.diffuse, fragTextureCoord);
     fragColor = textureColor;
 }

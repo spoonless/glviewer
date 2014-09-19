@@ -256,12 +256,12 @@ private:
 
         void load(const glv::ShaderProgram &shaderProgram)
         {
-            _ambiant = shaderProgram.getActiveUniform("texture.ambient");
-            _diffuse = shaderProgram.getActiveUniform("texture.diffuse");
-            _specular = shaderProgram.getActiveUniform("texture.specular");
-            _specularCoeff = shaderProgram.getActiveUniform("texture.specularShininess");
-            _dissolve = shaderProgram.getActiveUniform("texture.dissolve");
-            _bump = shaderProgram.getActiveUniform("texture.bump");
+            _ambiant = shaderProgram.getActiveUniform("sampler.ambient");
+            _diffuse = shaderProgram.getActiveUniform("sampler.diffuse");
+            _specular = shaderProgram.getActiveUniform("sampler.specular");
+            _specularCoeff = shaderProgram.getActiveUniform("sampler.specularShininess");
+            _dissolve = shaderProgram.getActiveUniform("sampler.dissolve");
+            _bump = shaderProgram.getActiveUniform("sampler.bump");
         }
 
         inline bool hasTexture() const
@@ -271,42 +271,41 @@ private:
 
         void use(const LoadedTexture &loadedTexture)
         {
-            GLuint channel = 0;
             if (_ambiant)
             {
-                glActiveTexture(GL_TEXTURE0 + channel);
+                glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, loadedTexture.ambient);
-                *_ambiant = channel++;
+                *_ambiant = 0;
             }
             if (_diffuse)
             {
-                glActiveTexture(GL_TEXTURE0 + channel);
+                glActiveTexture(GL_TEXTURE1);
                 glBindTexture(GL_TEXTURE_2D, loadedTexture.diffuse);
-                *_diffuse = channel++;
+                *_diffuse = 1;
             }
             if (_specular)
             {
-                glActiveTexture(GL_TEXTURE0 + channel);
+                glActiveTexture(GL_TEXTURE2);
                 glBindTexture(GL_TEXTURE_2D, loadedTexture.specular);
-                *_specular = channel++;
+                *_specular = 2;
             }
             if (_specularCoeff)
             {
-                glActiveTexture(GL_TEXTURE0 + channel);
+                glActiveTexture(GL_TEXTURE3);
                 glBindTexture(GL_TEXTURE_2D, loadedTexture.specularCoeff);
-                *_specularCoeff = channel++;
+                *_specularCoeff = 3;
             }
             if (_dissolve)
             {
-                glActiveTexture(GL_TEXTURE0 + channel);
+                glActiveTexture(GL_TEXTURE4);
                 glBindTexture(GL_TEXTURE_2D, loadedTexture.dissolve);
-                *_dissolve = channel++;
+                *_dissolve = 4;
             }
             if (_bump)
             {
-                glActiveTexture(GL_TEXTURE0 + channel);
+                glActiveTexture(GL_TEXTURE5);
                 glBindTexture(GL_TEXTURE_2D, loadedTexture.bump);
-                *_bump = channel++;
+                *_bump = 5;
             }
         }
 
