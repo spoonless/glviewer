@@ -12,7 +12,6 @@
 namespace vfm
 {
 
-typedef unsigned int index_t;
 typedef std::vector<glm::vec4> Vec4Vector;
 typedef std::vector<glm::vec3> Vec3Vector;
 
@@ -36,23 +35,23 @@ typedef std::map<std::string, Material> MaterialMap;
 
 struct VertexIndex
 {
-    VertexIndex (index_t vertex = 0, index_t normal = 0, index_t texture = 0);
+    VertexIndex (size_t vertex = 0, size_t normal = 0, size_t texture = 0);
 
     bool operator == (const VertexIndex &vi) const;
 
-    inline operator long*()
+    inline operator size_t*()
     {
         return &vertex;
     }
 
-    inline operator const long*() const
+    inline operator const size_t*() const
     {
         return &vertex;
     }
 
-    long vertex;
-    long normal;
-    long texture;
+    size_t vertex;
+    size_t normal;
+    size_t texture;
 };
 
 struct MaterialId
@@ -76,17 +75,17 @@ struct MaterialId
 
 struct MaterialActivation
 {
-    MaterialActivation() : materialIndex(0), start(0), end(0) {}
+    MaterialActivation(size_t materialIndex, size_t start = 0u, size_t end = 0u) : materialIndex(materialIndex), start(start), end(end) {}
 
-    unsigned int materialIndex;
-    unsigned long start;
-    unsigned long end;
+    size_t materialIndex;
+    size_t start;
+    size_t end;
 };
 
 typedef std::vector<MaterialId> MaterialIdVector;
 typedef std::vector<MaterialActivation> MaterialActivationVector;
 typedef std::vector<VertexIndex> VertexIndexVector;
-typedef std::vector<index_t> IndexVector;
+typedef std::vector<size_t> IndexVector;
 
 struct Object
 {

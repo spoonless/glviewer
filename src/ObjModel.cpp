@@ -13,34 +13,34 @@ class VertexIndexIndexer
 {
 public:
 
-    VertexIndexIndexer() : _object(0)
+    VertexIndexIndexer(vfm::Object *o) : _object(o)
     {
     }
 
-    VertexIndexIndexer& operator << (vfm::Object &o)
+    VertexIndexIndexer& operator = (vfm::Object *o)
     {
-        if (_object != &o)
+        if (_object != o)
         {
-            _vertexIndexPtrMap.clear();
-            _object = &o;
+            _vertexIndexMap.clear();
+            _object = o;
         }
         return *this;
     }
 
-    vfm::index_t getIndex(const vfm::VertexIndex &vi)
+    size_t operator [](const vfm::VertexIndex &vi)
     {
-        size_t mapSize = _vertexIndexPtrMap.size();
-        vfm::index_t *index = &_vertexIndexPtrMap[vi];
-        if (_vertexIndexPtrMap.size() > mapSize)
+        size_t mapSize = _vertexIndexMap.size();
+        size_t *index = &_vertexIndexMap[vi];
+        if (_vertexIndexMap.size() > mapSize)
         {
-            *index = mapSize;
+            *index = _object->vertexIndices.size();
             _object->vertexIndices.push_back(vi);
         }
         return *index;
     }
 
 private:
-    struct VertexIndexPtrComparator {
+    struct VertexIndexComparator {
         bool operator() (const vfm::VertexIndex &vi1, const vfm::VertexIndex &vi2) const
         {
           if (vi1.vertex == vi2.vertex)
@@ -54,10 +54,10 @@ private:
           return vi1.vertex < vi2.vertex;
         }
     };
-    typedef std::map<vfm::VertexIndex, vfm::index_t, VertexIndexPtrComparator> VertexIndexMap;
+    typedef std::map<vfm::VertexIndex, size_t, VertexIndexComparator> VertexIndexMap;
 
     vfm::Object *_object;
-    VertexIndexMap _vertexIndexPtrMap;
+    VertexIndexMap _vertexIndexMap;
 };
 
 inline const char *nextToken(const char* l)
@@ -177,18 +177,18 @@ inline char* read(const char *line, glm::vec3 &vec3)
 
 inline void createTriangles(const vfm::IndexVector &polygons, vfm::IndexVector &triangles)
 {
-    vfm::index_t nbIndices = polygons.size();
+    size_t nbIndices = polygons.size();
     if (nbIndices < 3)
     {
         return;
     }
 
-    vfm::index_t descIndex = nbIndices;
-    vfm::index_t ascIndex = 2;
+    size_t descIndex = nbIndices;
+    size_t ascIndex = 2;
 
-    vfm::index_t previous = polygons[0];
-    vfm::index_t current = polygons[1];
-    vfm::index_t next = polygons[2];
+    size_t previous = polygons[0];
+    size_t current = polygons[1];
+    size_t next = polygons[2];
 
     for(bool asc = false; ascIndex < descIndex; asc = !asc)
     {
@@ -214,15 +214,17 @@ void read (const char *line, const vfm::ObjModel &model, vfm::VertexIndexVector 
     const char *token = line;
     char* endToken = 0;
     vfm::VertexIndex vertexIndex;
+    long value;
     while(*token != 0 && std::isspace(*token))
     {
         vertexIndex.vertex = vertexIndex.normal = vertexIndex.texture = 0;
 
-        vertexIndex.vertex = std::strtol(token, &endToken, 10);
-        if(vertexIndex.vertex < 0)
+        value = std::strtol(token, &endToken, 10);
+        if(value < 0)
         {
-            vertexIndex.vertex = std::max(0ul, model.vertices.size() + vertexIndex.vertex + 1);
+            value = std::max(0ul, value + model.vertices.size() + 1);
         }
+        vertexIndex.vertex = value;
 
         if (token == endToken)
         {
@@ -232,20 +234,22 @@ void read (const char *line, const vfm::ObjModel &model, vfm::VertexIndexVector 
         token = endToken;
         if (*endToken == '/')
         {
-            vertexIndex.texture = std::strtol(++token, &endToken, 10);
-            if(vertexIndex.texture < 0)
+            value = std::strtol(++token, &endToken, 10);
+            if(value < 0)
             {
-                vertexIndex.texture = std::max(0ul, model.textures.size() + vertexIndex.texture + 1);
+                value = std::max(0ul, value + model.textures.size() + 1);
             }
+            vertexIndex.texture = value;
             token = endToken;
         }
         if (*endToken == '/')
         {
-            vertexIndex.normal = std::strtol(++token, &endToken, 10);
-            if(vertexIndex.normal < 0)
+            value = std::strtol(++token, &endToken, 10);
+            if(value < 0)
             {
-                vertexIndex.normal = std::max(0ul, model.normals.size() + vertexIndex.normal + 1);
+                value = std::max(0ul, model.normals.size() + value + 1);
             }
+            vertexIndex.normal = value;
             token = endToken;
         }
 
@@ -267,9 +271,22 @@ unsigned int getMaterialIndex (vfm::ObjModel &model, const vfm::MaterialId &mate
     }
 }
 
+inline void endMaterialActivation(vfm::Object *object)
+{
+    if (!object->materialActivations.empty())
+    {
+        vfm::MaterialActivation &previousMaterialActivation = object->materialActivations.back();
+        previousMaterialActivation.end = object->triangles.size();
+        if (previousMaterialActivation.start >= previousMaterialActivation.end)
+        {
+            object->materialActivations.pop_back();
+        }
+    }
 }
 
-vfm::VertexIndex::VertexIndex (index_t vertex, index_t normal, index_t texture)
+}
+
+vfm::VertexIndex::VertexIndex (size_t vertex, size_t normal, size_t texture)
     : vertex(vertex), normal(normal), texture(texture)
 {
 }
@@ -285,11 +302,13 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
     glm::vec4 vec4;
     vfm::IndexVector polygons;
     VertexIndexVector face(10);
-    VertexIndexIndexer vertexIndexIndexer;
-    MaterialActivation materialActivation;
-    Object *object = 0;
+    unsigned int currentMaterialIndex = 0u;
     std::string mtllib;
     LineReader lineReader(is);
+
+    model.objects.push_back(Object());
+    Object *object = &model.objects.back();
+    VertexIndexIndexer vertexIndexIndexer(object);
 
     while(lineReader)
     {
@@ -297,20 +316,18 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
 
         if(!std::strncmp("o ", line, 2))
         {
-            bool reuseMaterial = false;
-            if (object != 0 && !object->materialActivations.empty())
+            if (!object->triangles.empty())
             {
-                object->materialActivations.back().end = object->triangles.size();
-                reuseMaterial = true;
+                endMaterialActivation(object);
+                model.objects.push_back(Object());
+                object = &model.objects.back();
+                vertexIndexIndexer = object;
+
+                if (currentMaterialIndex < model.materialIds.size())
+                {
+                    object->materialActivations.push_back(MaterialActivation(currentMaterialIndex));
+                }
             }
-            model.objects.push_back(Object());
-            object = &model.objects.back();
-            if (reuseMaterial)
-            {
-                materialActivation.start = object->triangles.size();
-                object->materialActivations.push_back(materialActivation);
-            }
-            vertexIndexIndexer << *object;
             object->name = nextToken(line+2);
         }
         else if(!std::strncmp("v ", line, 2))
@@ -332,55 +349,37 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
         }
         else if (!std::strncmp("f ", line, 2))
         {
-            if (object == 0)
-            {
-                model.objects.push_back(Object());
-                object = &model.objects.back();
-                vertexIndexIndexer << *object;
-            }
-
             face.clear();
             read(line+1, model, face);
 
             polygons.clear();
             for(vfm::VertexIndexVector::iterator it = face.begin(); it < face.end(); ++it)
             {
-                polygons.push_back(vertexIndexIndexer.getIndex(*it));
+                polygons.push_back(vertexIndexIndexer[*it]);
             }
 
             createTriangles(polygons, object->triangles);
         }
         else if (!std::strncmp("usemtl ", line, 7))
         {
-            if (object == 0)
-            {
-                model.objects.push_back(Object());
-                object = &model.objects.back();
-                vertexIndexIndexer << *object;
-            }
-
-            if (!object->materialActivations.empty())
-            {
-                MaterialActivation &previousMaterialActivation = object->materialActivations.back();
-                previousMaterialActivation.end = object->triangles.size();
-                if (previousMaterialActivation.start == previousMaterialActivation.end)
-                {
-                    object->materialActivations.pop_back();
-                }
-            }
-            materialActivation.materialIndex = getMaterialIndex(model, MaterialId(mtllib, line + 7));
-            materialActivation.start = object->triangles.size();
-            object->materialActivations.push_back(materialActivation);
+            endMaterialActivation(object);
+            currentMaterialIndex = getMaterialIndex(model, MaterialId(mtllib, line + 7));
+            object->materialActivations.push_back(MaterialActivation(currentMaterialIndex, object->triangles.size()));
         }
         else if (!std::strncmp("mtllib ", line, 7))
         {
             mtllib = nextToken(line + 7);
         }
     }
-    if (object != 0 && !object->materialActivations.empty())
-    {
-        object->materialActivations.back().end = object->triangles.size();
+
+    if (object->triangles.empty()){
+        model.objects.pop_back();
     }
+    else
+    {
+        endMaterialActivation(object);
+    }
+
     return is;
 }
 
@@ -450,7 +449,7 @@ void vfm::ObjModel::computeNormals(bool normalized)
             glm::vec3 normal = glm::normalize(glm::cross(b-a, c-a));
             for (int i = 0; i < 3; ++i)
             {
-                index_t vertexIndex = vertexIndices[i]->vertex;
+                size_t vertexIndex = vertexIndices[i]->vertex;
                 this->normals[vertexIndex - 1] += normal;
                 vertexIndices[i]->normal = vertexIndex;
             }

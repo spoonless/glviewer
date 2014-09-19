@@ -11,8 +11,11 @@ TEST(ObjModel, canLoadEmptyModel)
 
     stream >> model;
 
+    ASSERT_EQ(0u, model.objects.size());
     ASSERT_EQ(0u, model.vertices.size());
     ASSERT_EQ(0u, model.normals.size());
+    ASSERT_EQ(0u, model.textures.size());
+    ASSERT_EQ(0u, model.materialIds.size());
 }
 
 TEST(ObjModel, canLoadVertices)

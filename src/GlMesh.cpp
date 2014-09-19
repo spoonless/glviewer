@@ -152,8 +152,8 @@ void glv::GlMesh::generate(const vfm::ObjModel &objModel, unsigned int channel, 
         const vfm::Object &o = *it;
         for(vfm::IndexVector::const_iterator idx = o.triangles.begin(); idx != o.triangles.end(); ++idx)
         {
-            const long *vertexIndex = o.vertexIndices[*idx];
-            if (vertexIndex[channel] <= 0)
+            const size_t *vertexIndex = o.vertexIndices[*idx];
+            if (vertexIndex[channel] == 0)
             {
                 buffer[i++] = 0; buffer[i++] = 0; buffer[i++] = 0;
             }
