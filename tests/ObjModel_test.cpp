@@ -306,7 +306,7 @@ TEST(ObjModel, canLoadMaterialActivation)
     ASSERT_EQ(vfm::MaterialId("test test", "t1"), model.materialIds[1]);
 }
 
-TEST(ObjModel, canLoadMaterialLibrary)
+TEST(ObjModel, canLoadColorMaterialLibrary)
 {
     vfm::MaterialMap materialMap;
 
@@ -317,17 +317,50 @@ TEST(ObjModel, canLoadMaterialLibrary)
         "Ks 0.000 0.000 1.000\n"
         "Ns 10\n"
         "d 0.9\n"
+        "newmtl test2\n"
+        "Tr 0.9"
     );
 
     stream >> materialMap;
 
-    ASSERT_TRUE(materialMap.find("test") != materialMap.end());
-
     vfm::Material &material = materialMap["test"];
-
     ASSERT_EQ(glm::vec3(1.0 ,1.0, 1.0), material.color.ambient);
     ASSERT_EQ(glm::vec3(1.0 ,0.0, 1.0), material.color.diffuse);
     ASSERT_EQ(glm::vec3(0.0 ,0.0, 1.0), material.color.specular);
-    ASSERT_EQ(0.9f, material.color.dissolved);
+    ASSERT_EQ(0.9f, material.color.dissolve);
     ASSERT_EQ(10.0f, material.color.specularCoeff);
+
+    vfm::Material &material2 = materialMap["test2"];
+    ASSERT_EQ(0.9f, material2.color.dissolve);
+}
+
+TEST(ObjModel, canLoadMapMaterialLibrary)
+{
+    vfm::MaterialMap materialMap;
+
+    std::istringstream stream(
+        "newmtl test\n"
+        "map_Ka Ka texture file  \n"
+        "map_Kd Kd texture file  \n"
+        "map_Ks Ks texture file  \n"
+        "map_Ns Ns texture file  \n"
+        "map_d  d texture file   \n"
+        "bump   bump texture file\n"
+
+        "newmtl test2\n"
+        "map_Tr Tr texture file\n"
+    );
+
+    stream >> materialMap;
+
+    vfm::Material &material = materialMap["test"];
+    ASSERT_EQ("Ka texture file", material.map.ambient);
+    ASSERT_EQ("Kd texture file", material.map.diffuse);
+    ASSERT_EQ("Ks texture file", material.map.specular);
+    ASSERT_EQ("Ns texture file", material.map.specularCoeff);
+    ASSERT_EQ("d texture file", material.map.dissolve);
+    ASSERT_EQ("bump texture file", material.map.bump);
+
+    vfm::Material &material2 = materialMap["test2"];
+    ASSERT_EQ("Tr texture file", material2.map.dissolve);
 }

@@ -192,7 +192,7 @@ size_t glv::GlMesh::getBufferIndex(const std::string &name)
     {
         return 1;
     }
-    else if (name == "texture_coord")
+    else if (name == "textureCoord")
     {
         return 2;
     }

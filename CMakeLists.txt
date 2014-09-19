@@ -22,6 +22,7 @@ find_package(OpenGL REQUIRED)
 
 include("EmbedGlfw")
 include("EmbedGlm")
+include("EmbedSoil")
 
 ###############################################
 # main sources settings
@@ -57,7 +58,7 @@ add_library(core_sources STATIC
 
 add_dependencies(core_sources glm)
 
-config_executable(core_sources GLFW OPENGL)
+config_executable(core_sources GLFW OPENGL SOIL)
 
 if(UNIX)
   target_link_libraries(core_sources Xrandr Xi)

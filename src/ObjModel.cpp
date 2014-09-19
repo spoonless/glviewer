@@ -412,15 +412,43 @@ std::istream & vfm::operator >> (std::istream &is, vfm::MaterialMap &materialMap
             }
             else if (!std::strncmp(line, "d ", 2))
             {
-                material->color.dissolved = static_cast<float>(std::atof(line+2));
+                material->color.dissolve = static_cast<float>(std::atof(line+2));
             }
             else if (!std::strncmp(line, "Tr ", 3))
             {
-                material->color.dissolved = static_cast<float>(std::atof(line+3));
+                material->color.dissolve = static_cast<float>(std::atof(line+3));
             }
             else if (!std::strncmp(line, "Ns ", 3))
             {
                 material->color.specularCoeff = static_cast<float>(std::max(0.0, std::min(1000.0, std::atof(line+3))));
+            }
+            else if (!std::strncmp(line, "map_Ka ", 7))
+            {
+                material->map.ambient = nextToken(line + 7);
+            }
+            else if (!std::strncmp(line, "map_Kd ", 7))
+            {
+                material->map.diffuse = nextToken(line + 7);
+            }
+            else if (!std::strncmp(line, "map_Ks ", 7))
+            {
+                material->map.specular = nextToken(line + 7);
+            }
+            else if (!std::strncmp(line, "map_Ns ", 7))
+            {
+                material->map.specularCoeff = nextToken(line + 7);
+            }
+            else if (!std::strncmp(line, "map_d ", 6))
+            {
+                material->map.dissolve = nextToken(line + 6);
+            }
+            else if (!std::strncmp(line, "map_Tr ", 7))
+            {
+                material->map.dissolve = nextToken(line + 7);
+            }
+            else if (!std::strncmp(line, "bump ", 5))
+            {
+                material->map.bump = nextToken(line + 5);
             }
         }
     }

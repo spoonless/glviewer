@@ -3,7 +3,10 @@
 #include <sstream>
 #include <cstring>
 #include <cmath>
+#include <map>
+#include <set>
 #include "gl.hpp"
+#include "SOIL.h"
 #include "glm/gtx/transform.hpp"
 #include "GlWindowContext.hpp"
 #include "Path.hpp"
@@ -57,17 +60,72 @@ const char defaultFragmentShader[] =
           "color=vec4(col, 1.0);\n"
         "}\n";
 
+
+struct LoadedTexture{
+
+    LoadedTexture(): ambient(0), diffuse(0), specular(0), specularCoeff(0), dissolve(0), bump(0)
+    {
+    }
+
+    GLuint ambient;
+    GLuint diffuse;
+    GLuint specular;
+    GLuint specularCoeff;
+    GLuint dissolve;
+    GLuint bump;
+};
+
+struct LoadedMaterial
+{
+    vfm::Color color;
+    LoadedTexture texture;
+};
+
 class MaterialHandler : public glv::MaterialHandler
 {
 public:
 
+    virtual ~MaterialHandler()
+    {
+        std::set<GLuint> set;
+        for(std::vector<LoadedMaterial>::iterator it = _materials.begin(); it < _materials.end(); ++it)
+        {
+            LoadedMaterial &loadedMaterial = *it;
+            set.insert(loadedMaterial.texture.ambient);
+            set.insert(loadedMaterial.texture.diffuse);
+            set.insert(loadedMaterial.texture.specular);
+            set.insert(loadedMaterial.texture.specularCoeff);
+            set.insert(loadedMaterial.texture.dissolve);
+            set.insert(loadedMaterial.texture.bump);
+        }
+        std::vector<GLuint> vector(set.begin(), set.end());
+        glDeleteTextures(vector.size(), &vector[0]);
+    }
+
     void loadUniforms(const glv::ShaderProgram &shaderProgram)
     {
-        _ambiantColor = shaderProgram.getActiveUniform("material.ambient");
-        _diffuseColor = shaderProgram.getActiveUniform("material.diffuse");
-        _specularColor = shaderProgram.getActiveUniform("material.specular");
-        _specularCoeff = shaderProgram.getActiveUniform("material.specularShininess");
+        _uniformColor.load(shaderProgram);
+        _uniformTexture.load(shaderProgram);
+    }
 
+    GLuint loadTexture(const sys::Path &basePath, const std::string &filename)
+    {
+        GLuint textureId = 0u;
+        if (!filename.empty())
+        {
+            sys::Path filepath(basePath, filename.c_str());
+            sys::Duration duration;
+            textureId = SOIL_load_OGL_texture(filepath, SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_TEXTURE_REPEATS);
+            if (textureId)
+            {
+                message(filepath, duration.elapsed());
+            }
+            else
+            {
+                warn(filepath, SOIL_last_result());
+            }
+        }
+        return textureId;
     }
 
     void loadMaterials(const char *objFilename,  const vfm::ObjModel &model)
@@ -103,13 +161,30 @@ public:
                 }
             }
 
-            _materials.push_back(vfm::Material());
             if (materialMaps.find(*libraryName) != materialMaps.end())
             {
                 vfm::MaterialMap &materialMap = materialMaps[*libraryName];
+                _materials.push_back(LoadedMaterial());
                 if (materialMap.find(it->name) != materialMap.end())
                 {
-                    _materials.back() = materialMap[it->name];
+                    vfm::Material &material = materialMap[it->name];
+                    LoadedMaterial &loadedMaterial = _materials.back();
+
+                    loadedMaterial.color = material.color;
+
+                    if (_uniformTexture.hasTexture())
+                    {
+                        sys::Path basePath = sys::Path(currentPath, libraryName->c_str()).dirpath();
+
+                        // TODO load texture file once and only once
+
+                        loadedMaterial.texture.ambient = loadTexture(basePath, material.map.ambient);
+                        loadedMaterial.texture.diffuse = loadTexture(basePath, material.map.diffuse);
+                        loadedMaterial.texture.specular = loadTexture(basePath, material.map.specular);
+                        loadedMaterial.texture.specularCoeff = loadTexture(basePath, material.map.specularCoeff);
+                        loadedMaterial.texture.dissolve = loadTexture(basePath, material.map.dissolve);
+                        loadedMaterial.texture.bump = loadTexture(basePath, material.map.bump);
+                    }
                 }
             }
         }
@@ -119,23 +194,9 @@ public:
     {
         if (index != NO_MATERIAL_INDEX && index < _materials.size())
         {
-            vfm::Material &material = _materials[index];
-            if (_ambiantColor)
-            {
-                *_ambiantColor = material.color.ambient;
-            }
-            if (_diffuseColor)
-            {
-                *_diffuseColor = material.color.diffuse;
-            }
-            if (_specularColor)
-            {
-                *_specularColor = material.color.specular;
-            }
-            if (_specularCoeff)
-            {
-                *_specularCoeff = material.color.specularCoeff;
-            }
+            LoadedMaterial &material = _materials[index];
+            _uniformColor.use(material.color);
+            _uniformTexture.use(material.texture);
         }
     }
 
@@ -150,11 +211,116 @@ private:
         std::cout << "* " << "loading '" << filename << "' in " << duration << "ms." << std::endl << std::endl;
     }
 
-    glv::UniformDeclaration _ambiantColor;
-    glv::UniformDeclaration _diffuseColor;
-    glv::UniformDeclaration _specularColor;
-    glv::UniformDeclaration _specularCoeff;
-    std::vector<vfm::Material> _materials;
+    class
+    {
+    public:
+
+        void load(const glv::ShaderProgram &shaderProgram)
+        {
+            _ambiant = shaderProgram.getActiveUniform("material.ambient");
+            _diffuse = shaderProgram.getActiveUniform("material.diffuse");
+            _specular = shaderProgram.getActiveUniform("material.specular");
+            _specularCoeff = shaderProgram.getActiveUniform("material.specularShininess");
+        }
+
+        void use(const vfm::Color &color)
+        {
+            if (_ambiant)
+            {
+                *_ambiant = color.ambient;
+            }
+            if (_diffuse)
+            {
+                *_diffuse = color.diffuse;
+            }
+            if (_specular)
+            {
+                *_specular = color.specular;
+            }
+            if (_specularCoeff)
+            {
+                *_specularCoeff = color.specularCoeff;
+            }
+        }
+
+    private:
+        glv::UniformDeclaration _ambiant;
+        glv::UniformDeclaration _diffuse;
+        glv::UniformDeclaration _specular;
+        glv::UniformDeclaration _specularCoeff;
+    } _uniformColor;
+
+    class
+    {
+    public:
+
+        void load(const glv::ShaderProgram &shaderProgram)
+        {
+            _ambiant = shaderProgram.getActiveUniform("texture.ambient");
+            _diffuse = shaderProgram.getActiveUniform("texture.diffuse");
+            _specular = shaderProgram.getActiveUniform("texture.specular");
+            _specularCoeff = shaderProgram.getActiveUniform("texture.specularShininess");
+            _dissolve = shaderProgram.getActiveUniform("texture.dissolve");
+            _bump = shaderProgram.getActiveUniform("texture.bump");
+        }
+
+        inline bool hasTexture() const
+        {
+            return _ambiant || _diffuse || _specular || _specularCoeff || _dissolve || _bump;
+        }
+
+        void use(const LoadedTexture &loadedTexture)
+        {
+            GLuint channel = 0;
+            if (_ambiant)
+            {
+                glActiveTexture(GL_TEXTURE0 + channel);
+                glBindTexture(GL_TEXTURE_2D, loadedTexture.ambient);
+                *_ambiant = channel++;
+            }
+            if (_diffuse)
+            {
+                glActiveTexture(GL_TEXTURE0 + channel);
+                glBindTexture(GL_TEXTURE_2D, loadedTexture.diffuse);
+                *_diffuse = channel++;
+            }
+            if (_specular)
+            {
+                glActiveTexture(GL_TEXTURE0 + channel);
+                glBindTexture(GL_TEXTURE_2D, loadedTexture.specular);
+                *_specular = channel++;
+            }
+            if (_specularCoeff)
+            {
+                glActiveTexture(GL_TEXTURE0 + channel);
+                glBindTexture(GL_TEXTURE_2D, loadedTexture.specularCoeff);
+                *_specularCoeff = channel++;
+            }
+            if (_dissolve)
+            {
+                glActiveTexture(GL_TEXTURE0 + channel);
+                glBindTexture(GL_TEXTURE_2D, loadedTexture.dissolve);
+                *_dissolve = channel++;
+            }
+            if (_bump)
+            {
+                glActiveTexture(GL_TEXTURE0 + channel);
+                glBindTexture(GL_TEXTURE_2D, loadedTexture.bump);
+                *_bump = channel++;
+            }
+        }
+
+    private:
+        glv::UniformDeclaration _ambiant;
+        glv::UniformDeclaration _diffuse;
+        glv::UniformDeclaration _specular;
+        glv::UniformDeclaration _specularCoeff;
+        glv::UniformDeclaration _dissolve;
+        glv::UniformDeclaration _bump;
+    } _uniformTexture;
+
+
+    std::vector<LoadedMaterial> _materials;
 };
 
 class GlslViewer
@@ -179,8 +345,8 @@ public:
             else
                 std::cerr << "! Unknown argument '" << argv[i] << "'. Expecting *.obj, *.vert and/or *.frag file path." << std::endl;
         }
-        if (good()) createMesh(objFilename);
         if (good()) createProgram(vertexShader, fragmentShader);
+        if (good()) createMesh(objFilename);
         if (good()) defineVertexAttributes();
     }
 

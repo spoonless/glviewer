@@ -17,18 +17,29 @@ typedef std::vector<glm::vec3> Vec3Vector;
 
 struct Color
 {
-    Color() : ambient(1.0f, 1.0f, 1.0f), diffuse(1.0f, 1.0f, 1.0f), specularCoeff(0.0f), dissolved(0.0f) {}
+    Color() : ambient(1.0f, 1.0f, 1.0f), diffuse(1.0f, 1.0f, 1.0f), specularCoeff(0.0f), dissolve(0.0f) {}
 
     glm::vec3 ambient;
     glm::vec3 diffuse;
     glm::vec3 specular;
     float specularCoeff;
-    float dissolved;
+    float dissolve;
+};
+
+struct TextureMap
+{
+    std::string ambient;
+    std::string diffuse;
+    std::string specular;
+    std::string specularCoeff;
+    std::string dissolve;
+    std::string bump;
 };
 
 struct Material
 {
     Color color;
+    TextureMap map;
 };
 
 typedef std::map<std::string, Material> MaterialMap;
