@@ -80,9 +80,9 @@ TEST(ObjModel, canHaveMultipleObjects)
         "# only face indices\n"
         "f 1 2 3 4\n"
         "# only face indices\n"
-        "o object2\n"
+        "o object2      \n"
         "f 1 2 3 4 5\n"
-        "o object3\n"
+        "o   object3\n"
         "f 1 2 3 4 5 6\n"
     );
 

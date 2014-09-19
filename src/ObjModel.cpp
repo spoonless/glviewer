@@ -60,22 +60,57 @@ private:
     VertexIndexMap _vertexIndexPtrMap;
 };
 
-const size_t BUFFER_CHUNK_SIZE = 1024 * sizeof(char);
-
-inline char* readline(std::istream &is, char *&line, size_t &lineCapacity)
+inline const char *nextToken(const char* l)
 {
-    is.getline(line, lineCapacity);
-    std::streamsize nbRead = 0;
-    while((is.rdstate() & std::istream::failbit) && is.gcount() > 0 && !is.eof())
+    const char *start = l;
+    for(; std::isspace(*start) && *start != 0; ++start);
+    return start;
+}
+
+class LineReader
+{
+    static const size_t BUFFER_CHUNK_SIZE;
+public:
+    LineReader(std::istream &is);
+
+    ~LineReader();
+
+    const char *read();
+
+    inline operator bool() const
     {
-        nbRead += is.gcount();
-        is.clear();
-        line = static_cast<char*>(std::realloc(line, lineCapacity + BUFFER_CHUNK_SIZE));
-        is.getline(line + nbRead, BUFFER_CHUNK_SIZE);
-        lineCapacity += BUFFER_CHUNK_SIZE;
+        return _is.good();
     }
 
-    for(char *end = line; *end != 0; ++end)
+private:
+    LineReader(const LineReader &);
+    LineReader &operator = (const LineReader &);
+    void copyReadLine();
+
+    std::istream &_is;
+    size_t _capacity;
+    char *_line;
+};
+
+const size_t LineReader::BUFFER_CHUNK_SIZE = 256 * sizeof(char);
+
+LineReader::LineReader(std::istream &is) : _is(is), _capacity(BUFFER_CHUNK_SIZE)
+{
+    _line = static_cast<char*>(std::malloc(_capacity * sizeof(char)));
+    *_line = 0;
+}
+
+LineReader::~LineReader()
+{
+    std::free(_line);
+}
+
+const char *LineReader::read()
+{
+    copyReadLine();
+
+    char *end = _line;
+    for(; *end != 0; ++end)
     {
         if (*end == '#' || *end == '\r')
         {
@@ -84,7 +119,25 @@ inline char* readline(std::istream &is, char *&line, size_t &lineCapacity)
         }
     }
 
-    return line;
+    for(; end != _line && std::isspace(*(end-1)); --end);
+    *end = 0;
+
+    return nextToken(_line);
+}
+
+void LineReader::copyReadLine()
+{
+    *_line = 0;
+    _is.getline(_line, _capacity);
+    std::streamsize nbRead = 0;
+    while((_is.rdstate() & std::istream::failbit) && _is.gcount() > 0 && !_is.eof())
+    {
+        nbRead += _is.gcount();
+        _is.clear();
+        _line = static_cast<char*>(std::realloc(_line, (_capacity + BUFFER_CHUNK_SIZE) * sizeof(char)));
+        _is.getline(_line + nbRead, BUFFER_CHUNK_SIZE);
+        _capacity += BUFFER_CHUNK_SIZE;
+    }
 }
 
 inline char* read(const char *line, glm::vec4 &vec4)
@@ -235,13 +288,12 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
     VertexIndexIndexer vertexIndexIndexer;
     MaterialActivation materialActivation;
     Object *object = 0;
-    size_t lineCapacity = BUFFER_CHUNK_SIZE;
     std::string mtllib;
-    char *line = static_cast<char*>(std::malloc(lineCapacity));
+    LineReader lineReader(is);
 
-    while(is.good())
+    while(lineReader)
     {
-        line = readline(is, line, lineCapacity);
+        const char* line = lineReader.read();
 
         if(!std::strncmp("o ", line, 2))
         {
@@ -259,8 +311,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
                 object->materialActivations.push_back(materialActivation);
             }
             vertexIndexIndexer << *object;
-            // TODO should trim
-            object->name = line+2;
+            object->name = nextToken(line+2);
         }
         else if(!std::strncmp("v ", line, 2))
         {
@@ -317,40 +368,34 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
                     object->materialActivations.pop_back();
                 }
             }
-            // TODO should trim
             materialActivation.materialIndex = getMaterialIndex(model, MaterialId(mtllib, line + 7));
             materialActivation.start = object->triangles.size();
             object->materialActivations.push_back(materialActivation);
         }
         else if (!std::strncmp("mtllib ", line, 7))
         {
-            mtllib = line + 7;
+            mtllib = nextToken(line + 7);
         }
     }
     if (object != 0 && !object->materialActivations.empty())
     {
         object->materialActivations.back().end = object->triangles.size();
     }
-
-    std::free(line);
-
     return is;
 }
 
 std::istream & vfm::operator >> (std::istream &is, vfm::MaterialMap &materialMap)
 {
-    size_t lineCapacity = BUFFER_CHUNK_SIZE;
-    char *line = static_cast<char*>(std::malloc(lineCapacity));
     vfm::Material *material = 0;
+    LineReader lineReader(is);
 
-    while(is.good())
+    while(lineReader)
     {
-        line = readline(is, line, lineCapacity);
+        const char* line = lineReader.read();
 
         if (!std::strncmp(line, "newmtl ", 7))
         {
-            // TODO should trim
-            material = &materialMap[std::string(line+7)];
+            material = &materialMap[std::string(nextToken(line+7))];
         }
         else if (material != 0)
         {
@@ -380,8 +425,6 @@ std::istream & vfm::operator >> (std::istream &is, vfm::MaterialMap &materialMap
             }
         }
     }
-
-    std::free(line);
 
     return is;
 }
