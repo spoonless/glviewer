@@ -11,8 +11,8 @@ endif()
 
 ExternalProject_Add(
   project_soil
-  URL https://github.com/spoonless/Simple-OpenGL-Image-Library/archive/master.zip
-  URL_MD5 4d007a67d4acaef936397525ee0769a3
+  URL https://github.com/spoonless/Simple-OpenGL-Image-Library/archive/originalfork.zip
+  URL_MD5 6483201ccd99cf96e26e0e1a8c1fbe8f
   PREFIX "${CMAKE_CURRENT_BINARY_DIR}/soil"
   CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release ${GLFW_ADDITIONAL_CMAKE_ARGS}
   INSTALL_COMMAND ""
