@@ -1,8 +1,9 @@
 #define GLM_FORCE_RADIANS
-#include <iostream>
-#include <sstream>
+#include <algorithm>
 #include <cstring>
 #include <cmath>
+#include <iostream>
+#include <sstream>
 #include <map>
 #include <set>
 #include "gl.hpp"
@@ -21,10 +22,10 @@ bool endsWith (const char *base, const char *str) {
 }
 
 const char defaultMesh[] =
-        "v -1 -1 0\n"
-        "v  1 -1 0\n"
-        "v  1  1 0\n"
-        "v -1  1 0\n"
+        "v -1 -1  0\n"
+        "v  1 -1  0\n"
+        "v  1  1  0\n"
+        "v -1  1  0\n"
         "f  1 2 3 4";
 
 const char defaultVertexShader[] =
@@ -60,6 +61,61 @@ const char defaultFragmentShader[] =
           "color=vec4(col, 1.0);\n"
         "}\n";
 
+class TextureLoader
+{
+public:
+
+    TextureLoader() {}
+
+    ~TextureLoader()
+    {
+        std::vector<GLuint> texturesId;
+        std::transform(_textureIdMap.begin(), _textureIdMap.end(), std::back_inserter(texturesId), getTextureId);
+        glDeleteTextures(texturesId.size(), &texturesId[0]);
+    }
+
+    GLuint load(const sys::Path &basepath, const std::string &filename)
+    {
+        GLuint textureId = 0u;
+        if (! filename.empty())
+        {
+            sys::Path filepath(basepath, filename.c_str());
+            if (_textureIdMap.find(filename) != _textureIdMap.end()){
+                return _textureIdMap[filename];
+            }
+            sys::Duration duration;
+            textureId = SOIL_load_OGL_texture(filepath, SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_TEXTURE_REPEATS);
+            if (textureId)
+            {
+                _textureIdMap[filename] = textureId;
+                message(filepath, duration.elapsed());
+            }
+            else
+            {
+                warn(filepath, SOIL_last_result());
+            }
+        }
+        return textureId;
+    }
+
+private:
+    void warn(const char *filename, const char *message)
+    {
+        std::cerr << "! " << "error while loading '" << filename << "':" << std::endl << "  " << message << std::endl;
+    }
+
+    void message(const char *filename, unsigned long duration)
+    {
+        std::cout << "* " << "loading '" << filename << "' in " << duration << "ms." << std::endl << std::endl;
+    }
+
+    typedef std::map<const std::string, GLuint> TextureIdMap;
+    static GLuint getTextureId(TextureIdMap::value_type &t) { return t.second ;}
+
+    TextureLoader(const TextureLoader&);
+    TextureLoader & operator = (const TextureLoader&);
+    TextureIdMap _textureIdMap;
+};
 
 struct LoadedTexture{
 
@@ -85,50 +141,13 @@ class MaterialHandler : public glv::MaterialHandler
 {
 public:
 
-    virtual ~MaterialHandler()
-    {
-        std::set<GLuint> set;
-        for(std::vector<LoadedMaterial>::iterator it = _materials.begin(); it < _materials.end(); ++it)
-        {
-            LoadedMaterial &loadedMaterial = *it;
-            set.insert(loadedMaterial.texture.ambient);
-            set.insert(loadedMaterial.texture.diffuse);
-            set.insert(loadedMaterial.texture.specular);
-            set.insert(loadedMaterial.texture.specularCoeff);
-            set.insert(loadedMaterial.texture.dissolve);
-            set.insert(loadedMaterial.texture.bump);
-        }
-        std::vector<GLuint> vector(set.begin(), set.end());
-        glDeleteTextures(vector.size(), &vector[0]);
-    }
-
     void loadUniforms(const glv::ShaderProgram &shaderProgram)
     {
         _uniformColor.load(shaderProgram);
         _uniformTexture.load(shaderProgram);
     }
 
-    GLuint loadTexture(const sys::Path &basePath, const std::string &filename)
-    {
-        GLuint textureId = 0u;
-        if (!filename.empty())
-        {
-            sys::Path filepath(basePath, filename.c_str());
-            sys::Duration duration;
-            textureId = SOIL_load_OGL_texture(filepath, SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_TEXTURE_REPEATS);
-            if (textureId)
-            {
-                message(filepath, duration.elapsed());
-            }
-            else
-            {
-                warn(filepath, SOIL_last_result());
-            }
-        }
-        return textureId;
-    }
-
-    void loadMaterials(const char *objFilename,  const vfm::ObjModel &model)
+    void loadMaterials(TextureLoader &textureLoader, const char *objFilename,  const vfm::ObjModel &model)
     {
         std::map<std::string, vfm::MaterialMap> materialMaps;
         sys::Path objFilepath(objFilename);
@@ -176,14 +195,12 @@ public:
                     {
                         sys::Path basePath = sys::Path(currentPath, libraryName->c_str()).dirpath();
 
-                        // TODO load texture file once and only once
-
-                        loadedMaterial.texture.ambient = loadTexture(basePath, material.map.ambient);
-                        loadedMaterial.texture.diffuse = loadTexture(basePath, material.map.diffuse);
-                        loadedMaterial.texture.specular = loadTexture(basePath, material.map.specular);
-                        loadedMaterial.texture.specularCoeff = loadTexture(basePath, material.map.specularCoeff);
-                        loadedMaterial.texture.dissolve = loadTexture(basePath, material.map.dissolve);
-                        loadedMaterial.texture.bump = loadTexture(basePath, material.map.bump);
+                        loadedMaterial.texture.ambient = textureLoader.load(basePath, material.map.ambient);
+                        loadedMaterial.texture.diffuse = textureLoader.load(basePath, material.map.diffuse);
+                        loadedMaterial.texture.specular = textureLoader.load(basePath, material.map.specular);
+                        loadedMaterial.texture.specularCoeff = textureLoader.load(basePath, material.map.specularCoeff);
+                        loadedMaterial.texture.dissolve = textureLoader.load(basePath, material.map.dissolve);
+                        loadedMaterial.texture.bump = textureLoader.load(basePath, material.map.bump);
                     }
                 }
             }
@@ -396,7 +413,7 @@ public:
             model.computeNormals();
         }
 
-        materialHandler.loadMaterials(objFilename, model);
+        materialHandler.loadMaterials(textureLoader, objFilename, model);
 
         check(mesh.generate(model), "generating mesh");
     }
@@ -543,6 +560,7 @@ private:
     glv::UniformDeclaration normalMatrixUniform;
     glv::GlMesh mesh;
     MaterialHandler materialHandler;
+    TextureLoader textureLoader;
 };
 
 int main(int argc, char **argv)
