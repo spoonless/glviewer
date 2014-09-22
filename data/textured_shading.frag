@@ -91,5 +91,5 @@ void main() {
         computeColors(i, ambient, diffuse, specular);
     }
 
-    fragColor = vec4(ambientFactor * diffuseTexture * ambient + diffuseTexture * diffuse + specularTexture * specular, 1.0);
+    fragColor = vec4((ambientFactor * ambientTexture * ambient) + (diffuseTexture * diffuse) + (specularTexture * specular), 1.0);
 }
