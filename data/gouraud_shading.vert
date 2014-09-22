@@ -62,7 +62,7 @@ vec3 phongModel(in vec4 lightPosition, in vec3 eyeNormal, in vec4 eyePosition)
   vec3 diffuse = material.diffuse * cos_sn;
   if (cos_sn > .0 && material.specularShininess > .0)
   {
-    vec3 specular = material.specular * pow(max(dot(r,v), .000000000000001), material.specularShininess);
+    vec3 specular = material.specular * pow(max(dot(r,v), .0), material.specularShininess);
     return diffuse + specular;
   }
   return diffuse;

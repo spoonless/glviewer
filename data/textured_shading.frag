@@ -28,38 +28,39 @@ struct Material
 };
 
 
+const float ambientFactor = 0.2;
 const uint nbLights = 2u;
 uniform LightSource lightSources[nbLights] = {
     {
         vec4(0,1,1,0),
-        vec3(0.3)
+        vec3(1)
     },
     {
         vec4(20,0,0,1),
-        vec3(0.6)
+        vec3(1)
     }
 };
 
 uniform vec3 ambientColor = vec3(0.05);
 
 uniform Material material = {
-    vec3(.1,.1,.1),
-    vec3(.7),
-    vec3(.6),
+    vec3(1),
+    vec3(1),
+    vec3(1),
     40
 };
 
-vec3 phongModel(in vec4 lightPosition, in vec4 textureColor)
+void computeColors(in uint lightIndex, inout vec3 ambient, inout vec3 diffuse, inout vec3 specular)
 {
     vec3 n = normalize(fragNormal);
     vec3 s;
-    if (lightPosition.w == .0)
+    if (lightSources[lightIndex].position.w == .0)
     {
-        s = normalize(lightPosition.xyz);
+        s = normalize(lightSources[lightIndex].position.xyz);
     }
     else
     {
-        s = normalize(lightPosition.xyz - fragPosition);
+        s = normalize(lightSources[lightIndex].position.xyz - fragPosition);
     }
     vec3 v = normalize(-fragPosition);
     // using halfway vector instead of real reflection vector
@@ -67,22 +68,22 @@ vec3 phongModel(in vec4 lightPosition, in vec4 textureColor)
 
     float cos_sn = max(dot(s, n), 0.0);
 
-    vec3 diffuse = mix(textureColor.rgb, material.diffuse * cos_sn, .1);
+    ambient += lightSources[lightIndex].color * material.ambient;
+    diffuse += lightSources[lightIndex].color * material.diffuse * cos_sn;
     if (cos_sn > .0 && material.specularShininess > .0)
     {
         // using specularShininess * 2 to correct halfway vector optimization
-        vec3 specular = material.specular * 0.1 * pow(max(dot(r,n), .0), material.specularShininess*2);
-        return diffuse + specular;
+        specular += lightSources[lightIndex].color * material.specular * pow(max(dot(r,n), .0), material.specularShininess*2);
     }
-    return diffuse;
 }
 
 void main() {
-    vec4 textureColor = texture(sampler.diffuse, fragTextureCoord);
-    vec3 color = vec3(0);
+    vec3 textureColor = texture(sampler.diffuse, fragTextureCoord).rgb;
+    vec3 ambient, diffuse, specular;
     for (uint i = 0u; i < nbLights; ++i)
     {
-        color += lightSources[i].color * phongModel(lightSources[i].position, textureColor);
+        computeColors(i, ambient, diffuse, specular);
     }
-    fragColor = vec4(color + ambientColor * material.ambient, 1.0);
+
+    fragColor = vec4(ambientFactor * textureColor * ambient + textureColor * diffuse + specular, 1.0);
 }
