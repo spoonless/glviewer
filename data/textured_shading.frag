@@ -8,7 +8,9 @@ out vec4 fragColor;
 
 struct Sampler
 {
+    sampler2D ambient;
     sampler2D diffuse;
+    sampler2D specular;
 };
 
 uniform Sampler sampler;
@@ -78,12 +80,16 @@ void computeColors(in uint lightIndex, inout vec3 ambient, inout vec3 diffuse, i
 }
 
 void main() {
-    vec3 textureColor = texture(sampler.diffuse, fragTextureCoord).rgb;
-    vec3 ambient, diffuse, specular;
+    vec3 ambient = vec3(0);
+    vec3 diffuse = vec3(0);
+    vec3 specular = vec3(0);
+    vec3 ambientTexture = texture(sampler.ambient, fragTextureCoord).rgb;
+    vec3 diffuseTexture = texture(sampler.diffuse, fragTextureCoord).rgb;
+    vec3 specularTexture = texture(sampler.specular, fragTextureCoord).rgb;
     for (uint i = 0u; i < nbLights; ++i)
     {
         computeColors(i, ambient, diffuse, specular);
     }
 
-    fragColor = vec4(ambientFactor * textureColor * ambient + textureColor * diffuse + specular, 1.0);
+    fragColor = vec4(ambientFactor * diffuseTexture * ambient + diffuseTexture * diffuse + specularTexture * specular, 1.0);
 }
