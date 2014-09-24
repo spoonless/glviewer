@@ -46,9 +46,9 @@ uniform LightSource lightSources[nbLights] = {
 uniform vec3 ambientColor = vec3(0.05);
 
 uniform Material material = {
-    vec3(1),
-    vec3(1),
-    vec3(1),
+    vec3(0),
+    vec3(0),
+    vec3(0),
     40
 };
 
@@ -70,26 +70,31 @@ void computeColors(in uint lightIndex, inout vec3 ambient, inout vec3 diffuse, i
 
     float cos_sn = max(dot(s, n), 0.0);
 
-    ambient += lightSources[lightIndex].color * material.ambient;
-    diffuse += lightSources[lightIndex].color * material.diffuse * cos_sn;
+    ambient += lightSources[lightIndex].color;
+    diffuse += lightSources[lightIndex].color * cos_sn;
     if (cos_sn > .0 && material.specularShininess > .0)
     {
         // using specularShininess * 2 to correct halfway vector optimization
-        specular += lightSources[lightIndex].color * material.specular * pow(max(dot(r,n), .0), material.specularShininess*2);
+        specular += lightSources[lightIndex].color * pow(max(dot(r,n), .0), material.specularShininess*2);
     }
 }
 
 void main() {
-    vec3 ambient = vec3(0);
-    vec3 diffuse = vec3(0);
-    vec3 specular = vec3(0);
-    vec3 ambientTexture = texture(sampler.ambient, fragTextureCoord).rgb;
-    vec3 diffuseTexture = texture(sampler.diffuse, fragTextureCoord).rgb;
-    vec3 specularTexture = texture(sampler.specular, fragTextureCoord).rgb;
+    vec3 ambient = vec3(.0);
+    vec3 diffuse = vec3(.0);
+    vec3 specular = vec3(.0);
+    vec4 ambientTexture = texture(sampler.ambient, fragTextureCoord);
+    vec4 diffuseTexture = texture(sampler.diffuse, fragTextureCoord);
+    vec4 specularTexture = texture(sampler.specular, fragTextureCoord);
+    
     for (uint i = 0u; i < nbLights; ++i)
     {
         computeColors(i, ambient, diffuse, specular);
     }
+    
+    ambient = all(equal(ambientTexture, vec4(0.0))) ? material.ambient * ambient : ambientTexture.xyz * ambient;
+    diffuse = all(equal(diffuseTexture, vec4(0.0))) ? material.diffuse * diffuse : diffuseTexture.xyz * diffuse;
+    specular = all(equal(specularTexture, vec4(0.0))) ? material.specular * ambient : specularTexture.xyz * ambient;
 
-    fragColor = vec4((ambientFactor * ambientTexture * ambient) + (diffuseTexture * diffuse) + (specularTexture * specular), 1.0);
+    fragColor = vec4(diffuse, 1.0);
 }
