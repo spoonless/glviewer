@@ -27,19 +27,25 @@ struct MaterialTexture
     Texture2D specular;
 };
 
+/*
+  Light source position must be in view space coordinates.
+  Directional light source is indicated by a w component
+  equals to 0 and the position must be normalized.
+*/
 struct LightSource
 {
     vec4 position;
     vec3 color;
 };
 
-const uint nbLights = 2u;
+const uint nbLights = 3u;
 
 uniform vec3 ambientColor = vec3(0.05);
 
 uniform LightSource lightSources[nbLights] = {
-    LightSource(vec4(0,1,1,0), vec3(.5)),
-    LightSource(vec4(20,0,0,1), vec3(.5))
+    LightSource(normalize(vec4(0,1,1,0)), vec3(.35,.4,.4)),
+    LightSource(normalize(vec4(0,0,0,-10)), vec3(0.6,0.6,.55)),
+    LightSource(vec4(20,0,0,1), vec3(.4,.35,.4))
 };
 
 uniform Material material;
@@ -52,24 +58,22 @@ void computeColors(in uint lightIndex, inout vec3 ambientCoeff, inout vec3 diffu
     vec3 s;
     if (lightSources[lightIndex].position.w == .0)
     {
-        s = normalize(lightSources[lightIndex].position.xyz);
+        s = lightSources[lightIndex].position.xyz;
     }
     else
     {
         s = normalize(lightSources[lightIndex].position.xyz - fragPosition);
     }
-    vec3 v = normalize(-fragPosition);
-    // using halfway vector instead of real reflection vector
-    vec3 r = normalize(v+s);
-
     float cos_sn = max(dot(s, n), 0.0);
 
     ambientCoeff += lightSources[lightIndex].color;
     diffuseCoeff += lightSources[lightIndex].color * cos_sn;
+
     if (cos_sn > .0 && material.specularShininess > .0)
     {
-        // using specularShininess * 2 to correct halfway vector optimization
-        specularCoeff += lightSources[lightIndex].color * pow(max(dot(r,n), .0), material.specularShininess*2);
+        vec3 v = normalize(-fragPosition);
+        vec3 r = reflect(-s, n);
+        specularCoeff += lightSources[lightIndex].color * pow(max(dot(r,v), .0), material.specularShininess);
     }
 }
 
