@@ -25,6 +25,7 @@ struct MaterialTexture
     Texture2D ambient;
     Texture2D diffuse;
     Texture2D specular;
+    Texture2D bump;
 };
 
 /*
@@ -52,9 +53,8 @@ uniform Material material;
 
 uniform MaterialTexture materialTexture;
 
-void computeColors(in uint lightIndex, inout vec3 ambientCoeff, inout vec3 diffuseCoeff, inout vec3 specularCoeff)
+void computeColors(in uint lightIndex, in vec3 normal, inout vec3 ambientCoeff, inout vec3 diffuseCoeff, inout vec3 specularCoeff)
 {
-    vec3 n = normalize(fragNormal);
     vec3 s;
     if (lightSources[lightIndex].position.w == .0)
     {
@@ -64,7 +64,7 @@ void computeColors(in uint lightIndex, inout vec3 ambientCoeff, inout vec3 diffu
     {
         s = normalize(lightSources[lightIndex].position.xyz - fragPosition);
     }
-    float cos_sn = max(dot(s, n), 0.0);
+    float cos_sn = max(dot(s, normal), 0.0);
 
     ambientCoeff += lightSources[lightIndex].color;
     diffuseCoeff += lightSources[lightIndex].color * cos_sn;
@@ -72,7 +72,7 @@ void computeColors(in uint lightIndex, inout vec3 ambientCoeff, inout vec3 diffu
     if (cos_sn > .0 && material.specularShininess > .0)
     {
         vec3 v = normalize(-fragPosition);
-        vec3 r = reflect(-s, n);
+        vec3 r = reflect(-s, normal);
         specularCoeff += lightSources[lightIndex].color * pow(max(dot(r,v), .0), material.specularShininess);
     }
 }
@@ -84,10 +84,12 @@ void main() {
     vec3 ambientColor = materialTexture.ambient.enable ? texture(materialTexture.ambient.sampler, fragTextureCoord).xyz : material.ambient;
     vec3 diffuseColor = materialTexture.diffuse.enable ? texture(materialTexture.diffuse.sampler, fragTextureCoord).xyz : material.diffuse;
     vec3 specularColor = materialTexture.specular.enable ? texture(materialTexture.specular.sampler, fragTextureCoord).xyz : material.specular;
+
+    vec3 normal = normalize(fragNormal);
     
     for (uint i = 0u; i < nbLights; ++i)
     {
-        computeColors(i, ambientCoeff, diffuseCoeff, specularCoeff);
+        computeColors(i, normal, ambientCoeff, diffuseCoeff, specularCoeff);
     }
     
     fragColor = vec4((ambientCoeff * ambientColor) + (diffuseCoeff * diffuseColor) + (specularCoeff * diffuseColor), 1.0);
