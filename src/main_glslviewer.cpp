@@ -234,37 +234,37 @@ private:
 
         void load(const glv::ShaderProgram &shaderProgram)
         {
-            _ambiant = shaderProgram.getActiveUniform("material.ambient");
-            _diffuse = shaderProgram.getActiveUniform("material.diffuse");
-            _specular = shaderProgram.getActiveUniform("material.specular");
-            _specularCoeff = shaderProgram.getActiveUniform("material.specularShininess");
+            _ambiantSampler = shaderProgram.getActiveUniform("material.ambient");
+            _diffuseSampler = shaderProgram.getActiveUniform("material.diffuse");
+            _specularSampler = shaderProgram.getActiveUniform("material.specular");
+            _specularCoeffSampler = shaderProgram.getActiveUniform("material.specularShininess");
         }
 
         void use(const vfm::Color &color)
         {
-            if (_ambiant)
+            if (_ambiantSampler)
             {
-                *_ambiant = color.ambient;
+                *_ambiantSampler = color.ambient;
             }
-            if (_diffuse)
+            if (_diffuseSampler)
             {
-                *_diffuse = color.diffuse;
+                *_diffuseSampler = color.diffuse;
             }
-            if (_specular)
+            if (_specularSampler)
             {
-                *_specular = color.specular;
+                *_specularSampler = color.specular;
             }
-            if (_specularCoeff)
+            if (_specularCoeffSampler)
             {
-                *_specularCoeff = color.specularCoeff;
+                *_specularCoeffSampler = color.specularCoeff;
             }
         }
 
     private:
-        glv::UniformDeclaration _ambiant;
-        glv::UniformDeclaration _diffuse;
-        glv::UniformDeclaration _specular;
-        glv::UniformDeclaration _specularCoeff;
+        glv::UniformDeclaration _ambiantSampler;
+        glv::UniformDeclaration _diffuseSampler;
+        glv::UniformDeclaration _specularSampler;
+        glv::UniformDeclaration _specularCoeffSampler;
     } _uniformColor;
 
     class
@@ -273,66 +273,115 @@ private:
 
         void load(const glv::ShaderProgram &shaderProgram)
         {
-            _ambiant = shaderProgram.getActiveUniform("sampler.ambient");
-            _diffuse = shaderProgram.getActiveUniform("sampler.diffuse");
-            _specular = shaderProgram.getActiveUniform("sampler.specular");
-            _specularCoeff = shaderProgram.getActiveUniform("sampler.specularShininess");
-            _dissolve = shaderProgram.getActiveUniform("sampler.dissolve");
-            _bump = shaderProgram.getActiveUniform("sampler.bump");
+            _ambiantSampler = shaderProgram.getActiveUniform("materialTexture.ambient.sampler");
+            _diffuseSampler = shaderProgram.getActiveUniform("materialTexture.diffuse.sampler");
+            _specularSampler = shaderProgram.getActiveUniform("materialTexture.specular.sampler");
+            _specularCoeffSampler = shaderProgram.getActiveUniform("materialTexture.specularShininess.sampler");
+            _dissolveSampler = shaderProgram.getActiveUniform("materialTexture.dissolve.sampler");
+            _bumpSampler = shaderProgram.getActiveUniform("materialTexture.bump.sampler");
+
+            _ambiantEnable = shaderProgram.getActiveUniform("materialTexture.ambient.enable");
+            _diffuseEnable = shaderProgram.getActiveUniform("materialTexture.diffuse.enable");
+            _specularEnable = shaderProgram.getActiveUniform("materialTexture.specular.enable");
+            _specularCoeffEnable = shaderProgram.getActiveUniform("materialTexture.specularShininess.enable");
+            _dissolveEnable = shaderProgram.getActiveUniform("materialTexture.dissolve.enable");
+            _bumpEnable = shaderProgram.getActiveUniform("materialTexture.bump.enable");
         }
 
         inline bool hasTexture() const
         {
-            return _ambiant || _diffuse || _specular || _specularCoeff || _dissolve || _bump;
+            return _ambiantSampler || _diffuseSampler || _specularSampler || _specularCoeffSampler || _dissolveSampler || _bumpSampler;
         }
 
         void use(const LoadedTexture &loadedTexture)
         {
-            if (_ambiant)
+            if (_ambiantSampler)
             {
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, loadedTexture.ambient);
-                *_ambiant = 0;
+                *_ambiantSampler = 0;
+                *_ambiantEnable = true;
             }
-            if (_diffuse)
+            else
+            {
+                *_ambiantEnable = false;
+            }
+
+            if (_diffuseSampler)
             {
                 glActiveTexture(GL_TEXTURE1);
                 glBindTexture(GL_TEXTURE_2D, loadedTexture.diffuse);
-                *_diffuse = 1;
+                *_diffuseSampler = 1;
+                *_diffuseEnable = true;
             }
-            if (_specular)
+            else
+            {
+                *_diffuseEnable = false;
+            }
+
+            if (_specularSampler)
             {
                 glActiveTexture(GL_TEXTURE2);
                 glBindTexture(GL_TEXTURE_2D, loadedTexture.specular);
-                *_specular = 2;
+                *_specularSampler = 2;
+                *_specularEnable = true;
             }
-            if (_specularCoeff)
+            else
+            {
+                *_specularEnable = false;
+            }
+
+            if (_specularCoeffSampler)
             {
                 glActiveTexture(GL_TEXTURE3);
                 glBindTexture(GL_TEXTURE_2D, loadedTexture.specularCoeff);
-                *_specularCoeff = 3;
+                *_specularCoeffSampler = 3;
+                *_specularCoeffEnable = true;
             }
-            if (_dissolve)
+            else
+            {
+                *_specularCoeffEnable = false;
+            }
+
+            if (_dissolveSampler)
             {
                 glActiveTexture(GL_TEXTURE4);
                 glBindTexture(GL_TEXTURE_2D, loadedTexture.dissolve);
-                *_dissolve = 4;
+                *_dissolveSampler = 4;
+                *_dissolveEnable = true;
             }
-            if (_bump)
+            else
+            {
+                *_dissolveEnable = false;
+            }
+
+            if (_bumpSampler)
             {
                 glActiveTexture(GL_TEXTURE5);
                 glBindTexture(GL_TEXTURE_2D, loadedTexture.bump);
-                *_bump = 5;
+                *_bumpSampler = 5;
+                *_bumpEnable = true;
+            }
+            else
+            {
+                *_bumpEnable = false;
             }
         }
 
     private:
-        glv::UniformDeclaration _ambiant;
-        glv::UniformDeclaration _diffuse;
-        glv::UniformDeclaration _specular;
-        glv::UniformDeclaration _specularCoeff;
-        glv::UniformDeclaration _dissolve;
-        glv::UniformDeclaration _bump;
+        glv::UniformDeclaration _ambiantSampler;
+        glv::UniformDeclaration _diffuseSampler;
+        glv::UniformDeclaration _specularSampler;
+        glv::UniformDeclaration _specularCoeffSampler;
+        glv::UniformDeclaration _dissolveSampler;
+        glv::UniformDeclaration _bumpSampler;
+
+        glv::UniformDeclaration _ambiantEnable;
+        glv::UniformDeclaration _diffuseEnable;
+        glv::UniformDeclaration _specularEnable;
+        glv::UniformDeclaration _specularCoeffEnable;
+        glv::UniformDeclaration _dissolveEnable;
+        glv::UniformDeclaration _bumpEnable;
     } _uniformTexture;
 
 

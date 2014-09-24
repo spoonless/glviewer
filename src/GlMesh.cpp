@@ -184,15 +184,15 @@ void glv::GlMesh::generate(const vfm::ObjModel &objModel, unsigned int channel, 
 
 size_t glv::GlMesh::getBufferIndex(const std::string &name)
 {
-    if (name == "position")
+    if (name == "vertexPosition")
     {
         return 0;
     }
-    else if (name == "normal")
+    else if (name == "vertexNormal")
     {
         return 1;
     }
-    else if (name == "textureCoord")
+    else if (name == "vertexTextureCoord")
     {
         return 2;
     }

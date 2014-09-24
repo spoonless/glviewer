@@ -1,8 +1,8 @@
 #version 330
-in vec3 position;
-in vec3 normal;
-in vec4 tangent;
-in vec2 textureCoord;
+in vec3 vertexPosition;
+in vec3 vertexNormal;
+in vec4 vertexTangent;
+in vec2 vertexTextureCoord;
 
 smooth out vec3 fragPosition;
 smooth out vec3 fragLightDir;
@@ -23,9 +23,9 @@ uniform mat4 mvpMat;
 
 void main()
 {
-    vec3 eyeNormal = normalize(normalMat * normal);
-    vec3 eyeTangent = normalize(normalMat * vec3(tangent));
-    vec3 eyeBinormal = normalize(cross(eyeNormal, eyeTangent)) * tangent.w;
+    vec3 eyeNormal = normalize(normalMat * vertexNormal);
+    vec3 eyeTangent = normalize(normalMat * vec3(vertexTangent));
+    vec3 eyeBinormal = normalize(cross(eyeNormal, eyeTangent)) * vertexTangent.w;
     
     mat3 toTangentSpace = mat3(
         eyeTangent.x, eyeBinormal.x, eyeNormal.x,
@@ -33,10 +33,10 @@ void main()
         eyeTangent.z, eyeBinormal.z, eyeNormal.z
     );
 
-    fragPosition = vec3(mvMat * vec4(position,1.0));
+    fragPosition = vec3(mvMat * vec4(vertexPosition,1.0));
     vec3 eyeLightDir = light.position.w == .0 ? light.position.xyz : light.position.xyz - fragPosition;
     fragLightDir = normalize(toTangentSpace * eyeLightDir);
     fragViewDir = normalize(toTangentSpace * -fragPosition);
-    fragTextureCoord = textureCoord;
-    gl_Position = mvpMat * vec4(position,1.0);
+    fragTextureCoord = vertexTextureCoord;
+    gl_Position = mvpMat * vec4(vertexPosition,1.0);
 }

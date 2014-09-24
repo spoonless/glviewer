@@ -1,6 +1,6 @@
 #version 330
-in vec3 position;
-in vec3 normal;
+in vec3 vertexPosition;
+in vec3 vertexNormal;
 
 smooth out vec3 lightIntensity;
 
@@ -70,8 +70,8 @@ vec3 phongModel(in vec4 lightPosition, in vec3 eyeNormal, in vec4 eyePosition)
 
 void main()
 {
-  vec3 eyeNormal = normalize(normalMat * normal);
-  vec4 eyePosition = mvMat * vec4(position,1.0);
+  vec3 eyeNormal = normalize(normalMat * vertexNormal);
+  vec4 eyePosition = mvMat * vec4(vertexPosition,1.0);
 
   lightIntensity = material.ambient * ambientColor;
   for (uint i = 0u; i < nbLights; ++i)
@@ -79,5 +79,5 @@ void main()
       lightIntensity += lightSources[i].color * phongModel(lightSources[i].position, eyeNormal, eyePosition);
   }
 
-  gl_Position = mvpMat * vec4(position,1.0);
+  gl_Position = mvpMat * vec4(vertexPosition,1.0);
 }
