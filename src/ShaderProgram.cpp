@@ -223,42 +223,20 @@ void ShaderProgram::extractActive(UniformDeclarationVector& vector) const
 UniformDeclaration ShaderProgram::getActiveUniform(const char *name) const
 {
     GlError glError;
-    bool found = false;
     GLenum activeUniformType = 0;
     GLint activeUniformSize = 0;
     GLint uniformLocation = glGetUniformLocation(_shaderProgramId, name);
 
-    if (!glError && uniformLocation >= 0)
+    if(!glError && uniformLocation >= 0)
     {
-        GLint activeUniformMaxLength = 0;
-        glGetProgramiv(_shaderProgramId, GL_ACTIVE_UNIFORM_MAX_LENGTH, &activeUniformMaxLength);
-        GLint nbUniforms = 0;
-        glGetProgramiv(_shaderProgramId, GL_ACTIVE_UNIFORMS, &nbUniforms);
-        if (!glError && activeUniformMaxLength > 0)
+        GLuint uniformIndex = 0u;
+        glGetUniformIndices(_shaderProgramId, 1, &name, &uniformIndex);
+        if (!glError && uniformIndex != GL_INVALID_INDEX)
         {
-            char* activeUniformName = new char[activeUniformMaxLength];
-            for (int i = 0; !found && i < nbUniforms; ++i)
-            {
-                glGetActiveUniform(_shaderProgramId, i, activeUniformMaxLength, 0, &activeUniformSize, &activeUniformType, activeUniformName);
-                if (glError) {
-                    break;
-                }
-                if (!strcmp(activeUniformName, name))
-                {
-                    found = true;
-                }
-            }
-            delete[] activeUniformName;
+            char tmp = 0;
+            glGetActiveUniform(_shaderProgramId, uniformIndex, 0, 0, &activeUniformSize, &activeUniformType, &tmp);
         }
     }
-
-    if (! found)
-    {
-        uniformLocation = -1;
-        activeUniformSize = 0;
-        activeUniformType = 0;
-    }
-
     return UniformDeclaration(_shaderProgramId, uniformLocation, activeUniformSize, activeUniformType, name);
 }
 
