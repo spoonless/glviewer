@@ -338,7 +338,7 @@ TEST(ShaderProgram, canExtractStructArrayUniformDeclaration)
 
     ASSERT_EQ(static_cast<size_t>(2), uniformDeclarationVector.size());
     ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 0, 2, GL_FLOAT_VEC4, "ms[1].position1[0]"), uniformDeclarationVector[0]);
-    ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 1, 1, GL_FLOAT_VEC3, "ms[1].position2"), uniformDeclarationVector[1]);
+    ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 2, 1, GL_FLOAT_VEC3, "ms[1].position2"), uniformDeclarationVector[1]);
 }
 
 TEST(ShaderProgram, canExtractMultipleUniformDeclaration)

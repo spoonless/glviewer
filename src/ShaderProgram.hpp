@@ -35,11 +35,11 @@ public:
 
     ValidationResult validate();
 
-    void extractActive(UniformDeclarationVector& vector);
+    void extractActive(UniformDeclarationVector& vector) const;
 
     UniformDeclaration getActiveUniform(const char *name) const;
 
-    void extractActive(VertexAttributeDeclarationVector& vector);
+    void extractActive(VertexAttributeDeclarationVector& vector) const;
 
     inline GLuint getId() const
     {
