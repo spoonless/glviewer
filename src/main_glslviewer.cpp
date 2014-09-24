@@ -295,7 +295,7 @@ private:
 
         void use(const LoadedTexture &loadedTexture)
         {
-            if (_ambiantSampler)
+            if (_ambiantSampler && loadedTexture.ambient)
             {
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, loadedTexture.ambient);
@@ -307,7 +307,7 @@ private:
                 *_ambiantEnable = false;
             }
 
-            if (_diffuseSampler)
+            if (_diffuseSampler && loadedTexture.diffuse)
             {
                 glActiveTexture(GL_TEXTURE1);
                 glBindTexture(GL_TEXTURE_2D, loadedTexture.diffuse);
@@ -319,7 +319,7 @@ private:
                 *_diffuseEnable = false;
             }
 
-            if (_specularSampler)
+            if (_specularSampler && loadedTexture.specular)
             {
                 glActiveTexture(GL_TEXTURE2);
                 glBindTexture(GL_TEXTURE_2D, loadedTexture.specular);
@@ -331,7 +331,7 @@ private:
                 *_specularEnable = false;
             }
 
-            if (_specularCoeffSampler)
+            if (_specularCoeffSampler && loadedTexture.specularCoeff)
             {
                 glActiveTexture(GL_TEXTURE3);
                 glBindTexture(GL_TEXTURE_2D, loadedTexture.specularCoeff);
@@ -343,7 +343,7 @@ private:
                 *_specularCoeffEnable = false;
             }
 
-            if (_dissolveSampler)
+            if (_dissolveSampler && loadedTexture.dissolve)
             {
                 glActiveTexture(GL_TEXTURE4);
                 glBindTexture(GL_TEXTURE_2D, loadedTexture.dissolve);
@@ -355,7 +355,7 @@ private:
                 *_dissolveEnable = false;
             }
 
-            if (_bumpSampler)
+            if (_bumpSampler && loadedTexture.bump)
             {
                 glActiveTexture(GL_TEXTURE5);
                 glBindTexture(GL_TEXTURE_2D, loadedTexture.bump);
