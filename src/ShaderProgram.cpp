@@ -223,9 +223,11 @@ void ShaderProgram::extractActive(UniformDeclarationVector& vector) const
 UniformDeclaration ShaderProgram::getActiveUniform(const char *name) const
 {
     GlError glError;
+    bool found = false;
     GLenum activeUniformType = 0;
     GLint activeUniformSize = 0;
     GLint uniformLocation = glGetUniformLocation(_shaderProgramId, name);
+
     if (!glError && uniformLocation >= 0)
     {
         GLint activeUniformMaxLength = 0;
@@ -234,9 +236,7 @@ UniformDeclaration ShaderProgram::getActiveUniform(const char *name) const
         glGetProgramiv(_shaderProgramId, GL_ACTIVE_UNIFORMS, &nbUniforms);
         if (!glError && activeUniformMaxLength > 0)
         {
-            bool found = false;
             char* activeUniformName = new char[activeUniformMaxLength];
-
             for (int i = 0; !found && i < nbUniforms; ++i)
             {
                 glGetActiveUniform(_shaderProgramId, i, activeUniformMaxLength, 0, &activeUniformSize, &activeUniformType, activeUniformName);
@@ -249,13 +249,14 @@ UniformDeclaration ShaderProgram::getActiveUniform(const char *name) const
                 }
             }
             delete[] activeUniformName;
-            if (! found)
-            {
-                uniformLocation = -1;
-                activeUniformSize = 0;
-                activeUniformType = 0;
-            }
         }
+    }
+
+    if (! found)
+    {
+        uniformLocation = -1;
+        activeUniformSize = 0;
+        activeUniformType = 0;
     }
 
     return UniformDeclaration(_shaderProgramId, uniformLocation, activeUniformSize, activeUniformType, name);
