@@ -30,11 +30,11 @@ const char defaultMesh[] =
 
 const char defaultVertexShader[] =
         GLSL_VERSION_HEADER
-        "in vec2 position;\n"
+        "in vec2 vertexPosition;\n"
         "out vec2 surfacePosition;\n"
         "void main(){\n"
-        "  gl_Position = vec4(position, 0, 1);\n"
-        "  surfacePosition = position;\n"
+        "  gl_Position = vec4(vertexPosition, 0, 1);\n"
+        "  surfacePosition = vertexPosition;\n"
         "}\n";
 
 const char defaultFragmentShader[] =
