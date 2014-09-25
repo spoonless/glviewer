@@ -39,14 +39,13 @@ struct LightSource
     vec3 color;
 };
 
-const uint nbLights = 3u;
+const uint nbLights = 2u;
 
 uniform vec3 ambientColor = vec3(0.05);
 
 uniform LightSource lightSources[nbLights] = {
-    LightSource(normalize(vec4(0,1,1,0)), vec3(.35,.4,.4)),
-    LightSource(normalize(vec4(0,0,0,-10)), vec3(0.6,0.6,.55)),
-    LightSource(vec4(20,0,0,1), vec3(.4,.35,.4))
+    LightSource(normalize(vec4(0,1,1,0)), vec3(0.6)),
+    LightSource(normalize(vec4(0,0,0,-10)), vec3(0.75, 0.8, 0.8))
 };
 
 uniform Material material;
@@ -85,8 +84,17 @@ void main() {
     vec3 diffuseColor = materialTexture.diffuse.enable ? texture(materialTexture.diffuse.sampler, fragTextureCoord).xyz : material.diffuse;
     vec3 specularColor = materialTexture.specular.enable ? texture(materialTexture.specular.sampler, fragTextureCoord).xyz : material.specular;
 
-    vec3 normal = normalize(fragNormal);
-    
+    vec3 normal;
+    if (materialTexture.bump.enable)
+    {
+        normal = texture2D(materialTexture.bump.sampler, fragTextureCoord).xyz;
+        normal = normalize((2.0 * normal) - 1.0);
+    }
+    else
+    {
+         normal = normalize(fragNormal);
+    }
+
     for (uint i = 0u; i < nbLights; ++i)
     {
         computeColors(i, normal, ambientCoeff, diffuseCoeff, specularCoeff);
