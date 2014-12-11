@@ -58,10 +58,17 @@ add_library(core_sources STATIC
 
 add_dependencies(core_sources glm)
 
-config_executable(core_sources GLFW SOIL OPENGL)
+config_executable(core_sources glfw GLFW SOIL OPENGL)
 
 if(UNIX)
-  target_link_libraries(core_sources Xrandr Xi)
+  find_package(X11 REQUIRED)
+  find_package(Threads REQUIRED)
+  target_link_libraries(core_sources
+    ${CMAKE_DL_LIBS}
+    ${X11_Xrandr_LIB}
+    ${X11_Xinput_LIB}
+    ${X11_Xxf86vm_LIB}
+    ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 ###############################################
