@@ -98,10 +98,11 @@ TEST(ShaderProgram, cannotLinkProgramWithoutShader)
     ASSERT_EQ("Cannot link program because no shader is attached!", lr.message());
 }
 
-TEST(ShaderProgram, cannotLinkProgramWhenShaderNotCompiled)
+TEST(ShaderProgram, cannotLinkProgramWhenShaderCannotCompile)
 {
     ShaderProgram shaderProgram;
     Shader shader(Shader::FRAGMENT_SHADER);
+    shader.compile("invalid shader");
 
     shaderProgram.attach(shader);
 
