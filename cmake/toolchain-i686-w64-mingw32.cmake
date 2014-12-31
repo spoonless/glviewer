@@ -6,7 +6,7 @@ SET(CMAKE_CXX_COMPILER   "i686-w64-mingw32-g++")
 SET(CMAKE_RC_COMPILER    "i686-w64-mingw32-windres")
 SET(CMAKE_RANLIB         "i686-w64-mingw32-ranlib")
 
-SET(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -s" CACHE INTERNAL "exe link flags")
+SET(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static -s" CACHE STRING "exe link flags")
 
 # Configure the behaviour of the find commands 
 SET(CMAKE_FIND_ROOT_PATH "/usr/i686-w64-mingw32")
