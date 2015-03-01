@@ -1,3 +1,4 @@
+#include <memory>
 #include <iostream>
 
 #include "Shader.hpp"
@@ -8,7 +9,7 @@ using namespace glv;
 
 namespace {
 
-void extractInfoLog(GLuint shaderId, std::string& out)
+std::string getInfoLog(GLuint shaderId)
 {
     GlError error;
     GLint infoLogLength = 0;
@@ -17,42 +18,45 @@ void extractInfoLog(GLuint shaderId, std::string& out)
 
     if (infoLogLength == 0)
     {
-        out.clear();
-        return;
+        return std::string();
     }
 
-    char* infoLogBuffer = new char[infoLogLength];
-    glGetShaderInfoLog(shaderId, infoLogLength, NULL, infoLogBuffer);
+    auto infoLogBuffer = std::unique_ptr<GLchar[]>(new GLchar[infoLogLength]);
+    glGetShaderInfoLog(shaderId, infoLogLength, NULL, infoLogBuffer.get());
 
     if (error.hasOccured())
     {
-        out = error.toString("Cannot retrieve properly shader compilation log info");
+        return error.toString("Cannot retrieve properly shader compilation log info");
     }
     else
     {
-        out = infoLogBuffer;
+        return std::string(infoLogBuffer.get());
     }
-    delete[] infoLogBuffer;
 }
 
 }
 
 Shader::Shader(ShaderType type) :
-    _shaderId(0), _type(type)
+    _shaderId{0}, _type{type}
 {
     createShader();
 }
 
-Shader::Shader(const Shader& shader) :
-    _shaderId(0), _type(shader._type)
+Shader::Shader(const Shader &shader) :
+    _shaderId{0}, _type{shader._type}
 {
     createShader();
-    std::string source;
-    shader.extractSource(source);
+    std::string source = shader.getSource();
     if (!source.empty())
     {
-        compile(source.c_str());
+        compile(source);
     }
+}
+
+Shader::Shader(Shader &&shader) :
+    _shaderId{shader._shaderId}, _type{shader._type}
+{
+    shader._shaderId = 0;
 }
 
 Shader::~Shader()
@@ -60,14 +64,13 @@ Shader::~Shader()
     deleteShaderId();
 }
 
-Shader& Shader::operator = (const Shader& shader)
+Shader& Shader::operator = (const Shader &shader)
 {
     if (this != &shader && _type == shader._type)
     {
-        std::string source;
-        shader.extractSource(source);
+        std::string source = shader.getSource();
         if (!source.empty()){
-            compile(source.c_str());
+            compile(source);
         }
     }
     return *this;
@@ -78,14 +81,13 @@ bool Shader::exists() const
     return _shaderId != 0 && glIsShader(_shaderId);
 }
 
-void Shader::extractSource(std::string& source) const
+std::string Shader::getSource() const
 {
     GlError error;
-    source.clear();
 
     if (_shaderId == 0)
     {
-        return;
+        return std::string();
     }
 
     GLint sourceLength = 0;
@@ -97,23 +99,23 @@ void Shader::extractSource(std::string& source) const
 
     if (sourceLength == 0)
     {
-        return;
+        return std::string();
     }
 
-    GLchar* sourceBuffer = new GLchar[sourceLength];
-    glGetShaderSource(_shaderId, sourceLength, NULL, sourceBuffer);
+    auto sourceBuffer = std::unique_ptr<GLchar[]>(new GLchar[sourceLength]);
+    glGetShaderSource(_shaderId, sourceLength, NULL, sourceBuffer.get());
     if (error.hasOccured())
     {
         std::cerr << error.toString("Error while retrieving shader source (glGetShaderSource)") << std::endl;
+        return std::string();
     }
     else
     {
-        source = sourceBuffer;
+        return std::string(sourceBuffer.get());
     }
-    delete[] sourceBuffer;
 }
 
-CompilationResult Shader::compile(const char* source)
+CompilationResult Shader::compile(const char *source)
 {
     GlError error;
 
@@ -138,10 +140,8 @@ CompilationResult Shader::compile(const char* source)
 
     GLint compilationSucceeded = GL_FALSE;
     glGetShaderiv(_shaderId, GL_COMPILE_STATUS, &compilationSucceeded);
-    std::string log;
-    extractInfoLog(_shaderId, log);
 
-    return CompilationResult(compilationSucceeded == GL_TRUE, log, compilationDuration);
+    return CompilationResult(compilationSucceeded == GL_TRUE, getInfoLog(_shaderId), compilationDuration);
 }
 
 void Shader::deleteShaderId()
@@ -161,13 +161,13 @@ void Shader::deleteShaderId()
 void Shader::createShader()
 {
     switch (_type) {
-    case VERTEX_SHADER:
+    case ShaderType::VERTEX_SHADER:
         _shaderId = glCreateShader(GL_VERTEX_SHADER);
         break;
-    case GEOMETRY_SHADER:
+    case ShaderType::GEOMETRY_SHADER:
         _shaderId = glCreateShader(GL_GEOMETRY_SHADER);
         break;
-    case FRAGMENT_SHADER:
+    case ShaderType::FRAGMENT_SHADER:
         _shaderId = glCreateShader(GL_FRAGMENT_SHADER);
         break;
     }

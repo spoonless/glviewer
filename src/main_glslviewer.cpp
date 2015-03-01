@@ -469,10 +469,10 @@ public:
 
     void createProgram(const std::string &vertexShader, const std::string &fragmentShader)
     {
-        glv::Shader vs(glv::Shader::VERTEX_SHADER);
+        glv::Shader vs(glv::ShaderType::VERTEX_SHADER);
         check(vs.compile(vertexShader), "compiling vertex shader");
 
-        glv::Shader fs(glv::Shader::FRAGMENT_SHADER);
+        glv::Shader fs(glv::ShaderType::FRAGMENT_SHADER);
         check(fs.compile(fragmentShader), "compiling fragment shader");
 
         if (good())

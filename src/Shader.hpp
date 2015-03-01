@@ -7,17 +7,19 @@
 namespace glv
 {
 
-typedef OperationResult CompilationResult;
+using CompilationResult = OperationResult;
+
+enum class ShaderType {VERTEX_SHADER, GEOMETRY_SHADER, FRAGMENT_SHADER};
 
 class Shader
 {
 public:
-    enum ShaderType {VERTEX_SHADER, GEOMETRY_SHADER, FRAGMENT_SHADER};
 
     Shader(ShaderType type);
-    Shader(const Shader& shader);
+    Shader(const Shader &shader);
+    Shader(Shader &&shader);
     ~Shader();
-    Shader& operator = (const Shader& shader);
+    Shader& operator = (const Shader &shader);
 
     inline GLuint getId() const
     {
@@ -31,14 +33,14 @@ public:
         return _type;
     }
 
-    void extractSource(std::string& source) const;
+    std::string getSource() const;
 
     CompilationResult compile(const std::string &source)
     {
         return compile(source.c_str());
     }
 
-    CompilationResult compile(const char* source);
+    CompilationResult compile(const char *source);
 
 private:
     void deleteShaderId();

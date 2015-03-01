@@ -24,7 +24,7 @@ const char VALID_VERTEX_SHADER_SOURCE [] = GLSL_VERSION_HEADER
 const char VALID_FRAGMENT_SHADER_SOURCE [] = GLSL_VERSION_HEADER
                                              "void main(){}";
 
-void addShader(ShaderProgram& shaderProgram, Shader::ShaderType type, const char* source)
+void addShader(ShaderProgram& shaderProgram, ShaderType type, const char* source)
 {
     Shader vertexShader(type);
     EXPECT_TRUE(vertexShader.compile(source));
@@ -58,7 +58,7 @@ TEST(ShaderProgram, canCreateShaderProgram)
 TEST(ShaderProgram, canAttachDetachShader)
 {
     ShaderProgram shaderProgram;
-    Shader shader(Shader::FRAGMENT_SHADER);
+    Shader shader(ShaderType::FRAGMENT_SHADER);
 
     ASSERT_TRUE(shaderProgram.attach(shader));
 
@@ -72,8 +72,8 @@ TEST(ShaderProgram, canAttachDetachShader)
 TEST(ShaderProgram, canDetachAllShaders)
 {
     ShaderProgram shaderProgram;
-    Shader shader1(Shader::VERTEX_SHADER);
-    Shader shader2(Shader::FRAGMENT_SHADER);
+    Shader shader1(ShaderType::VERTEX_SHADER);
+    Shader shader2(ShaderType::FRAGMENT_SHADER);
 
     ASSERT_TRUE(shaderProgram.attach(shader1));
     ASSERT_TRUE(shaderProgram.attach(shader2));
@@ -101,7 +101,7 @@ TEST(ShaderProgram, cannotLinkProgramWithoutShader)
 TEST(ShaderProgram, cannotLinkProgramWhenShaderCannotCompile)
 {
     ShaderProgram shaderProgram;
-    Shader shader(Shader::FRAGMENT_SHADER);
+    Shader shader(ShaderType::FRAGMENT_SHADER);
     shader.compile("invalid shader");
 
     shaderProgram.attach(shader);
@@ -116,13 +116,13 @@ TEST(ShaderProgram, canLinkProgramWhenShadersCompiled)
 {
     ShaderProgram shaderProgram;
 
-    Shader fragmentShader(Shader::FRAGMENT_SHADER);
+    Shader fragmentShader(ShaderType::FRAGMENT_SHADER);
     shaderProgram.attach(fragmentShader);
     fragmentShader.compile(VALID_FRAGMENT_SHADER_SOURCE);
 
     ASSERT_TRUE(shaderProgram.link());
 
-    Shader vertexShader(Shader::VERTEX_SHADER);
+    Shader vertexShader(ShaderType::VERTEX_SHADER);
     vertexShader.compile(VALID_VERTEX_SHADER_SOURCE);
     shaderProgram.attach(vertexShader);
 
@@ -133,11 +133,11 @@ TEST(ShaderProgram, canCopyProgram)
 {
     ShaderProgram shaderProgram;
 
-    Shader fragmentShader(Shader::FRAGMENT_SHADER);
+    Shader fragmentShader(ShaderType::FRAGMENT_SHADER);
     fragmentShader.compile(VALID_FRAGMENT_SHADER_SOURCE);
     shaderProgram.attach(fragmentShader);
 
-    Shader vertexShader(Shader::VERTEX_SHADER);
+    Shader vertexShader(ShaderType::VERTEX_SHADER);
     vertexShader.compile(VALID_VERTEX_SHADER_SOURCE);
     shaderProgram.attach(vertexShader);
 
@@ -155,16 +155,16 @@ TEST(ShaderProgram, canAssignProgram)
 {
     ShaderProgram shaderProgram;
 
-    Shader fragmentShader(Shader::FRAGMENT_SHADER);
+    Shader fragmentShader(ShaderType::FRAGMENT_SHADER);
     fragmentShader.compile(VALID_FRAGMENT_SHADER_SOURCE);
     shaderProgram.attach(fragmentShader);
 
-    Shader vertexShader(Shader::VERTEX_SHADER);
+    Shader vertexShader(ShaderType::VERTEX_SHADER);
     vertexShader.compile(VALID_VERTEX_SHADER_SOURCE);
     shaderProgram.attach(vertexShader);
 
     ShaderProgram copy;
-    Shader anotherShader(Shader::VERTEX_SHADER);
+    Shader anotherShader(ShaderType::VERTEX_SHADER);
     copy.attach(anotherShader);
     ASSERT_TRUE(copy.has(anotherShader));
 
@@ -190,10 +190,10 @@ TEST(ShaderProgram, canValidateLinkedProgramWhenShadersCompiled)
 {
     ShaderProgram shaderProgram;
 
-    addShader(shaderProgram, Shader::FRAGMENT_SHADER, VALID_FRAGMENT_SHADER_SOURCE);
+    addShader(shaderProgram, ShaderType::FRAGMENT_SHADER, VALID_FRAGMENT_SHADER_SOURCE);
     ASSERT_TRUE(shaderProgram.link());
 
-    addShader(shaderProgram, Shader::VERTEX_SHADER, VALID_VERTEX_SHADER_SOURCE);
+    addShader(shaderProgram, ShaderType::VERTEX_SHADER, VALID_VERTEX_SHADER_SOURCE);
     ASSERT_TRUE(shaderProgram.link());
 
     shaderProgram.link();
@@ -204,7 +204,7 @@ TEST(ShaderProgram, canValidateLinkedProgramWhenShadersCompiled)
 TEST(ShaderProgram, canExtractEmptyUniformDeclarationWhenNoUniform)
 {
     ShaderProgram shaderProgram;
-    addShader(shaderProgram, Shader::FRAGMENT_SHADER, VALID_FRAGMENT_SHADER_SOURCE);
+    addShader(shaderProgram, ShaderType::FRAGMENT_SHADER, VALID_FRAGMENT_SHADER_SOURCE);
     ASSERT_TRUE(shaderProgram.link());
 
     UniformDeclarationVector uniformDeclarationVector;
@@ -223,7 +223,7 @@ TEST(ShaderProgram, canExtractUniformDeclarationWhenOneUniform)
             " gl_Position = position;"
             "}";
 
-    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
 
     UniformDeclarationVector uniformDeclarationVector;
@@ -243,7 +243,7 @@ TEST(ShaderProgram, canGetActiveUniformDeclaration)
             " gl_Position = position;"
             "}";
 
-    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
 
     UniformDeclaration result = shaderProgram.getActiveUniform("position");
@@ -262,7 +262,7 @@ TEST(ShaderProgram, canExtractFixedArrayUniformDeclaration)
             " gl_Position = position[0] + position[1];"
             "}";
 
-    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
 
     UniformDeclarationVector uniformDeclarationVector;
@@ -282,7 +282,7 @@ TEST(ShaderProgram, canExtractArrayUniformDeclaration)
             " gl_Position = position[0] + position[1] + position[3];"
             "}";
 
-    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
 
     UniformDeclarationVector uniformDeclarationVector;
@@ -306,7 +306,7 @@ TEST(ShaderProgram, canExtractStructUniformDeclaration)
             " gl_Position = ms.position1 + vec4(ms.position2, 0);"
             "}";
 
-    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
 
     UniformDeclarationVector uniformDeclarationVector;
@@ -331,7 +331,7 @@ TEST(ShaderProgram, canExtractStructArrayUniformDeclaration)
             " gl_Position = ms[1].position1[1] + vec4(ms[1].position2, 0);"
             "}";
 
-    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
 
     UniformDeclarationVector uniformDeclarationVector;
@@ -353,7 +353,7 @@ TEST(ShaderProgram, canExtractMultipleUniformDeclaration)
             " gl_Position = mvp * position;"
             "}";
 
-    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
 
     UniformDeclarationVector uniformDeclarationVector;
@@ -385,7 +385,7 @@ TEST(ShaderProgram, canExtractMultipleUniformDeclaration)
 TEST(ShaderProgram, canExtractEmptyAttributeDeclarationWhenNoAttribute)
 {
     ShaderProgram shaderProgram;
-    addShader(shaderProgram, Shader::FRAGMENT_SHADER, VALID_FRAGMENT_SHADER_SOURCE);
+    addShader(shaderProgram, ShaderType::FRAGMENT_SHADER, VALID_FRAGMENT_SHADER_SOURCE);
     ASSERT_TRUE(shaderProgram.link());
 
     VertexAttributeDeclarationVector vector;
@@ -404,7 +404,7 @@ TEST(ShaderProgram, canExtractAttributeDeclarationWhenOneAttribute)
             " gl_Position = vertices;"
             "}";
 
-    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
 
     VertexAttributeDeclarationVector vector;
@@ -425,7 +425,7 @@ TEST(ShaderProgram, canExtractAttributeDeclarationWhenSeveralAttributes)
             " gl_Position = vertices * magnitude;"
             "}";
 
-    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
 
     VertexAttributeDeclarationVector vector;
@@ -449,7 +449,7 @@ TEST(ShaderProgram, canExtractUniformFloatVectorValue)
             " gl_Position = vec4(value, value2.x, value3.x, value4.x);"
             "}";
 
-    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
     shaderProgram.use();
 
@@ -475,7 +475,7 @@ TEST(ShaderProgram, canExtractUniformBooleanVectorValue)
             " }"
             "}";
 
-    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
     shaderProgram.use();
 
@@ -498,7 +498,7 @@ TEST(ShaderProgram, canExtractUniformIntegerVectorValue)
             " gl_Position = vec4(value, value2.x, value3.x, value4.x);"
             "}";
 
-    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
     shaderProgram.use();
 
@@ -521,7 +521,7 @@ TEST(ShaderProgram, canExtractUniformUnsignedIntegerVectorValue)
             " gl_Position = vec4(value, value2.x, value3.x, value4.x);"
             "}";
 
-    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
     shaderProgram.use();
 
@@ -543,7 +543,7 @@ TEST(ShaderProgram, canExtractUniformMatrix2Value)
             " gl_Position = vec4(value[0][0], value2[0][0], value3[0][0], 0);"
             "}";
 
-    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
     shaderProgram.use();
 
@@ -564,7 +564,7 @@ TEST(ShaderProgram, canExtractUniformMatrix3Value)
             " gl_Position = vec4(value[0][0], value2[0][0], value3[0][0], 0);"
             "}";
 
-    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
     shaderProgram.use();
 
@@ -585,7 +585,7 @@ TEST(ShaderProgram, canExtractUniformMatrix4Value)
             " gl_Position = vec4(value[0][0], value2[0][0], value3[0][0], 0);"
             "}";
 
-    addShader(shaderProgram, Shader::VERTEX_SHADER, source);
+    addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
     shaderProgram.use();
 

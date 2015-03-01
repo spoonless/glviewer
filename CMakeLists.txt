@@ -24,9 +24,12 @@ endmacro()
 
 find_package(OpenGL REQUIRED)
 
+include("SetCxxStandard")
 include("EmbedGlfw")
 include("EmbedGlm")
 include("EmbedSoil")
+
+set_cxx_standard(11)
 
 ###############################################
 # main sources settings
