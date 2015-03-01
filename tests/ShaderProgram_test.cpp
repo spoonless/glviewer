@@ -145,7 +145,7 @@ TEST(ShaderProgram, canCopyProgram)
 
     ASSERT_TRUE(copy.exists());
     ASSERT_NE(0u, copy.getId());
-    ASSERT_TRUE(glIsProgram(copy.getId()));
+    ASSERT_TRUE(glIsProgram(copy.getId()) == GL_TRUE);
     ASSERT_TRUE(copy.has(fragmentShader));
     ASSERT_TRUE(copy.has(vertexShader));
     ASSERT_TRUE(copy.link());

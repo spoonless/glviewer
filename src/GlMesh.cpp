@@ -10,7 +10,7 @@
 
 const glv::MaterialIndex glv::MaterialHandler::NO_MATERIAL_INDEX = MAX_UINT;
 
-glv::GlMesh::MaterialGroup::MaterialGroup(unsigned int index, unsigned long size) : index(index), size(size) {}
+glv::GlMesh::MaterialGroup::MaterialGroup(size_t index, size_t size) : index(index), size(size) {}
 
 glv::BoundingBox::BoundingBox() : min(MAX_FLOAT, MAX_FLOAT, MAX_FLOAT), max(MIN_FLOAT, MIN_FLOAT, MIN_FLOAT)
 {
@@ -43,8 +43,8 @@ void glv::GlMesh::render(glv::MaterialHandler *handler)
         {
             handler->use(materialGroup.index);
         }
-        glDrawArrays(GL_TRIANGLES, firstPrimitive, materialGroup.size);
-        firstPrimitive += materialGroup.size;
+        glDrawArrays(GL_TRIANGLES, firstPrimitive, static_cast<GLsizei>(materialGroup.size));
+		firstPrimitive += static_cast<GLsizei>(materialGroup.size);
     }
 
     std::for_each(_definedVertexAttributes.begin(), _definedVertexAttributes.end(), glDisableVertexAttribArray);
@@ -66,7 +66,7 @@ void glv::GlMesh::clear()
     }
     if (!_buffers.empty())
     {
-        glDeleteBuffers(_buffers.size(), &_buffers[0]);
+		glDeleteBuffers(static_cast<GLsizei>(_buffers.size()), &_buffers[0]);
     }
     _boundingBox = BoundingBox();
     _buffers.clear();
@@ -87,7 +87,7 @@ glv::GlMeshGeneration glv::GlMesh::generate(const vfm::ObjModel &objModel)
         return GlMeshGeneration(false, glError.toString("Error during vertex array generation"), duration.elapsed());
     }
 
-    unsigned int bufferElements = 0;
+    size_t bufferElements = 0;
     for(vfm::ObjectVector::const_iterator it = objModel.objects.begin(); it != objModel.objects.end(); ++it)
     {
         const vfm::Object &o = *it;
@@ -202,7 +202,7 @@ size_t glv::GlMesh::getBufferIndex(const std::string &name)
 glv::VertexAttributeDataDefinition glv::GlMesh::defineVertexAttributeData(const VertexAttributeDeclaration& vad)
 {
     GlError glError;
-    GLuint bufferIndex = getBufferIndex(vad.name());
+    size_t bufferIndex = getBufferIndex(vad.name());
     if (bufferIndex >= _buffers.size() || _buffers[bufferIndex] == 0)
     {
         return VertexAttributeDataDefinition(false, std::string("No buffer available for vertex attribute '") + vad.name() + "'");

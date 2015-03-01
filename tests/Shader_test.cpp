@@ -75,7 +75,7 @@ TEST(Shader, canCopyShader)
     copyShader.extractSource(copySource);
 
     ASSERT_NE(shader.getId(), copyShader.getId());
-    ASSERT_TRUE(glIsShader(copyShader.getId()));
+    ASSERT_TRUE(glIsShader(copyShader.getId()) == GL_TRUE);
     ASSERT_EQ("void main(){}", copySource);
 }
 

@@ -30,7 +30,7 @@ public:
     }
 };
 
-typedef unsigned int MaterialIndex;
+typedef vfm::MaterialIndex MaterialIndex;
 
 class MaterialHandler
 {
@@ -60,10 +60,10 @@ public:
 private:
     struct MaterialGroup
     {
-        MaterialGroup(unsigned int index, unsigned long size);
+		MaterialGroup(MaterialIndex index, size_t size);
 
         MaterialIndex index;
-        unsigned long size;
+        size_t size;
     };
 
     typedef std::vector<MaterialGroup> MaterialGroupVector;

@@ -108,11 +108,11 @@ const char *sys::Path::basename() const
     {
         return EMPTY_PATH;
     }
-    for (int i = this->_length - 1; i >= 0; --i)
+    for (size_t i = this->_length; i > 0; --i)
     {
-        if(this->_path[i] == Path::SEPARATOR)
+        if(this->_path[i-1] == Path::SEPARATOR)
         {
-            return &this->_path[i+1];
+            return &this->_path[i];
         }
     }
     return this->_path;
@@ -121,7 +121,7 @@ const char *sys::Path::basename() const
 const char *sys::Path::extension() const
 {
     char *extension = 0;
-    for (unsigned int i = this->_length; i > std::max(static_cast<size_t>(1), this->_absoluteSectionLength); --i)
+	for (size_t i = this->_length; i > std::max(static_cast<size_t>(1), this->_absoluteSectionLength); --i)
     {
         if (this->_path[i-1] == '.')
         {

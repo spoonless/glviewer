@@ -1,5 +1,5 @@
-#include <cctype>
 #include <algorithm>
+#include <cctype>
 #include <cstdlib>
 #include <cstring>
 #include <sstream>
@@ -210,22 +210,35 @@ inline void createTriangles(const vfm::IndexVector &polygons, vfm::IndexVector &
     }
 }
 
+inline size_t readIndex(const char *token, char **endToken, size_t nbElements)
+{
+    long value = std::strtol(token, endToken, 10);
+    size_t result = 0;
+    if (value >= 0)
+    {
+        result = static_cast<size_t>(value);
+    }
+    else
+    {
+        value += nbElements + 1;
+        if (value > 0)
+        {
+            result = static_cast<size_t>(value);
+        }
+    }
+    return result;
+}
+
 void read (const char *line, const vfm::ObjModel &model, vfm::VertexIndexVector &face)
 {
     const char *token = line;
     char* endToken = 0;
     vfm::VertexIndex vertexIndex;
-    long value;
     while(*token != 0 && std::isspace(*token))
     {
-        vertexIndex.vertex = vertexIndex.normal = vertexIndex.texture = 0;
+        vertexIndex.normal = vertexIndex.texture = 0;
 
-        value = std::strtol(token, &endToken, 10);
-        if(value < 0)
-        {
-            value = std::max(0ul, value + model.vertices.size() + 1);
-        }
-        vertexIndex.vertex = value;
+        vertexIndex.vertex = readIndex(token, &endToken, model.vertices.size());
 
         if (token == endToken)
         {
@@ -235,22 +248,12 @@ void read (const char *line, const vfm::ObjModel &model, vfm::VertexIndexVector 
         token = endToken;
         if (*endToken == '/')
         {
-            value = std::strtol(++token, &endToken, 10);
-            if(value < 0)
-            {
-                value = std::max(0ul, value + model.textures.size() + 1);
-            }
-            vertexIndex.texture = value;
+            vertexIndex.texture = readIndex(++token, &endToken, model.textures.size());
             token = endToken;
         }
         if (*endToken == '/')
         {
-            value = std::strtol(++token, &endToken, 10);
-            if(value < 0)
-            {
-                value = std::max(0ul, model.normals.size() + value + 1);
-            }
-            vertexIndex.normal = value;
+            vertexIndex.normal = readIndex(++token, &endToken, model.normals.size());
             token = endToken;
         }
 
@@ -258,7 +261,7 @@ void read (const char *line, const vfm::ObjModel &model, vfm::VertexIndexVector 
     }
 }
 
-unsigned int getMaterialIndex (vfm::ObjModel &model, const vfm::MaterialId &materialId)
+vfm::MaterialIndex getMaterialIndex(vfm::ObjModel &model, const vfm::MaterialId &materialId)
 {
     vfm::MaterialIdVector::iterator itFound = std::find(model.materialIds.begin(), model.materialIds.end(), materialId);
     if (itFound == model.materialIds.end())
@@ -268,7 +271,7 @@ unsigned int getMaterialIndex (vfm::ObjModel &model, const vfm::MaterialId &mate
     }
     else
     {
-        return std::distance(model.materialIds.begin(), itFound);
+		return static_cast<vfm::MaterialIndex>(std::distance(model.materialIds.begin(), itFound));
     }
 }
 
@@ -303,7 +306,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
     glm::vec4 vec4;
     vfm::IndexVector polygons;
     VertexIndexVector face(10);
-    unsigned int currentMaterialIndex = 0u;
+	vfm::MaterialIndex currentMaterialIndex = 0;
     std::string mtllib;
     LineReader lineReader(is);
 

@@ -12,6 +12,7 @@
 namespace vfm
 {
 
+typedef size_t MaterialIndex;
 typedef std::vector<glm::vec4> Vec4Vector;
 typedef std::vector<glm::vec3> Vec3Vector;
 
@@ -86,9 +87,9 @@ struct MaterialId
 
 struct MaterialActivation
 {
-    MaterialActivation(size_t materialIndex, size_t start = 0u, size_t end = 0u) : materialIndex(materialIndex), start(start), end(end) {}
+    MaterialActivation(MaterialIndex materialIndex, size_t start = 0u, size_t end = 0u) : materialIndex(materialIndex), start(start), end(end) {}
 
-    size_t materialIndex;
+	MaterialIndex materialIndex;
     size_t start;
     size_t end;
 };
