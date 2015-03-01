@@ -12,7 +12,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 if(MSVC)
-    add_definitions(-DNOMINMAX -D_USE_MATH_DEFINES)
+    add_definitions(-DNOMINMAX)
 endif()
 
 macro( config_executable PROJNAME )

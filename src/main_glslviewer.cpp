@@ -15,6 +15,8 @@
 #include "ShaderProgram.hpp"
 #include "GlMesh.hpp"
 
+const double PI = std::atan(1.0)*4;
+
 bool endsWith (const char *base, const char *str) {
     int blen = std::strlen(base);
     int slen = std::strlen(str);
@@ -534,9 +536,9 @@ public:
         glm::mat4x4 modelMatrix = glm::translate(-boundingBox.center());
         float distance = glm::distance(boundingBox.min, boundingBox.max) * 0.75f;
         glm::mat4x4 viewMatrix = glm::lookAt(glm::vec3(0,0,distance), glm::vec3(0,0,0), glm::normalize(glm::vec3(0,0.5,-0.5)));
-        viewMatrix = glm::rotate(viewMatrix, cursorPosition.x * static_cast<float>(M_PI) * 4, glm::vec3(0,1,0));
-        viewMatrix = glm::rotate(viewMatrix, cursorPosition.y * static_cast<float>(M_PI) * 4, glm::vec3(0,0,1));
-        glm::mat4x4 projectionMatrix = glm::perspectiveFov(static_cast<float>(70.0/180.0 * M_PI), windowSize.x, windowSize.y, .5f, distance*10.0f);
+        viewMatrix = glm::rotate(viewMatrix, cursorPosition.x * static_cast<float>(PI) * 4, glm::vec3(0,1,0));
+        viewMatrix = glm::rotate(viewMatrix, cursorPosition.y * static_cast<float>(PI) * 4, glm::vec3(0,0,1));
+        glm::mat4x4 projectionMatrix = glm::perspectiveFov(static_cast<float>(70.0/180.0 * PI), windowSize.x, windowSize.y, .5f, distance*10.0f);
 
         if(resolutionUniform)
         {
