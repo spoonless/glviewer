@@ -22,3 +22,10 @@ file(MAKE_DIRECTORY "${GLM_INCLUDE_DIR}/glm")
 ExternalProject_Add_Step(glm "copy_include"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${SOURCE_DIR}/glm" "${GLM_INCLUDE_DIR}/glm" DEPENDEES install
 )
+
+# https://github.com/g-truc/glm/issues/283
+# GLM does not compile with MSVC (32bits configuration) since 0.9.6
+# Even if the issue is closed, it does not seem fixed in current version.
+if(MSVC)
+  add_definitions( -DGLM_FORCE_PURE )
+endif()
