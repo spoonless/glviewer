@@ -69,9 +69,11 @@ if(UNIX)
   find_package(Threads REQUIRED)
   target_link_libraries(core_sources
     ${CMAKE_DL_LIBS}
+    ${X11_Xcursor_LIB}
     ${X11_Xrandr_LIB}
     ${X11_Xinput_LIB}
     ${X11_Xxf86vm_LIB}
+    ${X11_Xinerama_LIB}
     ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
