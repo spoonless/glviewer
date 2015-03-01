@@ -22,7 +22,13 @@ ExternalProject_Get_Property(project_soil SOURCE_DIR)
 ExternalProject_Get_Property(project_soil BINARY_DIR)
 
 add_library(soil STATIC IMPORTED)
-set_property(TARGET soil PROPERTY IMPORTED_LOCATION "${BINARY_DIR}/libSOIL.a")
+
+set_property(TARGET soil PROPERTY IMPORTED_LOCATION "${BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}SOIL${CMAKE_STATIC_LIBRARY_SUFFIX}")
+# Handling multi configurations for MSVC
+foreach( CONFIG_TYPE ${CMAKE_CONFIGURATION_TYPES} )
+  string(TOUPPER ${CONFIG_TYPE} UPPER_CONFIG_TYPE)
+  set_property(TARGET soil PROPERTY IMPORTED_LOCATION_${UPPER_CONFIG_TYPE} "${BINARY_DIR}/${CONFIG_TYPE}/${CMAKE_STATIC_LIBRARY_PREFIX}SOIL${CMAKE_STATIC_LIBRARY_SUFFIX}")
+endforeach()
 add_dependencies(soil project_soil)
 
 set(SOIL_INCLUDE_DIR "${SOURCE_DIR}/src")

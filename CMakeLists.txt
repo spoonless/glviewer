@@ -7,8 +7,12 @@ project(glviewer)
 option(BUILD_UNITTESTS "Build all unit tests." "1")
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+endif()
+
+if(MSVC)
+    add_definitions(-DNOMINMAX -D_USE_MATH_DEFINES)
 endif()
 
 macro( config_executable PROJNAME )

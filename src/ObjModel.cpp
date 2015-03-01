@@ -1,3 +1,4 @@
+#include <cctype>
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>

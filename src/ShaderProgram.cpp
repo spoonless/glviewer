@@ -152,7 +152,7 @@ LinkResult ShaderProgram::link()
     std::string lastLinkLog;
     extractInfoLog(_shaderProgramId, lastLinkLog);
 
-    return LinkResult(linkStatus, lastLinkLog, linkageDuration);
+	return LinkResult(linkStatus == GL_TRUE, lastLinkLog, linkageDuration);
 }
 
 ValidationResult ShaderProgram::validate()
@@ -179,7 +179,7 @@ ValidationResult ShaderProgram::validate()
 
     extractInfoLog(_shaderProgramId, validationLog);
 
-    return ValidationResult(validationStatus, validationLog);
+	return ValidationResult(validationStatus == GL_TRUE, validationLog);
 }
 
 void ShaderProgram::extractActive(UniformDeclarationVector& vector) const

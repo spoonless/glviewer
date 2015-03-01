@@ -31,8 +31,8 @@ void glv::GlWindowContext::windowSizeCallback(GLFWwindow* window, int width, int
     GlWindowContext *glfw = static_cast<GlWindowContext*>(glfwGetWindowUserPointer(window));
     if(glfw)
     {
-        glfw->_windowSize.x = width;
-        glfw->_windowSize.y = height;
+		glfw->_windowSize.x = static_cast<float>(width);
+		glfw->_windowSize.y = static_cast<float>(height);
         glViewport(0, 0, width, height);
     }
 }
@@ -72,8 +72,8 @@ bool glv::GlWindowContext::init (std::string title, unsigned int width, unsigned
     glfwSetWindowSizeCallback(_window, windowSizeCallback);
     int realWidth,realHeight = 0;
     glfwGetWindowSize(_window, &realWidth, &realHeight);
-    _windowSize.x = realWidth;
-    _windowSize.y = realHeight;
+	_windowSize.x = static_cast<float>(realWidth);
+	_windowSize.y = static_cast<float>(realHeight);
     return true;
 }
 
@@ -87,7 +87,7 @@ bool glv::GlWindowContext::makeCurrent()
     }
     if (!gladOk)
     {
-        gladOk = gladLoadGL();
+		gladOk = gladLoadGL() == GL_TRUE;
     }
     return gladOk;
 }

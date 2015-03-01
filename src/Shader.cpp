@@ -141,7 +141,7 @@ CompilationResult Shader::compile(const char* source)
     std::string log;
     extractInfoLog(_shaderId, log);
 
-    return CompilationResult(compilationSucceeded, log, compilationDuration);
+    return CompilationResult(compilationSucceeded == GL_TRUE, log, compilationDuration);
 }
 
 void Shader::deleteShaderId()
