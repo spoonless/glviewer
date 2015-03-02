@@ -18,7 +18,7 @@ std::string getInfoLog(GLuint shaderId)
 
     if (infoLogLength == 0)
     {
-        return std::string();
+        return std::string{};
     }
 
     auto infoLogBuffer = std::unique_ptr<GLchar[]>(new GLchar[infoLogLength]);
@@ -30,7 +30,7 @@ std::string getInfoLog(GLuint shaderId)
     }
     else
     {
-        return std::string(infoLogBuffer.get());
+        return std::string{infoLogBuffer.get()};
     }
 }
 
@@ -87,7 +87,7 @@ std::string Shader::getSource() const
 
     if (_shaderId == 0)
     {
-        return std::string();
+        return std::string{};
     }
 
     GLint sourceLength = 0;
@@ -99,7 +99,7 @@ std::string Shader::getSource() const
 
     if (sourceLength == 0)
     {
-        return std::string();
+        return std::string{};
     }
 
     auto sourceBuffer = std::unique_ptr<GLchar[]>(new GLchar[sourceLength]);
@@ -107,11 +107,11 @@ std::string Shader::getSource() const
     if (error.hasOccured())
     {
         std::cerr << error.toString("Error while retrieving shader source (glGetShaderSource)") << std::endl;
-        return std::string();
+        return std::string{};
     }
     else
     {
-        return std::string(sourceBuffer.get());
+        return std::string{sourceBuffer.get()};
     }
 }
 
@@ -121,13 +121,13 @@ CompilationResult Shader::compile(const char *source)
 
     if (source[0] == '\0')
     {
-        return CompilationResult(false, "Shader source is empty!");
+        return CompilationResult{false, "Shader source is empty!"};
     }
 
     glShaderSource(_shaderId, 1, &source, NULL);
     if (error.hasOccured())
     {
-        return CompilationResult(false, error.toString("Error while attaching source to shader (glShaderSource)"));
+        return CompilationResult{false, error.toString("Error while attaching source to shader (glShaderSource)")};
     }
 
     sys::Duration duration;
@@ -135,13 +135,13 @@ CompilationResult Shader::compile(const char *source)
     unsigned int compilationDuration = duration.elapsed();
     if (error.hasOccured())
     {
-        return CompilationResult(false, error.toString("Error while compiling shader (glCompileShader)"));
+        return CompilationResult{false, error.toString("Error while compiling shader (glCompileShader)")};
     }
 
     GLint compilationSucceeded = GL_FALSE;
     glGetShaderiv(_shaderId, GL_COMPILE_STATUS, &compilationSucceeded);
 
-    return CompilationResult(compilationSucceeded == GL_TRUE, getInfoLog(_shaderId), compilationDuration);
+    return CompilationResult{compilationSucceeded == GL_TRUE, getInfoLog(_shaderId), compilationDuration};
 }
 
 void Shader::deleteShaderId()
