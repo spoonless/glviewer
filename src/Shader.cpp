@@ -42,17 +42,6 @@ Shader::Shader(ShaderType type) :
     createShader();
 }
 
-Shader::Shader(const Shader &shader) :
-    _shaderId{0}, _type{shader._type}
-{
-    createShader();
-    std::string source = shader.getSource();
-    if (!source.empty())
-    {
-        compile(source);
-    }
-}
-
 Shader::Shader(Shader &&shader) :
     _shaderId{shader._shaderId}, _type{shader._type}
 {
@@ -62,18 +51,6 @@ Shader::Shader(Shader &&shader) :
 Shader::~Shader()
 {
     deleteShaderId();
-}
-
-Shader& Shader::operator = (const Shader &shader)
-{
-    if (this != &shader && _type == shader._type)
-    {
-        std::string source = shader.getSource();
-        if (!source.empty()){
-            compile(source);
-        }
-    }
-    return *this;
 }
 
 bool Shader::exists() const

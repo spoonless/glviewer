@@ -15,11 +15,12 @@ class Shader
 {
 public:
 
-    Shader(ShaderType type);
-    Shader(const Shader &shader);
+    explicit Shader(ShaderType type);
     Shader(Shader &&shader);
     ~Shader();
-    Shader& operator = (const Shader &shader);
+
+    Shader(const Shader &shader) = delete;
+    Shader& operator = (const Shader &shader) = delete;
 
     inline GLuint getId() const
     {
