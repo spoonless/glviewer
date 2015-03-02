@@ -2,7 +2,6 @@
 #define SHADERPROGRAM_H
 
 #include "gl.hpp"
-
 #include "Shader.hpp"
 #include "UniformDeclaration.hpp"
 #include "OperationResult.hpp"
@@ -10,24 +9,25 @@
 namespace glv
 {
 
-typedef OperationResult ShaderAttachmentResult;
-typedef OperationResult LinkResult;
-typedef OperationResult ValidationResult;
+using ShaderAttachmentResult = OperationResult;
+using LinkResult = OperationResult;
+using ValidationResult = OperationResult;
 
 class ShaderProgram
 {
 public:
     ShaderProgram();
-    ShaderProgram(const ShaderProgram& shaderProgram);
+    ShaderProgram(ShaderProgram &&shaderProgram);
     ~ShaderProgram();
 
-    ShaderProgram& operator = (const ShaderProgram& shaderProgram);
+    ShaderProgram(const ShaderProgram &shaderProgram) = delete;
+    ShaderProgram& operator = (const ShaderProgram &shaderProgram) = delete;
 
-    ShaderAttachmentResult attach(const Shader& shader);
+    ShaderAttachmentResult attach(const Shader &shader);
 
-    bool has(const Shader& shader) const;
+    bool has(const Shader &shader) const;
 
-    ShaderAttachmentResult detach(const Shader& shader);
+    ShaderAttachmentResult detach(const Shader &shader);
 
     void detachAllShaders();
 
@@ -35,11 +35,11 @@ public:
 
     ValidationResult validate();
 
-    void extractActive(UniformDeclarationVector& vector) const;
+    UniformDeclarationVector getUniformDeclarations() const;
 
     UniformDeclaration getActiveUniform(const char *name) const;
 
-    void extractActive(VertexAttributeDeclarationVector& vector) const;
+    VertexAttributeDeclarationVector getVertexAttributeDeclarations() const;
 
     inline GLuint getId() const
     {
@@ -48,21 +48,17 @@ public:
 
     bool exists() const;
 
-    void use() const
+    inline void use() const
     {
         glUseProgram(_shaderProgramId);
     }
 
 private:
-    void attachShadersFrom(const ShaderProgram& shaderProgram);
     void deleteShaderProgram();
-    GLuint getNbAttachedShaders()const;
-    GLuint* getAttachedShaders()const;
 
     GLuint _shaderProgramId;
 };
 
 }
-
 
 #endif // SHADERPROGRAM_H

@@ -504,11 +504,9 @@ public:
 
     bool defineVertexAttributes()
     {
-        glv::VertexAttributeDeclarationVector vadv;
-        program.extractActive(vadv);
-        for (glv::VertexAttributeDeclarationVector::iterator it = vadv.begin(); it != vadv.end(); ++it)
+        for (auto vertexAttributeDeclaration : program.getVertexAttributeDeclarations())
         {
-            if(!check(this->mesh.defineVertexAttributeData(*it), "binding vertex attribute"))
+            if(!check(this->mesh.defineVertexAttributeData(vertexAttributeDeclaration), "binding vertex attribute"))
             {
                 return false;
             }

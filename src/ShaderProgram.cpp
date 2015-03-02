@@ -1,4 +1,6 @@
+#include <functional>
 #include <cstring>
+#include <memory>
 #include <string>
 #include "Duration.hpp"
 #include "ShaderProgram.hpp"
@@ -9,7 +11,7 @@ using namespace glv;
 namespace
 {
 
-void extractInfoLog(GLuint shaderProgramId, std::string& log)
+std::string extractInfoLog(GLuint shaderProgramId)
 {
     GlError error;
     GLint infoLogLength = 0;
@@ -18,34 +20,56 @@ void extractInfoLog(GLuint shaderProgramId, std::string& log)
 
     if (infoLogLength == 0)
     {
-        log.clear();
-        return;
+        return std::string{};
     }
 
-    char* infoLogBuffer = new char[infoLogLength];
-    glGetProgramInfoLog(shaderProgramId, infoLogLength, NULL, infoLogBuffer);
+    auto infoLogBuffer = std::unique_ptr<GLchar[]>(new GLchar[infoLogLength]);
+    glGetProgramInfoLog(shaderProgramId, infoLogLength, NULL, infoLogBuffer.get());
     if (error.hasOccured())
     {
-        log = error.toString("Cannot retrieve properly shader program link log info");
+        return error.toString("Cannot retrieve properly shader program link log info");
     }
     else
     {
-        log = infoLogBuffer;
+        return std::string{infoLogBuffer.get()};
     }
-    delete[] infoLogBuffer;
+}
+
+inline GLuint getNbAttachedShaders(GLint shaderProgramId)
+{
+    GLint nbShaders = 0;
+    glGetProgramiv(shaderProgramId, GL_ATTACHED_SHADERS, &nbShaders);
+    return nbShaders;
+}
+
+void foreachAttachedShader(GLint shaderProgramId, std::function<bool(GLuint)> const &f)
+{
+    GLint nbShaders = getNbAttachedShaders(shaderProgramId);
+    auto shaders = std::unique_ptr<GLuint[]>(new GLuint[nbShaders]);
+
+    GLsizei count = 0;
+    glGetAttachedShaders(shaderProgramId, nbShaders, &count, shaders.get());
+
+    for (GLsizei i = 0; i < count; ++i)
+    {
+        if (!f(shaders[i]))
+        {
+            return;
+        }
+    }
 }
 
 }
 
 ShaderProgram::ShaderProgram()
-    : _shaderProgramId(glCreateProgram())
+    : _shaderProgramId{glCreateProgram()}
 {
 }
 
-ShaderProgram::ShaderProgram(const ShaderProgram& shaderProgram)
-    : _shaderProgramId(glCreateProgram())
+ShaderProgram::ShaderProgram(ShaderProgram &&shaderProgram)
+    : _shaderProgramId{shaderProgram._shaderProgramId}
 {
-    attachShadersFrom(shaderProgram);
+    shaderProgram._shaderProgramId = 0;
 }
 
 ShaderProgram::~ShaderProgram()
@@ -53,30 +77,20 @@ ShaderProgram::~ShaderProgram()
     deleteShaderProgram();
 }
 
-ShaderProgram& ShaderProgram::operator = (const ShaderProgram& shaderProgram)
-{
-    if (this != &shaderProgram)
-    {
-        detachAllShaders();
-        attachShadersFrom(shaderProgram);
-    }
-    return *this;
-}
-
 bool ShaderProgram::exists() const
 {
     return _shaderProgramId != 0 && glIsProgram(_shaderProgramId);
 }
 
-ShaderAttachmentResult ShaderProgram::attach(const Shader& shader)
+ShaderAttachmentResult ShaderProgram::attach(const Shader &shader)
 {
     if (!shader.exists())
     {
-        return ShaderAttachmentResult(false, "Attempt to attach a non shader object to GLSL program!");
+        return ShaderAttachmentResult{false, "Attempt to attach a non shader object to GLSL program!"};
     }
     GlError error;
     glAttachShader(_shaderProgramId, shader.getId());
-    return ShaderAttachmentResult(!error, error ? error.toString("Error while attempting to attach shader object to GLSL program") : "");
+    return ShaderAttachmentResult{!error, error ? error.toString("Error while attempting to attach shader object to GLSL program") : ""};
 }
 
 bool ShaderProgram::has(const Shader& shader) const
@@ -86,14 +100,12 @@ bool ShaderProgram::has(const Shader& shader) const
         return false;
     }
 
-    GLuint* shaders = getAttachedShaders();
     bool found = false;
 
-    for(int i = 0; !found && shaders[i] != 0; ++i)
-    {
-        found = shaders[i] == shader.getId();
-    }
-    delete[] shaders;
+    foreachAttachedShader(this->_shaderProgramId, [&found, &shader](GLuint shaderId) -> bool {
+        found = shaderId == shader.getId();
+        return !found;
+    });
 
     return found;
 }
@@ -102,21 +114,19 @@ ShaderAttachmentResult ShaderProgram::detach(const Shader& shader)
 {
     if (!shader.exists())
     {
-        return ShaderAttachmentResult(false, "Attempt to detach a non shader object to GLSL program!");
+        return ShaderAttachmentResult{false, "Attempt to detach a non shader object to GLSL program!"};
     }
     GlError error;
     glDetachShader(_shaderProgramId, shader.getId());
-    return ShaderAttachmentResult(!error, error ? error.toString("Error while attempting to detach shader object to GLSL program"): "");
+    return ShaderAttachmentResult{!error, error ? error.toString("Error while attempting to detach shader object to GLSL program"): ""};
 }
 
 void ShaderProgram::detachAllShaders()
 {
-    GLuint* shaders = getAttachedShaders();
-    for(int i = 0; shaders[i] != 0; ++i)
-    {
-        glDetachShader(_shaderProgramId, shaders[i]);
-    }
-    delete[] shaders;
+    foreachAttachedShader(this->_shaderProgramId, [this](GLuint shaderId) -> bool {
+        glDetachShader(_shaderProgramId, shaderId);
+        return true;
+    });
 }
 
 LinkResult ShaderProgram::link()
@@ -128,14 +138,14 @@ LinkResult ShaderProgram::link()
      * NVidia and AMD cards have heterogeneous behaviors. Some allow link operation
      * for program with no attached shader and some do not.
      */
-    GLint nbShaders = getNbAttachedShaders();
+    GLint nbShaders = getNbAttachedShaders(this->_shaderProgramId);
     if (error.hasOccured())
     {
-        return LinkResult(false, error.toString("Cannot retrieve attached shaders"));
+        return LinkResult{false, error.toString("Cannot retrieve attached shaders")};
     }
     if (!nbShaders)
     {
-        return LinkResult(false, "Cannot link program because no shader is attached!");
+        return LinkResult{false, "Cannot link program because no shader is attached!"};
     }
 
     sys::Duration duration;
@@ -143,16 +153,13 @@ LinkResult ShaderProgram::link()
     unsigned long linkageDuration = duration.elapsed();
     if (error)
     {
-        return LinkResult(false, error.toString("Cannot link program"));
+        return LinkResult{false, error.toString("Cannot link program")};
     }
 
     GLint linkStatus = GL_FALSE;
     glGetProgramiv(_shaderProgramId, GL_LINK_STATUS, &linkStatus);
 
-    std::string lastLinkLog;
-    extractInfoLog(_shaderProgramId, lastLinkLog);
-
-	return LinkResult(linkStatus == GL_TRUE, lastLinkLog, linkageDuration);
+    return LinkResult{linkStatus == GL_TRUE, extractInfoLog(_shaderProgramId), linkageDuration};
 }
 
 ValidationResult ShaderProgram::validate()
@@ -163,34 +170,30 @@ ValidationResult ShaderProgram::validate()
     glGetProgramiv(_shaderProgramId, GL_LINK_STATUS, &linkStatus);
     if (!linkStatus)
     {
-        return ValidationResult(false, "Cannot validate unlinked shader program");
+        return ValidationResult{false, "Cannot validate unlinked shader program"};
     }
 
     glValidateProgram(_shaderProgramId);
     if (error)
     {
-        return ValidationResult(false, error.toString("Cannot validate shader program"));
+        return ValidationResult{false, error.toString("Cannot validate shader program")};
     }
 
     GLint validationStatus = GL_FALSE;
     glGetProgramiv(_shaderProgramId, GL_VALIDATE_STATUS, &validationStatus);
 
-    std::string validationLog;
-
-    extractInfoLog(_shaderProgramId, validationLog);
-
-	return ValidationResult(validationStatus == GL_TRUE, validationLog);
+    return ValidationResult{validationStatus == GL_TRUE, extractInfoLog(_shaderProgramId)};
 }
 
-void ShaderProgram::extractActive(UniformDeclarationVector& vector) const
+UniformDeclarationVector ShaderProgram::getUniformDeclarations() const
 {
-    vector.clear();
+    UniformDeclarationVector vector;
     GlError glError;
     GLint nbUniforms = 0;
     glGetProgramiv(_shaderProgramId, GL_ACTIVE_UNIFORMS, &nbUniforms);
     if (glError)
     {
-        return;
+        return vector;
     }
     if (nbUniforms > 0)
     {
@@ -198,26 +201,26 @@ void ShaderProgram::extractActive(UniformDeclarationVector& vector) const
         glGetProgramiv(_shaderProgramId, GL_ACTIVE_UNIFORM_MAX_LENGTH, &activeUniformMaxLength);
         if (glError || activeUniformMaxLength <= 0)
         {
-            return;
+            return vector;
         }
-        char* activeUniformName = new char[activeUniformMaxLength];
+        auto activeUniformName = std::unique_ptr<GLchar[]>(new GLchar[activeUniformMaxLength]);
         for (int i = 0; i < nbUniforms; ++i)
         {
             GLint activeUniformSize = 0;
             GLenum activeUniformType = 0;
-            glGetActiveUniform(_shaderProgramId, i, activeUniformMaxLength, 0, &activeUniformSize, &activeUniformType, activeUniformName);
+            glGetActiveUniform(_shaderProgramId, i, activeUniformMaxLength, 0, &activeUniformSize, &activeUniformType, activeUniformName.get());
             if (glError) {
                 vector.clear();
                 break;
             }
-            GLint uniformLocation = glGetUniformLocation(this->_shaderProgramId, activeUniformName);
+            GLint uniformLocation = glGetUniformLocation(this->_shaderProgramId, activeUniformName.get());
             if (uniformLocation >= 0)
             {
-                vector.push_back(UniformDeclaration(_shaderProgramId, uniformLocation, activeUniformSize, activeUniformType, activeUniformName));
+                vector.push_back(UniformDeclaration{_shaderProgramId, uniformLocation, activeUniformSize, activeUniformType, activeUniformName.get()});
             }
         }
-        delete[]activeUniformName;
     }
+    return vector;
 }
 
 UniformDeclaration ShaderProgram::getActiveUniform(const char *name) const
@@ -237,18 +240,18 @@ UniformDeclaration ShaderProgram::getActiveUniform(const char *name) const
             glGetActiveUniform(_shaderProgramId, uniformIndex, 0, 0, &activeUniformSize, &activeUniformType, &tmp);
         }
     }
-    return UniformDeclaration(_shaderProgramId, uniformLocation, activeUniformSize, activeUniformType, name);
+    return UniformDeclaration{_shaderProgramId, uniformLocation, activeUniformSize, activeUniformType, name};
 }
 
-void ShaderProgram::extractActive(VertexAttributeDeclarationVector& vector) const
+VertexAttributeDeclarationVector ShaderProgram::getVertexAttributeDeclarations() const
 {
-    vector.clear();
+    VertexAttributeDeclarationVector vector;
     GlError glError;
     GLint nbAttributes = 0;
     glGetProgramiv(_shaderProgramId, GL_ACTIVE_ATTRIBUTES, &nbAttributes);
     if (glError)
     {
-        return;
+        return vector;
     }
     if (nbAttributes > 0)
     {
@@ -256,37 +259,27 @@ void ShaderProgram::extractActive(VertexAttributeDeclarationVector& vector) cons
         glGetProgramiv(_shaderProgramId, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &activeAttributeMaxLength);
         if (glError || activeAttributeMaxLength <= 0)
         {
-            return;
+            return vector;
         }
-        char* activeAttributeName = new char[activeAttributeMaxLength];
+        auto activeAttributeName = std::unique_ptr<GLchar[]>(new GLchar[activeAttributeMaxLength]);
         for (int i = 0; i < nbAttributes; ++i)
         {
             GLint activeAttributeSize = 0;
             GLenum activeAttributeType = 0;
-            glGetActiveAttrib(_shaderProgramId, i, activeAttributeMaxLength, NULL, &activeAttributeSize, &activeAttributeType, activeAttributeName);
+            glGetActiveAttrib(_shaderProgramId, i, activeAttributeMaxLength, NULL, &activeAttributeSize, &activeAttributeType, activeAttributeName.get());
             if (glError) {
                 vector.clear();
                 break;
             }
-            GLuint attributeLocation = glGetAttribLocation(_shaderProgramId, activeAttributeName);
+            GLint attributeLocation = glGetAttribLocation(_shaderProgramId, activeAttributeName.get());
             if (glError) {
                 vector.clear();
                 break;
             }
-            vector.push_back(VertexAttributeDeclaration(attributeLocation, activeAttributeSize, activeAttributeType, activeAttributeName));
+            vector.push_back(VertexAttributeDeclaration{attributeLocation, activeAttributeSize, activeAttributeType, activeAttributeName.get()});
         }
-        delete[]activeAttributeName;
     }
-}
-
-void ShaderProgram::attachShadersFrom(const ShaderProgram& shaderProgram)
-{
-    GLuint* shaders = shaderProgram.getAttachedShaders();
-    for (int i = 0; shaders[i] != 0; ++i)
-    {
-        glAttachShader(_shaderProgramId, shaders[i]);
-    }
-    delete[] shaders;
+    return vector;
 }
 
 void ShaderProgram::deleteShaderProgram()
@@ -297,25 +290,3 @@ void ShaderProgram::deleteShaderProgram()
         _shaderProgramId = 0;
     }
 }
-
-GLuint ShaderProgram::getNbAttachedShaders()const
-{
-    GLint nbShaders = 0;
-    glGetProgramiv(_shaderProgramId, GL_ATTACHED_SHADERS, &nbShaders);
-    return nbShaders;
-}
-
-GLuint* ShaderProgram::getAttachedShaders() const
-{
-    GLint nbShaders = getNbAttachedShaders();
-
-    GLuint* shaders = new GLuint[nbShaders + 1];
-
-    GLsizei count = 0;
-    glGetAttachedShaders(_shaderProgramId, nbShaders, &count, shaders);
-    shaders[count] = 0;
-
-    return shaders;
-}
-
-

@@ -1,3 +1,4 @@
+#include <utility>
 #include "gtest/gtest.h"
 #include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
@@ -129,7 +130,7 @@ TEST(ShaderProgram, canLinkProgramWhenShadersCompiled)
     ASSERT_TRUE(shaderProgram.link());
 }
 
-TEST(ShaderProgram, canCopyProgram)
+TEST(ShaderProgram, canMoveProgram)
 {
     ShaderProgram shaderProgram;
 
@@ -141,39 +142,13 @@ TEST(ShaderProgram, canCopyProgram)
     vertexShader.compile(VALID_VERTEX_SHADER_SOURCE);
     shaderProgram.attach(vertexShader);
 
-    ShaderProgram copy = shaderProgram;
+    ShaderProgram movedProgram = std::move(shaderProgram);
 
-    ASSERT_TRUE(copy.exists());
-    ASSERT_NE(0u, copy.getId());
-    ASSERT_TRUE(glIsProgram(copy.getId()) == GL_TRUE);
-    ASSERT_TRUE(copy.has(fragmentShader));
-    ASSERT_TRUE(copy.has(vertexShader));
-    ASSERT_TRUE(copy.link());
-}
-
-TEST(ShaderProgram, canAssignProgram)
-{
-    ShaderProgram shaderProgram;
-
-    Shader fragmentShader(ShaderType::FRAGMENT_SHADER);
-    fragmentShader.compile(VALID_FRAGMENT_SHADER_SOURCE);
-    shaderProgram.attach(fragmentShader);
-
-    Shader vertexShader(ShaderType::VERTEX_SHADER);
-    vertexShader.compile(VALID_VERTEX_SHADER_SOURCE);
-    shaderProgram.attach(vertexShader);
-
-    ShaderProgram copy;
-    Shader anotherShader(ShaderType::VERTEX_SHADER);
-    copy.attach(anotherShader);
-    ASSERT_TRUE(copy.has(anotherShader));
-
-    copy = shaderProgram;
-
-    ASSERT_TRUE(copy.has(fragmentShader));
-    ASSERT_TRUE(copy.has(vertexShader));
-    ASSERT_FALSE(copy.has(anotherShader));
-    ASSERT_TRUE(copy.link());
+    ASSERT_FALSE(shaderProgram.exists());
+    ASSERT_TRUE(movedProgram.exists());
+    ASSERT_TRUE(movedProgram.has(fragmentShader));
+    ASSERT_TRUE(movedProgram.has(vertexShader));
+    ASSERT_TRUE(movedProgram.link());
 }
 
 TEST(ShaderProgram, cannotValidateUnlinkProgram)
@@ -201,19 +176,18 @@ TEST(ShaderProgram, canValidateLinkedProgramWhenShadersCompiled)
     ASSERT_TRUE(shaderProgram.validate());
 }
 
-TEST(ShaderProgram, canExtractEmptyUniformDeclarationWhenNoUniform)
+TEST(ShaderProgram, canGetEmptyUniformDeclarationWhenNoUniform)
 {
     ShaderProgram shaderProgram;
     addShader(shaderProgram, ShaderType::FRAGMENT_SHADER, VALID_FRAGMENT_SHADER_SOURCE);
     ASSERT_TRUE(shaderProgram.link());
 
-    UniformDeclarationVector uniformDeclarationVector;
-    shaderProgram.extractActive(uniformDeclarationVector);
+    UniformDeclarationVector uniformDeclarationVector = shaderProgram.getUniformDeclarations();
 
     ASSERT_TRUE(uniformDeclarationVector.empty());
 }
 
-TEST(ShaderProgram, canExtractUniformDeclarationWhenOneUniform)
+TEST(ShaderProgram, canGetUniformDeclarationWhenOneUniform)
 {
     ShaderProgram shaderProgram;
     const char* source =
@@ -226,8 +200,7 @@ TEST(ShaderProgram, canExtractUniformDeclarationWhenOneUniform)
     addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
 
-    UniformDeclarationVector uniformDeclarationVector;
-    shaderProgram.extractActive(uniformDeclarationVector);
+    UniformDeclarationVector uniformDeclarationVector = shaderProgram.getUniformDeclarations();
 
     ASSERT_EQ(static_cast<size_t>(1), uniformDeclarationVector.size());
     ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 0, 1, GL_FLOAT_VEC4, "position"), uniformDeclarationVector[0]);
@@ -252,7 +225,7 @@ TEST(ShaderProgram, canGetActiveUniformDeclaration)
     ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 0, 1, GL_FLOAT_VEC4, "position"), result);
 }
 
-TEST(ShaderProgram, canExtractFixedArrayUniformDeclaration)
+TEST(ShaderProgram, canGetFixedArrayUniformDeclaration)
 {
     ShaderProgram shaderProgram;
     const char* source =
@@ -265,14 +238,13 @@ TEST(ShaderProgram, canExtractFixedArrayUniformDeclaration)
     addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
 
-    UniformDeclarationVector uniformDeclarationVector;
-    shaderProgram.extractActive(uniformDeclarationVector);
+    UniformDeclarationVector uniformDeclarationVector = shaderProgram.getUniformDeclarations();
 
     ASSERT_EQ(static_cast<size_t>(1), uniformDeclarationVector.size());
     ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 0, 2, GL_FLOAT_VEC4, "position[0]"), uniformDeclarationVector[0]);
 }
 
-TEST(ShaderProgram, canExtractArrayUniformDeclaration)
+TEST(ShaderProgram, canGetArrayUniformDeclaration)
 {
     ShaderProgram shaderProgram;
     const char* source =
@@ -285,14 +257,13 @@ TEST(ShaderProgram, canExtractArrayUniformDeclaration)
     addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
 
-    UniformDeclarationVector uniformDeclarationVector;
-    shaderProgram.extractActive(uniformDeclarationVector);
+    UniformDeclarationVector uniformDeclarationVector = shaderProgram.getUniformDeclarations();
 
     ASSERT_EQ(static_cast<size_t>(1), uniformDeclarationVector.size());
     ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 0, 4, GL_FLOAT_VEC4, "position[0]"), uniformDeclarationVector[0]);
 }
 
-TEST(ShaderProgram, canExtractStructUniformDeclaration)
+TEST(ShaderProgram, canGetStructUniformDeclaration)
 {
     ShaderProgram shaderProgram;
     const char* source =
@@ -309,15 +280,14 @@ TEST(ShaderProgram, canExtractStructUniformDeclaration)
     addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
 
-    UniformDeclarationVector uniformDeclarationVector;
-    shaderProgram.extractActive(uniformDeclarationVector);
+    UniformDeclarationVector uniformDeclarationVector = shaderProgram.getUniformDeclarations();
 
     ASSERT_EQ(static_cast<size_t>(2), uniformDeclarationVector.size());
     ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 0, 1, GL_FLOAT_VEC4, "ms.position1"), uniformDeclarationVector[0]);
     ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 1, 1, GL_FLOAT_VEC3, "ms.position2"), uniformDeclarationVector[1]);
 }
 
-TEST(ShaderProgram, canExtractStructArrayUniformDeclaration)
+TEST(ShaderProgram, canGetStructArrayUniformDeclaration)
 {
     ShaderProgram shaderProgram;
     const char* source =
@@ -334,15 +304,14 @@ TEST(ShaderProgram, canExtractStructArrayUniformDeclaration)
     addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
 
-    UniformDeclarationVector uniformDeclarationVector;
-    shaderProgram.extractActive(uniformDeclarationVector);
+    UniformDeclarationVector uniformDeclarationVector = shaderProgram.getUniformDeclarations();
 
     ASSERT_EQ(static_cast<size_t>(2), uniformDeclarationVector.size());
     ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 0, 2, GL_FLOAT_VEC4, "ms[1].position1[0]"), uniformDeclarationVector[0]);
     ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 2, 1, GL_FLOAT_VEC3, "ms[1].position2"), uniformDeclarationVector[1]);
 }
 
-TEST(ShaderProgram, canExtractMultipleUniformDeclaration)
+TEST(ShaderProgram, canGetMultipleUniformDeclaration)
 {
     ShaderProgram shaderProgram;
     const char* source =
@@ -356,8 +325,7 @@ TEST(ShaderProgram, canExtractMultipleUniformDeclaration)
     addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
 
-    UniformDeclarationVector uniformDeclarationVector;
-    shaderProgram.extractActive(uniformDeclarationVector);
+    UniformDeclarationVector uniformDeclarationVector = shaderProgram.getUniformDeclarations();
 
     ASSERT_EQ(static_cast<size_t>(2), uniformDeclarationVector.size());
 
@@ -382,19 +350,18 @@ TEST(ShaderProgram, canExtractMultipleUniformDeclaration)
     }
 }
 
-TEST(ShaderProgram, canExtractEmptyAttributeDeclarationWhenNoAttribute)
+TEST(ShaderProgram, canGetEmptyAttributeDeclarationWhenNoAttribute)
 {
     ShaderProgram shaderProgram;
     addShader(shaderProgram, ShaderType::FRAGMENT_SHADER, VALID_FRAGMENT_SHADER_SOURCE);
     ASSERT_TRUE(shaderProgram.link());
 
-    VertexAttributeDeclarationVector vector;
-    shaderProgram.extractActive(vector);
+    VertexAttributeDeclarationVector vector = shaderProgram.getVertexAttributeDeclarations();
 
     ASSERT_TRUE(vector.empty());
 }
 
-TEST(ShaderProgram, canExtractAttributeDeclarationWhenOneAttribute)
+TEST(ShaderProgram, canGetAttributeDeclarationWhenOneAttribute)
 {
     ShaderProgram shaderProgram;
     const char* source =
@@ -407,14 +374,13 @@ TEST(ShaderProgram, canExtractAttributeDeclarationWhenOneAttribute)
     addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
 
-    VertexAttributeDeclarationVector vector;
-    shaderProgram.extractActive(vector);
+    VertexAttributeDeclarationVector vector = shaderProgram.getVertexAttributeDeclarations();
 
     ASSERT_EQ(static_cast<size_t>(1), vector.size());
     ASSERT_EQ(VertexAttributeDeclaration(0, 1, GL_FLOAT_VEC4, "vertices"), vector[0]);
 }
 
-TEST(ShaderProgram, canExtractAttributeDeclarationWhenSeveralAttributes)
+TEST(ShaderProgram, canGetAttributeDeclarationWhenSeveralAttributes)
 {
     ShaderProgram shaderProgram;
     const char* source =
@@ -428,8 +394,7 @@ TEST(ShaderProgram, canExtractAttributeDeclarationWhenSeveralAttributes)
     addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
     ASSERT_TRUE(shaderProgram.link());
 
-    VertexAttributeDeclarationVector vector;
-    shaderProgram.extractActive(vector);
+    VertexAttributeDeclarationVector vector = shaderProgram.getVertexAttributeDeclarations();
 
     ASSERT_EQ(static_cast<size_t>(2), vector.size());
     ASSERT_EQ(VertexAttributeDeclaration(0, 1, GL_FLOAT, "magnitude"), vector[0]);
