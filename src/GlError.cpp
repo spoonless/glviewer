@@ -3,7 +3,7 @@
 using namespace glv;
 
 GlError::GlError()
-    :_errorFlag(GL_NO_ERROR)
+    :_errorFlag{GL_NO_ERROR}
 {
     reset();
 }

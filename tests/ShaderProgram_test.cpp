@@ -401,7 +401,7 @@ TEST(ShaderProgram, canGetAttributeDeclarationWhenSeveralAttributes)
     ASSERT_EQ(VertexAttributeDeclaration(2, 1, GL_FLOAT_VEC4, "vertices"), vector[1]);
 }
 
-TEST(ShaderProgram, canExtractUniformFloatVectorValue)
+TEST(ShaderProgram, canGetUniformFloatVectorValue)
 {
     ShaderProgram shaderProgram;
     const char* source =
@@ -424,7 +424,7 @@ TEST(ShaderProgram, canExtractUniformFloatVectorValue)
     checkUniform(shaderProgram, "value4", glm::fvec4(10.0f, 20.0f, 30.0f, 40.0f));
 }
 
-TEST(ShaderProgram, canExtractUniformBooleanVectorValue)
+TEST(ShaderProgram, canGetUniformBooleanVectorValue)
 {
     ShaderProgram shaderProgram;
     const char* source =
@@ -450,7 +450,7 @@ TEST(ShaderProgram, canExtractUniformBooleanVectorValue)
     checkUniform(shaderProgram, "value4", glm::bvec4(true, false, true, false));
 }
 
-TEST(ShaderProgram, canExtractUniformIntegerVectorValue)
+TEST(ShaderProgram, canGetUniformIntegerVectorValue)
 {
     ShaderProgram shaderProgram;
     const char* source =
@@ -473,7 +473,7 @@ TEST(ShaderProgram, canExtractUniformIntegerVectorValue)
     checkUniform(shaderProgram, "value4", glm::ivec4(10, 20, 30, 40));
 }
 
-TEST(ShaderProgram, canExtractUniformUnsignedIntegerVectorValue)
+TEST(ShaderProgram, canGetUniformUnsignedIntegerVectorValue)
 {
     ShaderProgram shaderProgram;
     const char* source =
@@ -496,7 +496,7 @@ TEST(ShaderProgram, canExtractUniformUnsignedIntegerVectorValue)
     checkUniform(shaderProgram, "value4", glm::uvec4(10, 20, 30, 40));
 }
 
-TEST(ShaderProgram, canExtractUniformMatrix2Value)
+TEST(ShaderProgram, canGetUniformMatrix2Value)
 {
     ShaderProgram shaderProgram;
     const char* source =
@@ -517,7 +517,7 @@ TEST(ShaderProgram, canExtractUniformMatrix2Value)
     checkUniform(shaderProgram, "value3", glm::f32mat2x4(1,2,3,4,10,20,30,40));
 }
 
-TEST(ShaderProgram, canExtractUniformMatrix3Value)
+TEST(ShaderProgram, canGetUniformMatrix3Value)
 {
     ShaderProgram shaderProgram;
     const char* source =
@@ -538,7 +538,7 @@ TEST(ShaderProgram, canExtractUniformMatrix3Value)
     checkUniform(shaderProgram, "value3", glm::f32mat3x4(1,2,3,4,10,20,30,40,100,200,300,400));
 }
 
-TEST(ShaderProgram, canExtractUniformMatrix4Value)
+TEST(ShaderProgram, canGetUniformMatrix4Value)
 {
     ShaderProgram shaderProgram;
     const char* source =

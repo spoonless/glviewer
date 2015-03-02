@@ -50,7 +50,7 @@ Shader::Shader(Shader &&shader) :
 
 Shader::~Shader()
 {
-    deleteShaderId();
+    deleteShader();
 }
 
 bool Shader::exists() const
@@ -121,7 +121,7 @@ CompilationResult Shader::compile(const char *source)
     return CompilationResult{compilationSucceeded == GL_TRUE, getInfoLog(_shaderId), compilationDuration};
 }
 
-void Shader::deleteShaderId()
+void Shader::deleteShader()
 {
     if (_shaderId != 0)
     {

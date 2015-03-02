@@ -37,7 +37,7 @@ void glv::GlWindowContext::windowSizeCallback(GLFWwindow* window, int width, int
     }
 }
 
-glv::GlWindowContext::GlWindowContext() : _window(0)
+glv::GlWindowContext::GlWindowContext() : _window{nullptr}
 {
 
 }

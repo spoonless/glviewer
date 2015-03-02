@@ -12,6 +12,7 @@ public:
     static const char SEPARATOR;
 
     Path(const char *path = 0, size_t size = 0);
+    Path(Path &&path);
     Path(const Path &path);
     Path(const Path &parent, const Path &path);
     ~Path();

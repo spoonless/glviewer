@@ -10,9 +10,9 @@
 
 const glv::MaterialIndex glv::MaterialHandler::NO_MATERIAL_INDEX = MAX_UINT;
 
-glv::GlMesh::MaterialGroup::MaterialGroup(size_t index, size_t size) : index(index), size(size) {}
+glv::GlMesh::MaterialGroup::MaterialGroup(MaterialIndex index, size_t size) : index{index}, size{size} {}
 
-glv::BoundingBox::BoundingBox() : min(MAX_FLOAT, MAX_FLOAT, MAX_FLOAT), max(MIN_FLOAT, MIN_FLOAT, MIN_FLOAT)
+glv::BoundingBox::BoundingBox() : min{MAX_FLOAT, MAX_FLOAT, MAX_FLOAT}, max{MIN_FLOAT, MIN_FLOAT, MIN_FLOAT}
 {
 }
 
@@ -26,7 +26,7 @@ void glv::BoundingBox::accept(float x, float y, float z)
     max.z = std::max(max.z, z);
 }
 
-glv::GlMesh::GlMesh() : _vertexArray(0)
+glv::GlMesh::GlMesh() : _vertexArray{0}
 {
 }
 
@@ -36,9 +36,8 @@ void glv::GlMesh::render(glv::MaterialHandler *handler)
     std::for_each(_definedVertexAttributes.begin(), _definedVertexAttributes.end(), glEnableVertexAttribArray);
 
     GLint firstPrimitive = 0;
-    for(glv::GlMesh::MaterialGroupVector::iterator it = _materialGroups.begin(); it != _materialGroups.end(); ++it)
+    for(glv::GlMesh::MaterialGroup &materialGroup : _materialGroups)
     {
-        glv::GlMesh::MaterialGroup &materialGroup = *it;
         if (handler)
         {
             handler->use(materialGroup.index);
@@ -68,7 +67,7 @@ void glv::GlMesh::clear()
     {
 		glDeleteBuffers(static_cast<GLsizei>(_buffers.size()), &_buffers[0]);
     }
-    _boundingBox = BoundingBox();
+    _boundingBox = BoundingBox{};
     _buffers.clear();
     _buffers.resize(3);
     _definedVertexAttributes.clear();
@@ -84,26 +83,25 @@ glv::GlMeshGeneration glv::GlMesh::generate(const vfm::ObjModel &objModel)
     glGenVertexArrays(1, &_vertexArray);
     if (glError)
     {
-        return GlMeshGeneration(false, glError.toString("Error during vertex array generation"), duration.elapsed());
+        return GlMeshGeneration{false, glError.toString("Error during vertex array generation"), duration.elapsed()};
     }
 
     size_t bufferElements = 0;
-    for(vfm::ObjectVector::const_iterator it = objModel.objects.begin(); it != objModel.objects.end(); ++it)
+    for(const vfm::Object &o : objModel.objects)
     {
-        const vfm::Object &o = *it;
         if(o.materialActivations.empty())
         {
-            _materialGroups.push_back(MaterialGroup(MaterialHandler::NO_MATERIAL_INDEX, o.triangles.size()));
+            _materialGroups.push_back(MaterialGroup{MaterialHandler::NO_MATERIAL_INDEX, o.triangles.size()});
         }
         else
         {
             if(o.materialActivations[0].start > 0)
             {
-                _materialGroups.push_back(MaterialGroup(MaterialHandler::NO_MATERIAL_INDEX, o.materialActivations[0].start));
+                _materialGroups.push_back(MaterialGroup{MaterialHandler::NO_MATERIAL_INDEX, o.materialActivations[0].start});
             }
             for(vfm::MaterialActivationVector::const_iterator it = o.materialActivations.begin(); it != o.materialActivations.end(); ++it)
             {
-                _materialGroups.push_back(MaterialGroup(it->materialIndex, it->end - it->start));
+                _materialGroups.push_back(MaterialGroup{it->materialIndex, it->end - it->start});
             }
         }
         bufferElements += o.triangles.size();
@@ -122,19 +120,19 @@ glv::GlMeshGeneration glv::GlMesh::generate(const vfm::ObjModel &objModel)
             if (glError)
             {
                 glBindVertexArray(0);
-                return GlMeshGeneration(false, glError.toString("Error during buffer generation"), duration.elapsed());
+                return GlMeshGeneration{false, glError.toString("Error during buffer generation"), duration.elapsed()};
             }
             _buffers[i] = bufferId;
             generate(objModel, i, tmpBuffer);
             if (glError)
             {
                 glBindVertexArray(0);
-                return GlMeshGeneration(false, glError.toString("Error while copying buffer data"), duration.elapsed());
+                return GlMeshGeneration{false, glError.toString("Error while copying buffer data"), duration.elapsed()};
             }
         }
     }
     glBindVertexArray(0);
-    return GlMeshGeneration(true, "", duration.elapsed());
+    return GlMeshGeneration{true, "", duration.elapsed()};
 }
 
 void glv::GlMesh::generate(const vfm::ObjModel &objModel, unsigned int channel, std::vector<GLfloat> &buffer)
@@ -147,12 +145,11 @@ void glv::GlMesh::generate(const vfm::ObjModel &objModel, unsigned int channel, 
     int i = 0;
     const glm::vec4 *vec4 = 0;
     const glm::vec3 *vec3 = 0;
-    for(vfm::ObjectVector::const_iterator it = objModel.objects.begin(); it != objModel.objects.end(); ++it)
+    for(const vfm::Object &o : objModel.objects)
     {
-        const vfm::Object &o = *it;
-        for(vfm::IndexVector::const_iterator idx = o.triangles.begin(); idx != o.triangles.end(); ++idx)
+        for(size_t index : o.triangles)
         {
-            const size_t *vertexIndex = o.vertexIndices[*idx];
+            const size_t *vertexIndex = o.vertexIndices[index];
             if (vertexIndex[channel] == 0)
             {
                 buffer[i++] = 0; buffer[i++] = 0; buffer[i++] = 0;
@@ -205,11 +202,11 @@ glv::VertexAttributeDataDefinition glv::GlMesh::defineVertexAttributeData(const 
     size_t bufferIndex = getBufferIndex(vad.name());
     if (bufferIndex >= _buffers.size() || _buffers[bufferIndex] == 0)
     {
-        return VertexAttributeDataDefinition(false, std::string("No buffer available for vertex attribute '") + vad.name() + "'");
+        return VertexAttributeDataDefinition{false, std::string("No buffer available for vertex attribute '") + vad.name() + "'"};
     }
     if (vad.size() > 1)
     {
-        return VertexAttributeDataDefinition(false, std::string("Vertex attribute '") + vad.name() + "' cannot be an array");
+        return VertexAttributeDataDefinition{false, std::string("Vertex attribute '") + vad.name() + "' cannot be an array"};
     }
 
     GLint vertexAttributeSize = 0;
@@ -229,7 +226,7 @@ glv::VertexAttributeDataDefinition glv::GlMesh::defineVertexAttributeData(const 
         stride = 3*sizeof(GL_FLOAT);
         break;
     default:
-        return VertexAttributeDataDefinition(false, std::string("Invalid type for vertex attribute '") + vad.name() + "': expected float, vec2 or vec3.");
+        return VertexAttributeDataDefinition{false, std::string("Invalid type for vertex attribute '") + vad.name() + "': expected float, vec2 or vec3."};
     }
 
     glBindVertexArray(_vertexArray);
@@ -239,9 +236,9 @@ glv::VertexAttributeDataDefinition glv::GlMesh::defineVertexAttributeData(const 
     glBindVertexArray(0);
     if (glError)
     {
-        return VertexAttributeDataDefinition(false, glError.toString("defining vertex attribute"));
+        return VertexAttributeDataDefinition{false, glError.toString("defining vertex attribute")};
     }
     _definedVertexAttributes.push_back(vad.index());
-    return VertexAttributeDataDefinition(true, "");
+    return VertexAttributeDataDefinition{true, ""};
 }
 

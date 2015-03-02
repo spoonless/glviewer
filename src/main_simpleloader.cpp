@@ -11,7 +11,7 @@ int main (int argc, char **argv)
         return 1;
     }
 
-    std::ifstream ifs(argv[1]);
+    std::ifstream ifs{argv[1]};
     if (!ifs.is_open())
     {
         std::clog << "Cannot open file " << argv[1] << std::endl;
@@ -27,9 +27,9 @@ int main (int argc, char **argv)
     std::clog << std::setw(12) << "Textures: " << model.textures.size() << std::endl;
     std::clog << std::setw(12) << "Objects: " << model.objects.size() << std::endl;
 
-    for (vfm::ObjectVector::iterator it = model.objects.begin(); it < model.objects.end(); ++it)
+    for (vfm::Object &o : model.objects)
     {
-        std::clog << "Object '" << it->name << "' has " << it->vertexIndices.size() << " vertices" << " and " << it->triangles.size()/3 << " triangles" << std::endl;
+        std::clog << "Object '" << o.name << "' has " << o.vertexIndices.size() << " vertices" << " and " << o.triangles.size()/3 << " triangles" << std::endl;
     }
 
     return 0;

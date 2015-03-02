@@ -1,7 +1,17 @@
+#include <utility>
 #include <gtest/gtest.h>
 #include "Path.hpp"
 
 using namespace sys;
+
+TEST(Path, canMovePath)
+{
+    Path path("test");
+    Path movedPath = std::move(path);
+
+    ASSERT_STREQ("test", static_cast<const char*>(movedPath));
+    ASSERT_STREQ("", static_cast<const char*>(path));
+}
 
 TEST(Path, canDetectAbsolute)
 {

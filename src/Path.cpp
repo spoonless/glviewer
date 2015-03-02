@@ -15,9 +15,9 @@ namespace
 const char* EMPTY_PATH="";
 }
 
-sys::Path::Path(const char *path, size_t size): _length(0), _absoluteSectionLength(0), _path(0)
+sys::Path::Path(const char *path, size_t size): _length(0), _absoluteSectionLength(0), _path(nullptr)
 {
-    if(path != 0)
+    if(path != nullptr)
     {
         this->_length = size == 0 ? std::strlen(path) : size;
         if(this->_length > 0)
@@ -31,7 +31,14 @@ sys::Path::Path(const char *path, size_t size): _length(0), _absoluteSectionLeng
     }
 }
 
-sys::Path::Path(const Path &path): _length(path._length), _absoluteSectionLength(path._absoluteSectionLength), _path(0)
+sys::Path::Path(Path &&path): _length(path._length), _absoluteSectionLength(path._absoluteSectionLength), _path(path._path)
+{
+    path._length = 0;
+    path._absoluteSectionLength = 0;
+    path._path = nullptr;
+}
+
+sys::Path::Path(const Path &path): _length(path._length), _absoluteSectionLength(path._absoluteSectionLength), _path(nullptr)
 {
     if(this->_length > 0)
     {
@@ -40,7 +47,7 @@ sys::Path::Path(const Path &path): _length(path._length), _absoluteSectionLength
     }
 }
 
-sys::Path::Path(const Path &parent, const Path &path): _length(path._length), _absoluteSectionLength(0), _path(0)
+sys::Path::Path(const Path &parent, const Path &path): _length(path._length), _absoluteSectionLength(0), _path(nullptr)
 {
     if(path.absolute())
     {
@@ -79,6 +86,11 @@ sys::Path::~Path()
 
 sys::Path& sys::Path::operator = (const Path &path)
 {
+    if (this == &path)
+    {
+        return *this;
+    }
+
     if(this->_length < path._length)
     {
         delete[] this->_path;
@@ -99,7 +111,7 @@ sys::Path& sys::Path::operator = (const Path &path)
 
 sys::Path::operator const char*() const
 {
-    return this->_path != 0 ? this->_path : EMPTY_PATH;
+    return this->_path != nullptr ? this->_path : EMPTY_PATH;
 }
 
 const char *sys::Path::basename() const
@@ -207,7 +219,7 @@ void sys::Path::computeAbsoluteSectionLength()
 
 void sys::Path::normalize()
 {
-    if(this->_path != 0)
+    if(this->_path != nullptr)
     {
         for(int i = 0; this->_path[i] != 0; ++i)
         {

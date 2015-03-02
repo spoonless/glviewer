@@ -15,6 +15,9 @@ public:
     GlWindowContext();
     ~GlWindowContext();
 
+    GlWindowContext(const GlWindowContext &) = delete;
+    GlWindowContext & operator = (const GlWindowContext &) = delete;
+
     bool init(std::string title, unsigned int width, unsigned int height);
 
     bool makeCurrent();
@@ -32,8 +35,6 @@ public:
 
 private:
     static void windowSizeCallback(GLFWwindow* window, int width, int height);
-    GlWindowContext(const GlWindowContext&);
-    GlWindowContext & operator = (const GlWindowContext&);
 
     GLFWwindow *_window;
     glm::vec2 _windowSize;

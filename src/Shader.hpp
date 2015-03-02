@@ -44,7 +44,7 @@ public:
     CompilationResult compile(const char *source);
 
 private:
-    void deleteShaderId();
+    void deleteShader();
     void createShader();
 
     GLuint _shaderId;

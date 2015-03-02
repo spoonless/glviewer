@@ -13,18 +13,18 @@ inline unsigned long getTime()
 }
 
 sys::Duration::Duration()
-    :_start(getTime())
+    :_start{getTime()}
 {
 
 }
 
-sys::Duration::Duration(const Duration& duration)
-    :_start(duration._start)
+sys::Duration::Duration(const Duration &duration)
+    :_start{duration._start}
 {
 
 }
 
-sys::Duration& sys::Duration::operator = (const Duration& duration)
+sys::Duration& sys::Duration::operator = (const Duration &duration)
 {
     if (this != &duration)
     {

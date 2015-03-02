@@ -14,7 +14,7 @@ class VertexIndexIndexer
 {
 public:
 
-    VertexIndexIndexer(vfm::Object *o) : _object(o)
+    VertexIndexIndexer(vfm::Object *o) : _object{o}
     {
     }
 
@@ -73,8 +73,10 @@ class LineReader
     static const size_t BUFFER_CHUNK_SIZE;
 public:
     LineReader(std::istream &is);
-
     ~LineReader();
+
+    LineReader(const LineReader &) = delete;
+    LineReader &operator = (const LineReader &) = delete;
 
     const char *read();
 
@@ -84,8 +86,6 @@ public:
     }
 
 private:
-    LineReader(const LineReader &);
-    LineReader &operator = (const LineReader &);
     void copyReadLine();
 
     std::istream &_is;
@@ -95,7 +95,7 @@ private:
 
 const size_t LineReader::BUFFER_CHUNK_SIZE = 256 * sizeof(char);
 
-LineReader::LineReader(std::istream &is) : _is(is), _capacity(BUFFER_CHUNK_SIZE)
+LineReader::LineReader(std::istream &is) : _is(is), _capacity{BUFFER_CHUNK_SIZE}
 {
     _line = static_cast<char*>(std::malloc(_capacity * sizeof(char)));
     *_line = 0;
@@ -308,7 +308,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
     VertexIndexVector face(10);
 	vfm::MaterialIndex currentMaterialIndex = 0;
     std::string mtllib;
-    LineReader lineReader(is);
+    LineReader lineReader{is};
 
     model.objects.push_back(Object());
     Object *object = &model.objects.back();
@@ -390,7 +390,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
 std::istream & vfm::operator >> (std::istream &is, vfm::MaterialMap &materialMap)
 {
     vfm::Material *material = 0;
-    LineReader lineReader(is);
+    LineReader lineReader{is};
 
     while(lineReader)
     {
@@ -466,14 +466,13 @@ void vfm::ObjModel::computeNormals(bool normalized)
     this->normals.clear();
     this->normals.resize(this->vertices.size());
     VertexIndex *vertexIndices[3];
-    for(ObjectVector::iterator itObj = this->objects.begin(); itObj != this->objects.end(); ++itObj)
+    for(Object &o : this->objects)
     {
-        Object *o = &(*itObj);
-        for(IndexVector::iterator it = o->triangles.begin(); it != o->triangles.end(); ++it)
+        for(IndexVector::iterator it = o.triangles.begin(); it != o.triangles.end(); ++it)
         {
-            vertexIndices[0] = &o->vertexIndices[*it++];
-            vertexIndices[1] = &o->vertexIndices[*it++];
-            vertexIndices[2] = &o->vertexIndices[*it];
+            vertexIndices[0] = &o.vertexIndices[*it++];
+            vertexIndices[1] = &o.vertexIndices[*it++];
+            vertexIndices[2] = &o.vertexIndices[*it];
             glm::vec3 a(this->vertices[vertexIndices[0]->vertex-1]);
             glm::vec3 b(this->vertices[vertexIndices[1]->vertex-1]);
             glm::vec3 c(this->vertices[vertexIndices[2]->vertex-1]);
@@ -490,9 +489,9 @@ void vfm::ObjModel::computeNormals(bool normalized)
 
     if(normalized)
     {
-        for(Vec3Vector::iterator itNormal = this->normals.begin(); itNormal != this->normals.end(); ++itNormal)
+        for(glm::vec3 &normal : this->normals)
         {
-            *itNormal = glm::normalize(*itNormal);
+            normal = glm::normalize(normal);
         }
     }
 }

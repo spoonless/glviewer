@@ -9,9 +9,9 @@ class Duration
 public:
     Duration();
 
-    Duration(const Duration& duration);
+    Duration(const Duration &duration);
 
-    Duration& operator = (const Duration& duration);
+    Duration & operator = (const Duration &duration);
 
     unsigned long elapsed() const;
 
