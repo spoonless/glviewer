@@ -39,7 +39,7 @@ TEST(Shader, canCreateFragmentShader)
 TEST(Shader, canCompileShader)
 {
     Shader shader(ShaderType::FRAGMENT_SHADER);
-    CompilationResult compilationResult = shader.compile(GLSL_VERSION_HEADER
+    ShaderCompilation compilationResult = shader.compile(GLSL_VERSION_HEADER
                                             "void main(){}");
 
     ASSERT_TRUE(compilationResult);
@@ -48,7 +48,7 @@ TEST(Shader, canCompileShader)
 TEST(Shader, cannotCompileErroneousCode)
 {
     Shader shader(ShaderType::FRAGMENT_SHADER);
-    CompilationResult compilationResult = shader.compile("ERRONEOUS CODE");
+    ShaderCompilation compilationResult = shader.compile("ERRONEOUS CODE");
 
     ASSERT_FALSE(compilationResult);
     ASSERT_NE("", compilationResult.message());

@@ -11,8 +11,8 @@
 namespace glv
 {
 
-typedef OperationResult GlMeshGeneration;
-typedef OperationResult VertexAttributeDataDefinition;
+using GlMeshGeneration = OperationResult;
+using VertexAttributeDataDefinition = OperationResult;
 
 class BoundingBox
 {

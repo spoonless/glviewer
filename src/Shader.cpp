@@ -92,19 +92,19 @@ std::string Shader::getSource() const
     }
 }
 
-CompilationResult Shader::compile(const char *source)
+ShaderCompilation Shader::compile(const char *source)
 {
     GlError error;
 
     if (source[0] == '\0')
     {
-        return CompilationResult{false, "Shader source is empty!"};
+        return ShaderCompilation::failed("Shader source is empty!");
     }
 
     glShaderSource(_shaderId, 1, &source, NULL);
     if (error.hasOccured())
     {
-        return CompilationResult{false, error.toString("Error while attaching source to shader (glShaderSource)")};
+        return ShaderCompilation::failed(error.toString("Error while attaching source to shader (glShaderSource)"));
     }
 
     sys::Duration duration;
@@ -112,13 +112,15 @@ CompilationResult Shader::compile(const char *source)
     unsigned int compilationDuration = duration.elapsed();
     if (error.hasOccured())
     {
-        return CompilationResult{false, error.toString("Error while compiling shader (glCompileShader)")};
+        return ShaderCompilation::failed(error.toString("Error while compiling shader (glCompileShader)"));
     }
 
     GLint compilationSucceeded = GL_FALSE;
     glGetShaderiv(_shaderId, GL_COMPILE_STATUS, &compilationSucceeded);
 
-    return CompilationResult{compilationSucceeded == GL_TRUE, getInfoLog(_shaderId), compilationDuration};
+    return compilationSucceeded == GL_TRUE ?
+                ShaderCompilation::succeeded(getInfoLog(_shaderId), compilationDuration) :
+                ShaderCompilation::failed(getInfoLog(_shaderId), compilationDuration);
 }
 
 void Shader::deleteShader()

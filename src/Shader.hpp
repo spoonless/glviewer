@@ -7,7 +7,7 @@
 namespace glv
 {
 
-using CompilationResult = OperationResult;
+using ShaderCompilation = OperationResult;
 
 enum class ShaderType {VERTEX_SHADER, GEOMETRY_SHADER, FRAGMENT_SHADER};
 
@@ -36,12 +36,12 @@ public:
 
     std::string getSource() const;
 
-    CompilationResult compile(const std::string &source)
+    ShaderCompilation compile(const std::string &source)
     {
         return compile(source.c_str());
     }
 
-    CompilationResult compile(const char *source);
+    ShaderCompilation compile(const char *source);
 
 private:
     void deleteShader();

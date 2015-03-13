@@ -394,7 +394,7 @@ class GlslViewer
 {
 public:
 
-    typedef glv::OperationResult LoadFileResult;
+    using LoadFile = glv::OperationResult;
 
     GlslViewer(int argc, char **argv) : failure(false)
     {
@@ -417,7 +417,7 @@ public:
         if (good()) defineVertexAttributes();
     }
 
-    LoadFileResult readFile(const char *filename, std::string &content)
+    LoadFile readFile(const char *filename, std::string &content)
     {
         sys::Duration duration;
         std::ifstream is(filename);
@@ -425,14 +425,14 @@ public:
         std::getline(is, tmpContent, '\0');
         if (!is.eof() && is.fail())
         {
-            return LoadFileResult(false, "Cannot read file (maybe the path is wrong)!", duration.elapsed());
+            return LoadFile::failed("Cannot read file (maybe the path is wrong)!", duration.elapsed());
         }
         if (tmpContent.empty())
         {
-            return LoadFileResult(false, "File is empty!", duration.elapsed());
+            return LoadFile::failed("File is empty!", duration.elapsed());
         }
-        content = tmpContent;
-        return LoadFileResult(true, "", duration.elapsed());
+        content = std::move(tmpContent);
+        return LoadFile::succeeded(duration.elapsed());
     }
 
     void createMesh(const char *objFilename)
@@ -445,12 +445,12 @@ public:
             is >> model;
             if(!is.eof() && is.fail())
             {
-                check(LoadFileResult(false, "Cannot read file (maybe the path is wrong)!", 0), std::string("loading '") + objFilename + "'");
+                check(LoadFile::failed("Cannot read file (maybe the path is wrong)!", 0), std::string("loading '") + objFilename + "'");
                 return;
             }
             else
             {
-                check(LoadFileResult(true, "", loadfileDuration.elapsed()), std::string("loading '") + objFilename + "'");
+                check(LoadFile::succeeded(loadfileDuration.elapsed()), std::string("loading '") + objFilename + "'");
             }
         }
         else

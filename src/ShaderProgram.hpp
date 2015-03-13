@@ -9,9 +9,9 @@
 namespace glv
 {
 
-using ShaderAttachmentResult = OperationResult;
-using LinkResult = OperationResult;
-using ValidationResult = OperationResult;
+using ShaderAttachment = OperationResult;
+using ShaderLink = OperationResult;
+using ShaderValidation = OperationResult;
 
 class ShaderProgram
 {
@@ -23,17 +23,17 @@ public:
     ShaderProgram(const ShaderProgram &shaderProgram) = delete;
     ShaderProgram& operator = (const ShaderProgram &shaderProgram) = delete;
 
-    ShaderAttachmentResult attach(const Shader &shader);
+    ShaderAttachment attach(const Shader &shader);
 
     bool has(const Shader &shader) const;
 
-    ShaderAttachmentResult detach(const Shader &shader);
+    ShaderAttachment detach(const Shader &shader);
 
     void detachAllShaders();
 
-    LinkResult link();
+    ShaderLink link();
 
-    ValidationResult validate();
+    ShaderValidation validate();
 
     UniformDeclarationVector getUniformDeclarations() const;
 

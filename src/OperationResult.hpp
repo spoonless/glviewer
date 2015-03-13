@@ -10,8 +10,46 @@ class OperationResult {
 
 public:
 
-    OperationResult(bool ok, const std::string &message, unsigned long duration = 0) : _ok(ok), _duration(duration), _message(message)
+    static inline OperationResult succeeded(unsigned long duration = 0)
     {
+        return OperationResult(true, duration);
+    }
+
+    static inline OperationResult succeeded(const char *message, unsigned long duration = 0)
+    {
+        return OperationResult(true, message, duration);
+    }
+
+    static inline OperationResult succeeded(const std::string &message, unsigned long duration = 0)
+    {
+        return OperationResult(true, message, duration);
+    }
+
+    static inline OperationResult succeeded(std::string &&message, unsigned long duration = 0)
+    {
+        return OperationResult(true, message, duration);
+    }
+
+    static inline OperationResult failed(const char *message, unsigned long duration = 0)
+    {
+        return OperationResult(false, message, duration);
+    }
+
+    static inline OperationResult failed(const std::string &message, unsigned long duration = 0)
+    {
+        return OperationResult(false, message, duration);
+    }
+
+    static inline OperationResult failed(std::string &&message, unsigned long duration = 0)
+    {
+        return OperationResult(false, message, duration);
+    }
+
+    OperationResult(OperationResult &&operationResult)
+    {
+        this->_ok = operationResult.ok();
+        this->_message = std::move(operationResult.message());
+        this->_duration = operationResult.duration();
     }
 
     operator bool() const
@@ -40,6 +78,22 @@ public:
     }
 
 private:
+    OperationResult(bool ok, const char *message, unsigned long duration = 0) : _ok{ok}, _duration{duration}, _message{message}
+    {
+    }
+
+    OperationResult(bool ok, const std::string &message, unsigned long duration = 0) : _ok{ok}, _duration{duration}, _message{message}
+    {
+    }
+
+    OperationResult(bool ok, std::string &&message, unsigned long duration = 0) : _ok{ok}, _duration{duration}, _message{message}
+    {
+    }
+
+    OperationResult(bool ok, unsigned long duration = 0) : _ok{ok}, _duration{duration}
+    {
+    }
+
     bool _ok;
     unsigned long _duration;
     std::string _message;

@@ -82,15 +82,15 @@ bool ShaderProgram::exists() const
     return _shaderProgramId != 0 && glIsProgram(_shaderProgramId);
 }
 
-ShaderAttachmentResult ShaderProgram::attach(const Shader &shader)
+ShaderAttachment ShaderProgram::attach(const Shader &shader)
 {
     if (!shader.exists())
     {
-        return ShaderAttachmentResult{false, "Attempt to attach a non shader object to GLSL program!"};
+        return ShaderAttachment::failed("Attempt to attach a non shader object to GLSL program!");
     }
     GlError error;
     glAttachShader(_shaderProgramId, shader.getId());
-    return ShaderAttachmentResult{!error, error ? error.toString("Error while attempting to attach shader object to GLSL program") : ""};
+    return !error ? ShaderAttachment::succeeded() : ShaderAttachment::failed(error.toString("Error while attempting to attach shader object to GLSL program"));
 }
 
 bool ShaderProgram::has(const Shader& shader) const
@@ -110,15 +110,15 @@ bool ShaderProgram::has(const Shader& shader) const
     return found;
 }
 
-ShaderAttachmentResult ShaderProgram::detach(const Shader& shader)
+ShaderAttachment ShaderProgram::detach(const Shader& shader)
 {
     if (!shader.exists())
     {
-        return ShaderAttachmentResult{false, "Attempt to detach a non shader object to GLSL program!"};
+        return ShaderAttachment::failed("Attempt to detach a non shader object to GLSL program!");
     }
     GlError error;
     glDetachShader(_shaderProgramId, shader.getId());
-    return ShaderAttachmentResult{!error, error ? error.toString("Error while attempting to detach shader object to GLSL program"): ""};
+    return !error ? ShaderAttachment::succeeded() : ShaderAttachment::failed(error.toString("Error while attempting to detach shader object to GLSL program"));
 }
 
 void ShaderProgram::detachAllShaders()
@@ -129,7 +129,7 @@ void ShaderProgram::detachAllShaders()
     });
 }
 
-LinkResult ShaderProgram::link()
+ShaderLink ShaderProgram::link()
 {
     GlError error;
 
@@ -141,11 +141,11 @@ LinkResult ShaderProgram::link()
     GLint nbShaders = getNbAttachedShaders(this->_shaderProgramId);
     if (error.hasOccured())
     {
-        return LinkResult{false, error.toString("Cannot retrieve attached shaders")};
+        return ShaderLink::failed(error.toString("Cannot retrieve attached shaders"));
     }
     if (!nbShaders)
     {
-        return LinkResult{false, "Cannot link program because no shader is attached!"};
+        return ShaderLink::failed("Cannot link program because no shader is attached!");
     }
 
     sys::Duration duration;
@@ -153,16 +153,18 @@ LinkResult ShaderProgram::link()
     unsigned long linkageDuration = duration.elapsed();
     if (error)
     {
-        return LinkResult{false, error.toString("Cannot link program")};
+        return ShaderLink::failed(error.toString("Cannot link program"));
     }
 
     GLint linkStatus = GL_FALSE;
     glGetProgramiv(_shaderProgramId, GL_LINK_STATUS, &linkStatus);
 
-    return LinkResult{linkStatus == GL_TRUE, extractInfoLog(_shaderProgramId), linkageDuration};
+    return linkStatus == GL_TRUE ?
+                ShaderLink::succeeded(extractInfoLog(_shaderProgramId), linkageDuration) :
+                ShaderLink::failed(extractInfoLog(_shaderProgramId), linkageDuration);
 }
 
-ValidationResult ShaderProgram::validate()
+ShaderValidation ShaderProgram::validate()
 {
     GlError error;
 
@@ -170,19 +172,21 @@ ValidationResult ShaderProgram::validate()
     glGetProgramiv(_shaderProgramId, GL_LINK_STATUS, &linkStatus);
     if (!linkStatus)
     {
-        return ValidationResult{false, "Cannot validate unlinked shader program"};
+        return ShaderValidation::failed("Cannot validate unlinked shader program");
     }
 
     glValidateProgram(_shaderProgramId);
     if (error)
     {
-        return ValidationResult{false, error.toString("Cannot validate shader program")};
+        return ShaderValidation::failed(error.toString("Cannot validate shader program"));
     }
 
     GLint validationStatus = GL_FALSE;
     glGetProgramiv(_shaderProgramId, GL_VALIDATE_STATUS, &validationStatus);
 
-    return ValidationResult{validationStatus == GL_TRUE, extractInfoLog(_shaderProgramId)};
+    return validationStatus == GL_TRUE ?
+                ShaderValidation::succeeded(extractInfoLog(_shaderProgramId)) :
+                ShaderValidation::failed(extractInfoLog(_shaderProgramId));
 }
 
 UniformDeclarationVector ShaderProgram::getUniformDeclarations() const
