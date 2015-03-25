@@ -11,8 +11,8 @@ endif()
 
 ExternalProject_Add(
   project_glfw
-  URL https://github.com/glfw/glfw/archive/3.1.zip
-  URL_MD5 8493932ac9db71351e5f3753ce654f0c
+  URL https://github.com/glfw/glfw/archive/3.1.1.zip
+  URL_MD5 cce362cc9e46883d2d7b6669ca2e02c6
   PREFIX "${CMAKE_CURRENT_BINARY_DIR}/glfw"
   CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release -DGLFW_BUILD_DOCS=0 -DGLFW_BUILD_EXAMPLES=0 -DGLFW_BUILD_TESTS=0 -DGLFW_INSTALL=0 ${GLFW_ADDITIONAL_CMAKE_ARGS}
   INSTALL_COMMAND ""
