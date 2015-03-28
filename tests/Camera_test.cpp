@@ -44,7 +44,7 @@ TEST(PerspectiveCamera, defaultProjectionMatrix)
 {
     PerspectiveCamera pc;
 
-    glm::mat4x4 expected = glm::infinitePerspective(pc.fovy(), pc.aspectRatio(), pc.near());
+    glm::mat4x4 expected = glm::infinitePerspective(pc.fovy(), pc.aspectRatio(), pc.nearDistance());
 
     ASSERT_EQ(expected, pc.projectionMatrix());
 }
@@ -52,9 +52,9 @@ TEST(PerspectiveCamera, defaultProjectionMatrix)
 TEST(PerspectiveCamera, projectionMatrixWithFar)
 {
     PerspectiveCamera pc;
-    pc.far(pc.near() + 1);
+    pc.farDistance(pc.nearDistance() + 1);
 
-    glm::mat4x4 expected = glm::perspective(pc.fovy(), pc.aspectRatio(), pc.near(), pc.far());
+    glm::mat4x4 expected = glm::perspective(pc.fovy(), pc.aspectRatio(), pc.nearDistance(), pc.farDistance());
 
     ASSERT_EQ(expected, pc.projectionMatrix());
 }
@@ -62,8 +62,8 @@ TEST(PerspectiveCamera, projectionMatrixWithFar)
 TEST(OrthographicCamera, projectionMatrix)
 {
     OrthographicCamera pc;
-    pc.near(5);
-    pc.far(10);
+    pc.nearDistance(5);
+    pc.farDistance(10);
     pc.width(2);
     pc.aspectRatio(2,1);
 

@@ -27,7 +27,7 @@ glv::OrthographicCamera::OrthographicCamera(): _width{1.0f}
 {
     if (_near >= _far)
     {
-        _far = _near * 1000.0;
+        _far = _near * 1000.0f;
     }
 }
 

@@ -67,24 +67,24 @@ public:
 
     glm::uvec2 fitWiewportDimension(unsigned int viewportWidth, unsigned int viewportHeight) const;
 
-    inline void near(float near)
+    inline void nearDistance(float d)
     {
-        assert(near >= .0f);
-        _near = near;
+        assert(d >= .0f);
+        _near = d;
     }
 
-    inline float near() const
+    inline float nearDistance() const
     {
         return _near;
     }
 
-    inline void far(float far)
+    inline void farDistance(float d)
     {
-        assert(far >= .0f);
-        _far = far;
+        assert(d >= .0f);
+        _far = d;
     }
 
-    inline float far() const
+    inline float farDistance() const
     {
         return _far;
     }
