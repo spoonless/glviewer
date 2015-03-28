@@ -532,11 +532,13 @@ public:
         glm::vec2 windowSize = glf.getWindowSize();
         const glv::BoundingBox &boundingBox = mesh.getBoundingBox();
         glm::mat4x4 modelMatrix = glm::translate(-boundingBox.center());
-        float distance = glm::distance(boundingBox.min, boundingBox.max) * 0.75f;
-        glm::mat4x4 viewMatrix = glm::lookAt(glm::vec3(0,0,distance), glm::vec3(0,0,0), glm::normalize(glm::vec3(0,0.5,-0.5)));
+
+        glm::vec3 eyePosition {0,0,glm::distance(boundingBox.min, boundingBox.max) * 0.75f};
+        glm::mat4x4 viewMatrix = glm::lookAt(eyePosition, glm::vec3(0,0,0), glm::normalize(glm::vec3(0,0.5,-0.5)));
         viewMatrix = glm::rotate(viewMatrix, cursorPosition.x * static_cast<float>(PI) * 4, glm::vec3(0,1,0));
         viewMatrix = glm::rotate(viewMatrix, cursorPosition.y * static_cast<float>(PI) * 4, glm::vec3(0,0,1));
-        glm::mat4x4 projectionMatrix = glm::perspectiveFov(static_cast<float>(70.0/180.0 * PI), windowSize.x, windowSize.y, .5f, distance*10.0f);
+
+        glm::mat4x4 projectionMatrix = glm::infinitePerspective(static_cast<float>(70.0/180.0 * PI), windowSize.x / windowSize.y, .5f);
 
         if(resolutionUniform)
         {
