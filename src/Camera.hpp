@@ -28,30 +28,10 @@ public:
 class Camera : public WorldObject
 {
 public:
+    Camera();
     virtual ~Camera();
 
-    virtual glm::mat4x4 projectionMatrix() = 0;
-
-};
-
-class PerspectiveCamera : public Camera
-{
-public:
-
-    PerspectiveCamera();
-
-    virtual glm::mat4x4 projectionMatrix();
-
-    inline void fovy(float radians)
-    {
-        assert(radians > .0f);
-        _fovy = radians;
-    }
-
-    inline float fovy() const
-    {
-        return _fovy;
-    }
+    virtual glm::mat4x4 projectionMatrix() const = 0;
 
     inline void aspectRatio(glm::uvec2 dimension)
     {
@@ -109,11 +89,76 @@ public:
         return _far;
     }
 
-private:
-    float _fovy;
+protected:
     float _aspectRatio;
     float _near;
     float _far;
+};
+
+class OrthographicCamera : public Camera
+{
+public:
+    OrthographicCamera();
+
+    virtual glm::mat4x4 projectionMatrix() const;
+
+    inline void width(float width)
+    {
+        assert(width > .0f);
+        _width = width;
+    }
+
+    inline float width() const
+    {
+        return _width;
+    }
+
+    inline float right() const
+    {
+        return _width / 2.0f;
+    }
+
+    inline float left() const
+    {
+        return - _width / 2.0f;
+    }
+
+    inline float top() const
+    {
+        return _width / (2.0f * _aspectRatio);
+    }
+
+    inline float bottom() const
+    {
+        return - _width / (2.0f * _aspectRatio);
+    }
+
+private:
+    float _width;
+};
+
+class PerspectiveCamera : public Camera
+{
+public:
+
+    PerspectiveCamera();
+
+    virtual glm::mat4x4 projectionMatrix() const;
+
+    inline void fovy(float radians)
+    {
+        assert(radians > .0f);
+        _fovy = radians;
+    }
+
+    inline float fovy() const
+    {
+        return _fovy;
+    }
+
+
+private:
+    float _fovy;
 };
 
 }

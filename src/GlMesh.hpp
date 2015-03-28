@@ -28,6 +28,26 @@ public:
     {
         return (min + max) * 0.5f;
     }
+
+    inline glm::vec3 dimension() const
+    {
+        return max - min;
+    }
+
+    inline float width() const
+    {
+        return max.x - min.x;
+    }
+
+    inline float depth() const
+    {
+        return max.y - min.y;
+    }
+
+    inline float height() const
+    {
+        return max.z - min.z;
+    }
 };
 
 typedef vfm::MaterialIndex MaterialIndex;

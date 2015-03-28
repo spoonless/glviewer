@@ -58,3 +58,16 @@ TEST(PerspectiveCamera, projectionMatrixWithFar)
 
     ASSERT_EQ(expected, pc.projectionMatrix());
 }
+
+TEST(OrthographicCamera, projectionMatrix)
+{
+    OrthographicCamera pc;
+    pc.near(5);
+    pc.far(10);
+    pc.width(2);
+    pc.aspectRatio(2,1);
+
+    glm::mat4x4 expected = glm::ortho(-1.0f, 1.0f, -.5f, .5f, 5.0f, 10.0f);
+
+    ASSERT_EQ(expected, pc.projectionMatrix());
+}
