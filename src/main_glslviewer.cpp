@@ -540,13 +540,13 @@ public:
         viewMatrix = glm::rotate(viewMatrix, cursorPosition.y * static_cast<float>(PI) * 4, glm::vec3(0,0,1));
 
         glv::PerspectiveCamera camera;
-        camera.aspectRatio(windowSize);
+        camera.viewport().set(windowSize.x, windowSize.y);
 
         glm::mat4x4 projectionMatrix = camera.projectionMatrix();
 
         if(resolutionUniform)
         {
-            *resolutionUniform = windowSize;
+            *resolutionUniform = static_cast<glm::vec2>(camera.viewport());
         }
 
         if(modelMatrixUniform)

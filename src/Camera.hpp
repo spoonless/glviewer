@@ -25,6 +25,45 @@ public:
 // Cameras
 /****************************************************************/
 
+class Viewport
+{
+public:
+    Viewport();
+
+    template<typename T>
+    operator glm::tvec2<T> () const
+    {
+        return glm::tvec2<T>(static_cast<T>(_width), static_cast<T>(_height));
+    }
+
+    unsigned int width() const
+    {
+        return _width;
+    }
+
+    unsigned int height() const
+    {
+        return _height;
+    }
+
+    float aspectRatio() const
+    {
+        return static_cast<float>(_width) / static_cast<float>(_height);
+    }
+
+    void set(unsigned int width, unsigned int height)
+    {
+        assert (width > 0);
+        assert (height > 0);
+        _width = width;
+        _height = height;
+    }
+
+private:
+    unsigned int _width;
+    unsigned int _height;
+};
+
 class Camera : public WorldObject
 {
 public:
@@ -33,39 +72,15 @@ public:
 
     virtual glm::mat4x4 projectionMatrix() const = 0;
 
-    inline void aspectRatio(glm::uvec2 dimension)
+    Viewport & viewport()
     {
-        aspectRatio(dimension.x, dimension.y);
+        return _viewport;
     }
 
-    inline float aspectRatio() const
+    const Viewport & viewport() const
     {
-        return _aspectRatio;
+        return _viewport;
     }
-
-    inline void aspectRatio(unsigned int viewportWidth, unsigned int viewportHeight)
-    {
-        assert(viewportWidth > 0);
-        assert(viewportHeight > 0);
-        _aspectRatio = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight);
-    }
-
-    unsigned int viewportWidth (unsigned int viewportHeight) const
-    {
-        return static_cast<unsigned int>(viewportHeight * _aspectRatio);
-    }
-
-    unsigned int viewportHeight(unsigned int viewportWidth) const
-    {
-        return static_cast<unsigned int>(viewportWidth / _aspectRatio);
-    }
-
-    inline glm::uvec2 fitWiewportDimension(glm::uvec2 dimension)
-    {
-        return fitWiewportDimension(dimension.x, dimension.y);
-    }
-
-    glm::uvec2 fitWiewportDimension(unsigned int viewportWidth, unsigned int viewportHeight) const;
 
     inline void nearDistance(float d)
     {
@@ -90,9 +105,9 @@ public:
     }
 
 protected:
-    float _aspectRatio;
     float _near;
     float _far;
+    Viewport _viewport;
 };
 
 class OrthographicCamera : public Camera
@@ -125,12 +140,12 @@ public:
 
     inline float top() const
     {
-        return _width / (2.0f * _aspectRatio);
+        return _width / (2.0f * _viewport.aspectRatio());
     }
 
     inline float bottom() const
     {
-        return - _width / (2.0f * _aspectRatio);
+        return - _width / (2.0f * _viewport.aspectRatio());
     }
 
 private:

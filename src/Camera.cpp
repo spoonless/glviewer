@@ -2,25 +2,18 @@
 #include "glm/gtx/transform.hpp"
 #include "Camera.hpp"
 
+glv::Viewport::Viewport(): _width{100}, _height(100)
+{
+
+}
+
 glv::Camera::Camera():
-    _aspectRatio{1.0f}, _near{.5f}, _far{.0f}
+    _near{.5f}, _far{.0f}
 {
 }
 
 glv::Camera::~Camera()
 {
-}
-
-glm::uvec2 glv::Camera::fitWiewportDimension(unsigned int viewportWidth, unsigned int viewportHeight) const
-{
-    if (viewportHeight * _aspectRatio > viewportWidth)
-    {
-        return glm::uvec2(viewportWidth, this->viewportHeight(viewportWidth));
-    }
-    else
-    {
-        return glm::uvec2(this->viewportWidth(viewportHeight), viewportHeight);
-    }
 }
 
 glv::OrthographicCamera::OrthographicCamera(): _width{1.0f}
@@ -45,11 +38,11 @@ glm::mat4x4 glv::PerspectiveCamera::projectionMatrix() const
 {
     if (_far > _near)
     {
-        return glm::perspective(_fovy, _aspectRatio, _near, _far);
+        return glm::perspective(_fovy, _viewport.aspectRatio(), _near, _far);
     }
     else
     {
-        return glm::infinitePerspective(_fovy, _aspectRatio, _near);
+        return glm::infinitePerspective(_fovy, _viewport.aspectRatio(), _near);
     }
 }
 
