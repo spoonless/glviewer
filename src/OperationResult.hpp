@@ -78,15 +78,15 @@ public:
     }
 
 private:
-    OperationResult(bool ok, const char *message, unsigned long duration = 0) : _ok{ok}, _duration{duration}, _message{message}
+    OperationResult(bool ok, const char *message, unsigned long duration = 0) : _ok{ok}, _duration{duration}, _message(message)
     {
     }
 
-    OperationResult(bool ok, const std::string &message, unsigned long duration = 0) : _ok{ok}, _duration{duration}, _message{message}
+    OperationResult(bool ok, const std::string &message, unsigned long duration = 0) : _ok{ok}, _duration{duration}, _message(message)
     {
     }
 
-    OperationResult(bool ok, std::string &&message, unsigned long duration = 0) : _ok{ok}, _duration{duration}, _message{message}
+	OperationResult(bool ok, std::string &&message, unsigned long duration = 0) : _ok{ok}, _duration{duration}, _message(message)
     {
     }
 
