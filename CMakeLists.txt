@@ -61,6 +61,8 @@ add_library(core_sources STATIC
     src/ShaderProgram.cpp
     src/UniformDeclaration.hpp
     src/UniformDeclaration.cpp
+    src/Camera.hpp
+    src/Camera.cpp
 )
 
 add_dependencies(core_sources glm)
@@ -114,6 +116,7 @@ if(BUILD_UNITTESTS)
         tests/Shader_test.cpp
         tests/ShaderProgram_test.cpp
         tests/UniformDeclaration_test.cpp
+        tests/Camera_test.cpp
     )
 
     config_executable(unittest GTEST)

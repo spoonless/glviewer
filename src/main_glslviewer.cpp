@@ -14,6 +14,7 @@
 #include "Duration.hpp"
 #include "ShaderProgram.hpp"
 #include "GlMesh.hpp"
+#include "Camera.hpp"
 
 const double PI = std::atan(1.0)*4;
 
@@ -538,7 +539,10 @@ public:
         viewMatrix = glm::rotate(viewMatrix, cursorPosition.x * static_cast<float>(PI) * 4, glm::vec3(0,1,0));
         viewMatrix = glm::rotate(viewMatrix, cursorPosition.y * static_cast<float>(PI) * 4, glm::vec3(0,0,1));
 
-        glm::mat4x4 projectionMatrix = glm::infinitePerspective(static_cast<float>(70.0/180.0 * PI), windowSize.x / windowSize.y, .5f);
+        glv::PerspectiveCamera camera;
+        camera.aspectRatio(windowSize);
+
+        glm::mat4x4 projectionMatrix = camera.projectionMatrix();
 
         if(resolutionUniform)
         {
@@ -617,6 +621,7 @@ private:
 int main(int argc, char **argv)
 {
     glv::GlWindowContext glwc;
+
     if(!glwc.init("GLSL viewer", 800, 600) || ! glwc.makeCurrent())
     {
         std::cerr << "Cannot initialise OpenGL context" << std::endl;
