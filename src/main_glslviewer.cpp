@@ -1,4 +1,5 @@
 #define GLM_FORCE_RADIANS
+#include <functional>
 #include <algorithm>
 #include <cstring>
 #include <cmath>
@@ -530,7 +531,6 @@ public:
             *mouseUniform = cursorPosition;
         }
 
-        glm::vec2 windowSize = glf.getWindowSize();
         const glv::BoundingBox &boundingBox = mesh.getBoundingBox();
         glm::mat4x4 modelMatrix = glm::translate(-boundingBox.center());
 
@@ -538,15 +538,11 @@ public:
         glm::mat4x4 viewMatrix = glm::lookAt(eyePosition, glm::vec3(0,0,0), glm::normalize(glm::vec3(0,0.5,-0.5)));
         viewMatrix = glm::rotate(viewMatrix, cursorPosition.x * static_cast<float>(PI) * 4, glm::vec3(0,1,0));
         viewMatrix = glm::rotate(viewMatrix, cursorPosition.y * static_cast<float>(PI) * 4, glm::vec3(0,0,1));
-
-        glv::PerspectiveCamera camera;
-        camera.viewport().set(windowSize.x, windowSize.y);
-
-        glm::mat4x4 projectionMatrix = camera.projectionMatrix();
+        glm::mat4x4 projectionMatrix = _camera.projectionMatrix();
 
         if(resolutionUniform)
         {
-            *resolutionUniform = static_cast<glm::vec2>(camera.viewport());
+            *resolutionUniform = static_cast<glm::vec2>(_camera.viewport());
         }
 
         if(modelMatrixUniform)
@@ -586,6 +582,16 @@ public:
         return !failure;
     }
 
+    const glv::Camera & camera() const
+    {
+        return _camera;
+    }
+
+    glv::Camera & camera()
+    {
+        return _camera;
+    }
+
 private:
     bool check(const glv::OperationResult &r, const std::string &context)
     {
@@ -616,6 +622,7 @@ private:
     glv::GlMesh mesh;
     MaterialHandler materialHandler;
     TextureLoader textureLoader;
+    glv::PerspectiveCamera _camera;
 };
 
 int main(int argc, char **argv)
@@ -635,6 +642,9 @@ int main(int argc, char **argv)
 
         if (viewer.good())
         {
+            auto setViewport = std::bind(&glv::Viewport::set, &viewer.camera().viewport(), std::placeholders::_1, std::placeholders::_2);
+            glwc.setWindowSizeCallback(setViewport);
+
             glClearColor(0.5f,0.5f,0.5f,1.0f);
             glEnable(GL_DEPTH_TEST);
             glEnable(GL_CULL_FACE);

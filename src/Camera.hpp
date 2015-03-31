@@ -113,9 +113,9 @@ protected:
 class OrthographicCamera : public Camera
 {
 public:
-    OrthographicCamera();
+    OrthographicCamera(float width = 1.0f);
 
-    virtual glm::mat4x4 projectionMatrix() const;
+    glm::mat4x4 projectionMatrix() const override;
 
     inline void width(float width)
     {
@@ -158,7 +158,9 @@ public:
 
     PerspectiveCamera();
 
-    virtual glm::mat4x4 projectionMatrix() const;
+    PerspectiveCamera(float fovy);
+
+    glm::mat4x4 projectionMatrix() const override;
 
     inline void fovy(float radians)
     {

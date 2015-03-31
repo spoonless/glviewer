@@ -1,6 +1,7 @@
 #ifndef GL_WINDOW_CONTEXT_HPP
 #define GL_WINDOW_CONTEXT_HPP
 
+#include <functional>
 #include "glm/vec2.hpp"
 
 struct GLFWwindow;
@@ -28,16 +29,14 @@ public:
 
     glm::vec2 getCursorPosition();
 
-    inline glm::vec2 getWindowSize()
-    {
-        return _windowSize;
-    }
+    void setWindowSizeCallback(const std::function<void(unsigned int, unsigned int)>  &windowSizeCallback);
 
 private:
     static void windowSizeCallback(GLFWwindow* window, int width, int height);
 
     GLFWwindow *_window;
-    glm::vec2 _windowSize;
+    glm::uvec2 _windowSize;
+    std::function<void(unsigned int, unsigned int)> _windowSizeCallback;
 };
 
 }

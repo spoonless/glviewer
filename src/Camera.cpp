@@ -2,7 +2,7 @@
 #include "glm/gtx/transform.hpp"
 #include "Camera.hpp"
 
-glv::Viewport::Viewport(): _width{100}, _height(100)
+glv::Viewport::Viewport(): _width{100}, _height{100}
 {
 
 }
@@ -16,7 +16,7 @@ glv::Camera::~Camera()
 {
 }
 
-glv::OrthographicCamera::OrthographicCamera(): _width{1.0f}
+glv::OrthographicCamera::OrthographicCamera(float width): _width{width}
 {
     if (_near >= _far)
     {
@@ -30,6 +30,11 @@ glm::mat4x4 glv::OrthographicCamera::projectionMatrix() const
 }
 
 glv::PerspectiveCamera::PerspectiveCamera(): _fovy{glm::radians(70.0f)}
+{
+
+}
+
+glv::PerspectiveCamera::PerspectiveCamera(float fovy): _fovy{fovy}
 {
 
 }

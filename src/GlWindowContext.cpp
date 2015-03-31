@@ -31,9 +31,12 @@ void glv::GlWindowContext::windowSizeCallback(GLFWwindow* window, int width, int
     GlWindowContext *glfw = static_cast<GlWindowContext*>(glfwGetWindowUserPointer(window));
     if(glfw)
     {
-		glfw->_windowSize.x = static_cast<float>(width);
-		glfw->_windowSize.y = static_cast<float>(height);
         glViewport(0, 0, width, height);
+        glfw->_windowSize = {width, height};
+        if (glfw->_windowSizeCallback)
+        {
+            glfw->_windowSizeCallback(width, height);
+        }
     }
 }
 
@@ -72,8 +75,12 @@ bool glv::GlWindowContext::init (std::string title, unsigned int width, unsigned
     glfwSetWindowSizeCallback(_window, windowSizeCallback);
     int realWidth,realHeight = 0;
     glfwGetWindowSize(_window, &realWidth, &realHeight);
-	_windowSize.x = static_cast<float>(realWidth);
-	_windowSize.y = static_cast<float>(realHeight);
+    _windowSize = {realWidth, realHeight};
+    if (_windowSizeCallback)
+    {
+        _windowSizeCallback(width, height);
+    }
+
     return true;
 }
 
@@ -111,4 +118,13 @@ glm::vec2 glv::GlWindowContext::getCursorPosition()
     double x,y;
     glfwGetCursorPos(this->_window, &x, &y);
     return glm::vec2(static_cast<float>(x/_windowSize.x), static_cast<float>(1.0 - (y/_windowSize.y)));
+}
+
+void glv::GlWindowContext::setWindowSizeCallback(const std::function<void(unsigned int, unsigned int)>  &windowSizeCallback)
+{
+    _windowSizeCallback = windowSizeCallback;
+    if (_window)
+    {
+        glv::GlWindowContext::windowSizeCallback(_window, _windowSize.x, _windowSize.y);
+    }
 }
