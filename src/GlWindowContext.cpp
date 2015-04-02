@@ -23,6 +23,11 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
     }
 }
 
+void framebufferSizeCallback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
     }
 }
 
@@ -31,7 +36,6 @@ void glv::GlWindowContext::windowSizeCallback(GLFWwindow* window, int width, int
     GlWindowContext *glfw = static_cast<GlWindowContext*>(glfwGetWindowUserPointer(window));
     if(glfw)
     {
-        glViewport(0, 0, width, height);
         glfw->_windowSize = {width, height};
         if (glfw->_windowSizeCallback)
         {
@@ -73,13 +77,10 @@ bool glv::GlWindowContext::init (std::string title, unsigned int width, unsigned
 
     glfwSetWindowUserPointer(_window, this);
     glfwSetWindowSizeCallback(_window, windowSizeCallback);
+    glfwSetFramebufferSizeCallback(_window, framebufferSizeCallback);
     int realWidth,realHeight = 0;
     glfwGetWindowSize(_window, &realWidth, &realHeight);
-    _windowSize = {realWidth, realHeight};
-    if (_windowSizeCallback)
-    {
-        _windowSizeCallback(width, height);
-    }
+    windowSizeCallback(_window, width, height);
 
     return true;
 }
