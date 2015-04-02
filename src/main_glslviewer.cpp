@@ -7,6 +7,7 @@
 #include <sstream>
 #include <map>
 #include <set>
+#include "config.h"
 #include "gl.hpp"
 #include "SOIL.h"
 #include "glm/gtx/transform.hpp"
@@ -628,6 +629,7 @@ private:
 int main(int argc, char **argv)
 {
     glv::GlWindowContext glwc;
+    std::cout << APP_NAME " by " APP_AUTHOR " (v" APP_VERSION " compiled on " APP_COMPILATION_DATE ")" << std::endl;
 
     if(!glwc.init("GLSL viewer", 800, 600) || ! glwc.makeCurrent())
     {

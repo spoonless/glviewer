@@ -4,6 +4,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 project(glviewer)
 
+set(APP_NAME "GLViewer")
+set(APP_AUTHOR "David Gayerie")
+set(APP_VERSION "0.1.0")
+string(TIMESTAMP NOW "%d/%m/%Y %H:%M")
+set(APP_COMPILATION_DATE ${NOW})
+
 option(BUILD_UNITTESTS "Build all unit tests." "1")
 
 if(CMAKE_COMPILER_IS_GNUCXX)
@@ -22,14 +28,16 @@ macro( config_executable PROJNAME )
     endforeach()
 endmacro()
 
-find_package(OpenGL REQUIRED)
-
 include("SetCxxStandard")
+set_cxx_standard(11)
+
+find_package(OpenGL REQUIRED)
+find_package(Threads REQUIRED)
+
 include("EmbedGlfw")
 include("EmbedGlm")
 include("EmbedSoil")
-
-set_cxx_standard(11)
+include("EmbedG3log")
 
 ###############################################
 # main sources settings
@@ -37,11 +45,16 @@ set_cxx_standard(11)
 
 include_directories("include" "src")
 
-include_directories("${GLM_INCLUDE_DIR}")
+include_directories("${GLM_INCLUDE_DIR}" ${CMAKE_BINARY_DIR}/include)
+
+configure_file("src/config.h.in" "${CMAKE_BINARY_DIR}/include/config.h")
 
 add_library(core_sources STATIC
     src/gl.hpp
     src/glad.c
+    src/log.hpp
+    src/Logger.hpp
+    src/Logger.cpp
     src/Path.hpp
     src/Path.cpp
     src/Duration.hpp
@@ -67,11 +80,11 @@ add_library(core_sources STATIC
 
 add_dependencies(core_sources glm)
 
-config_executable(core_sources glfw GLFW SOIL OPENGL)
+config_executable(core_sources glfw GLFW SOIL OPENGL G3LOG)
+target_link_libraries(core_sources ${CMAKE_THREAD_LIBS_INIT})
 
 if(UNIX)
   find_package(X11 REQUIRED)
-  find_package(Threads REQUIRED)
   target_link_libraries(core_sources
     ${CMAKE_DL_LIBS}
     ${X11_Xcursor_LIB}

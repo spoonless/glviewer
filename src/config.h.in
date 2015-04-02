@@ -1,0 +1,6 @@
+#pragma once
+
+#cmakedefine APP_NAME "@APP_NAME@"
+#cmakedefine APP_VERSION "@APP_VERSION@"
+#cmakedefine APP_COMPILATION_DATE "@APP_COMPILATION_DATE@"
+#cmakedefine APP_AUTHOR "@APP_AUTHOR@"
