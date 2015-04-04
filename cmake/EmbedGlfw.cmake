@@ -34,3 +34,15 @@ add_dependencies(glfw project_glfw)
 
 set(GLFW_INCLUDE_DIR "${SOURCE_DIR}/include")
 set(GLFW_LIBRARY glfw)
+
+if(UNIX)
+  find_package(X11 REQUIRED)
+  set(GLFW_LIBRARY
+    ${GLFW_LIBRARY}
+    ${CMAKE_DL_LIBS}
+    ${X11_Xcursor_LIB}
+    ${X11_Xrandr_LIB}
+    ${X11_Xinput_LIB}
+    ${X11_Xxf86vm_LIB}
+    ${X11_Xinerama_LIB})
+endif()

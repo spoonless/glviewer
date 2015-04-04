@@ -10,7 +10,8 @@ set(APP_VERSION "0.1.0")
 string(TIMESTAMP NOW "%d/%m/%Y %H:%M")
 set(APP_COMPILATION_DATE ${NOW})
 
-option(BUILD_UNITTESTS "Build all unit tests." "1")
+option(BUILD_UNITTESTS "Build all unit tests." ON)
+option(BUILD_WITH_G3LOG "Use G3Log as logging system." ON)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
@@ -37,15 +38,21 @@ find_package(Threads REQUIRED)
 include("EmbedGlfw")
 include("EmbedGlm")
 include("EmbedSoil")
-include("EmbedG3log")
+if(BUILD_WITH_G3LOG)
+    include("EmbedG3log")
+    set(USE_G3LOG 1)
+endif()
 
 ###############################################
 # main sources settings
 ###############################################
 
-include_directories("include" "src")
-
-include_directories("${GLM_INCLUDE_DIR}" ${CMAKE_BINARY_DIR}/include)
+include_directories(
+    "${GLM_INCLUDE_DIR}"
+    "${CMAKE_BINARY_DIR}/include"
+    "include"
+    "src"
+)
 
 configure_file("src/config.h.in" "${CMAKE_BINARY_DIR}/include/config.h")
 
@@ -53,8 +60,7 @@ add_library(core_sources STATIC
     src/gl.hpp
     src/glad.c
     src/log.hpp
-    src/Logger.hpp
-    src/Logger.cpp
+    src/log.cpp
     src/Path.hpp
     src/Path.cpp
     src/Duration.hpp
@@ -79,21 +85,11 @@ add_library(core_sources STATIC
 )
 
 add_dependencies(core_sources glm)
-
-config_executable(core_sources glfw GLFW SOIL OPENGL G3LOG)
-target_link_libraries(core_sources ${CMAKE_THREAD_LIBS_INIT})
-
-if(UNIX)
-  find_package(X11 REQUIRED)
-  target_link_libraries(core_sources
-    ${CMAKE_DL_LIBS}
-    ${X11_Xcursor_LIB}
-    ${X11_Xrandr_LIB}
-    ${X11_Xinput_LIB}
-    ${X11_Xxf86vm_LIB}
-    ${X11_Xinerama_LIB}
-    ${CMAKE_THREAD_LIBS_INIT})
+config_executable(core_sources glfw GLFW SOIL OPENGL)
+if(BUILD_WITH_G3LOG)
+    config_executable(core_sources G3LOG)
 endif()
+target_link_libraries(core_sources ${CMAKE_THREAD_LIBS_INIT})
 
 ###############################################
 # glslviewer executable settings

@@ -4,3 +4,6 @@
 #cmakedefine APP_VERSION "@APP_VERSION@"
 #cmakedefine APP_COMPILATION_DATE "@APP_COMPILATION_DATE@"
 #cmakedefine APP_AUTHOR "@APP_AUTHOR@"
+
+
+#cmakedefine USE_G3LOG @USE_G3LOG@

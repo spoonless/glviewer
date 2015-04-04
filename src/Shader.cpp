@@ -1,6 +1,6 @@
 #include <memory>
-#include <iostream>
 
+#include "log.hpp"
 #include "Shader.hpp"
 #include "GlError.hpp"
 #include "Duration.hpp"
@@ -71,7 +71,7 @@ std::string Shader::getSource() const
     glGetShaderiv(_shaderId, GL_SHADER_SOURCE_LENGTH, &sourceLength);
     if (error.hasOccured())
     {
-        std::cerr << error.toString("Error while retrieving shader source length (glGetShaderiv(_shaderId, GL_SHADER_SOURCE_LENGTH, sourceLength))") << std::endl;
+        LOG(WARNING) << error.toString("Error while retrieving shader source length (glGetShaderiv(_shaderId, GL_SHADER_SOURCE_LENGTH, sourceLength))");
     }
 
     if (sourceLength == 0)
@@ -83,7 +83,7 @@ std::string Shader::getSource() const
     glGetShaderSource(_shaderId, sourceLength, NULL, sourceBuffer.get());
     if (error.hasOccured())
     {
-        std::cerr << error.toString("Error while retrieving shader source (glGetShaderSource)") << std::endl;
+        LOG(WARNING) << error.toString("Error while retrieving shader source (glGetShaderSource)");
         return std::string{};
     }
     else
@@ -131,7 +131,7 @@ void Shader::deleteShader()
         glDeleteShader(_shaderId);
         if (error.hasOccured())
         {
-            std::cerr << error.toString("Error while deleting shader (glDeleteShader)") << std::endl;
+            LOG(WARNING) << error.toString("Error while deleting shader (glDeleteShader)");
         }
         _shaderId = 0;
     }

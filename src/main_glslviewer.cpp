@@ -2,16 +2,16 @@
 #include <functional>
 #include <algorithm>
 #include <cstring>
-#include <cmath>
 #include <iostream>
-#include <sstream>
 #include <map>
 #include <set>
+
 #include "config.h"
 #include "gl.hpp"
 #include "SOIL.h"
 #include "glm/gtx/transform.hpp"
 #include "GlWindowContext.hpp"
+#include "log.hpp"
 #include "Path.hpp"
 #include "Duration.hpp"
 #include "ShaderProgram.hpp"
@@ -106,12 +106,12 @@ public:
 private:
     void warn(const char *filename, const char *message)
     {
-        std::cerr << "! " << "error while loading '" << filename << "':" << std::endl << "  " << message << std::endl;
+        LOG(WARNING) << "error while loading '" << filename << "': " << message;
     }
 
     void message(const char *filename, unsigned long duration)
     {
-        std::cout << "* " << "loading '" << filename << "' in " << duration << "ms." << std::endl << std::endl;
+        LOG(INFO) << "loading '" << filename << "' in " << duration << "ms.";
     }
 
     typedef std::map<const std::string, GLuint> TextureIdMap;
@@ -225,12 +225,12 @@ public:
 private:
     void warn(const char *filename, const char *message)
     {
-        std::cerr << "! " << "error while loading '" << filename << "':" << std::endl << "  " << message << std::endl;
+        LOG(WARNING) << "error while loading '" << filename << "': " << message;
     }
 
     void message(const char *filename, unsigned long duration)
     {
-        std::cout << "* " << "loading '" << filename << "' in " << duration << "ms." << std::endl << std::endl;
+        LOG(INFO) << "loading '" << filename << "' in " << duration << "ms.";
     }
 
     class
@@ -598,12 +598,12 @@ private:
     {
         if (r)
         {
-            std::cout << "* " << context << " in " << r.duration() << "ms." << std::endl << "  " << r.message() << std::endl;
+            LOG(INFO) << context << " in " << r.duration() << "ms. " << r.message();
         }
         else
         {
             failure = true;
-            std::cerr << "! " << context << ":" << std::endl << "  " << r.message() << std::endl;
+            LOG(WARNING) << context << " in " << r.duration() << "ms. " << r.message();
         }
         return r.ok();
     }
@@ -628,17 +628,20 @@ private:
 
 int main(int argc, char **argv)
 {
+    sys::initLogger();
     glv::GlWindowContext glwc;
-    std::cout << APP_NAME " by " APP_AUTHOR " (v" APP_VERSION " compiled on " APP_COMPILATION_DATE ")" << std::endl;
+    LOG(INFO) << APP_NAME " by " APP_AUTHOR " (v" APP_VERSION " compilation date " APP_COMPILATION_DATE ")";
 
     if(!glwc.init("GLSL viewer", 800, 600) || ! glwc.makeCurrent())
     {
-        std::cerr << "Cannot initialise OpenGL context" << std::endl;
+        LOG(FATAL) << "Cannot initialise OpenGL context!";
         return false;
     }
 
-    std::cout << "OpenGL version " << glGetString(GL_VERSION) << std::endl;
-    std::cout << "OpenGLSL version " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+    LOG(INFO) << "OpenGL vendor " << glGetString(GL_VENDOR);
+    LOG(INFO) << "OpenGL renderer " << glGetString(GL_RENDERER);
+    LOG(INFO) << "OpenGL version " << glGetString(GL_VERSION);
+    LOG(INFO) << "OpenGLSL version " << glGetString(GL_SHADING_LANGUAGE_VERSION);
     {
         GlslViewer viewer(argc, argv);
 

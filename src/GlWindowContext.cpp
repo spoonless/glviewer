@@ -1,4 +1,4 @@
-#include <iostream>
+#include "log.hpp"
 #include "gl.hpp"
 #include "GLFW/glfw3.h"
 #include "GlWindowContext.hpp"
@@ -12,7 +12,7 @@ namespace glv
 
 void errorCallback(int error, const char* description)
 {
-    std::cerr << "[" << error << "] " << description << std::endl;
+    LOG(WARNING) << "[" << error << "] " << description;
 }
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -57,20 +57,22 @@ glv::GlWindowContext::~GlWindowContext()
 bool glv::GlWindowContext::init (std::string title, unsigned int width, unsigned int height)
 {
     glfwSetErrorCallback(errorCallback);
-    /* Initialize the library */
+    LOG(INFO) << "Initializing GLFW...";
     if (!glfwInit())
     {
+        LOG(WARNING) << "fail to initialize GLFW!";
         return false;
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
 
-    /* Create a windowed mode window and its OpenGL context */
+    LOGF(INFO, "Creating main window (%dx%d)...", width, height);
     _window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
     if (!_window) {
+        LOG(WARNING) << "fail to create window";
         return false;
     }
     glfwSetWindowTitle(_window, "GLSL viewer");
@@ -89,7 +91,6 @@ bool glv::GlWindowContext::makeCurrent()
 {
     if (_window)
     {
-        /* Make the window's context current */
         glfwMakeContextCurrent(_window);
         glfwSetKeyCallback(_window, keyCallback);
     }
@@ -107,10 +108,7 @@ bool glv::GlWindowContext::shouldContinue()
 
 void glv::GlWindowContext::swapAndPollEvents()
 {
-    /* Swap front and back buffers */
     glfwSwapBuffers(_window);
-
-    /* Poll for and process events */
     glfwPollEvents();
 }
 
