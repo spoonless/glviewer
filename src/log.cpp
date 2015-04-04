@@ -1,5 +1,8 @@
 #include <iostream>
 #include "log.hpp"
+
+#ifdef USE_G3LOG
+
 #include "g2logworker.hpp"
 namespace
 {
@@ -40,3 +43,11 @@ void sys::initLogger()
 
     g2::initializeLogging(logworker.get());
 }
+
+#else
+
+void sys::initLogger()
+{
+}
+
+#endif
