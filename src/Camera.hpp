@@ -1,7 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include <assert.h>
+#include "log.hpp"
 #include "glm/vec2.hpp"
 #include "glm/mat4x4.hpp"
 
@@ -53,8 +53,8 @@ public:
 
     void set(unsigned int width, unsigned int height)
     {
-        assert (width > 0);
-        assert (height > 0);
+        CHECK(width > 0);
+        CHECK(height > 0);
         _width = width;
         _height = height;
     }
@@ -84,7 +84,7 @@ public:
 
     inline void nearDistance(float d)
     {
-        assert(d >= .0f);
+        CHECK(d >= .0f);
         _near = d;
     }
 
@@ -95,7 +95,7 @@ public:
 
     inline void farDistance(float d)
     {
-        assert(d >= .0f);
+        CHECK(d >= .0f);
         _far = d;
     }
 
@@ -119,7 +119,7 @@ public:
 
     inline void width(float width)
     {
-        assert(width > .0f);
+        CHECK(width > .0f);
         _width = width;
     }
 
@@ -164,7 +164,7 @@ public:
 
     inline void fovy(float radians)
     {
-        assert(radians > .0f);
+        CHECK(radians > .0f);
         _fovy = radians;
     }
 

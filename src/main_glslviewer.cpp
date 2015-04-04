@@ -638,8 +638,8 @@ int main(int argc, char **argv)
         return false;
     }
 
-    LOG(INFO) << "OpenGL vendor " << glGetString(GL_VENDOR);
-    LOG(INFO) << "OpenGL renderer " << glGetString(GL_RENDERER);
+    LOG(INFO) << "OpenGL vendor is " << glGetString(GL_VENDOR);
+    LOG(INFO) << "OpenGL renderer is " << glGetString(GL_RENDERER);
     LOG(INFO) << "OpenGL version " << glGetString(GL_VERSION);
     LOG(INFO) << "OpenGLSL version " << glGetString(GL_SHADING_LANGUAGE_VERSION);
     {
