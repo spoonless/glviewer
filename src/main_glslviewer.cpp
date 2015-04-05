@@ -636,7 +636,7 @@ int main(int argc, char **argv)
     if(!glwc.init("GLSL viewer", 800, 600) || ! glwc.makeCurrent())
     {
         LOG(FATAL) << "Cannot initialise OpenGL context!";
-        return false;
+        return 1;
     }
 
     LOG(INFO) << "OpenGL vendor is " << glGetString(GL_VENDOR);
