@@ -1,4 +1,3 @@
-#include <cstdio>
 #include <GLFW/glfw3.h>
 #include "Duration.hpp"
 
@@ -36,11 +35,4 @@ sys::Duration& sys::Duration::operator = (const Duration &duration)
 unsigned long sys::Duration::elapsed() const
 {
     return static_cast<unsigned long>(getTime() - _start);
-}
-
-sys::Duration::operator std::string() const
-{
-    char buffer[50];
-    std::snprintf(buffer, 50, "%lums", this->elapsed());
-    return buffer;
 }
