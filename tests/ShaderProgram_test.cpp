@@ -401,6 +401,23 @@ TEST(ShaderProgram, canGetAttributeDeclarationWhenSeveralAttributes)
     ASSERT_EQ(VertexAttributeDeclaration(2, 1, GL_FLOAT_VEC4, "vertices"), vector[1]);
 }
 
+TEST(ShaderProgram, hasVertexAttributeWhenOneAttribute)
+{
+    ShaderProgram shaderProgram;
+    const char* source =
+            GLSL_VERSION_HEADER
+            "in vec4 vertices;"
+            "void main() {"
+            " gl_Position = vertices;"
+            "}";
+
+    addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
+    ASSERT_TRUE(shaderProgram.link());
+
+    ASSERT_TRUE(shaderProgram.hasVertexAttribute("vertices"));
+    ASSERT_FALSE(shaderProgram.hasVertexAttribute("unknown"));
+}
+
 TEST(ShaderProgram, canGetUniformFloatVectorValue)
 {
     ShaderProgram shaderProgram;

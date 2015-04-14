@@ -2,6 +2,7 @@
 #include <cstring>
 #include <memory>
 #include <string>
+#include "log.hpp"
 #include "Duration.hpp"
 #include "ShaderProgram.hpp"
 #include "GlError.hpp"
@@ -245,6 +246,14 @@ UniformDeclaration ShaderProgram::getActiveUniform(const char *name) const
         }
     }
     return UniformDeclaration{_shaderProgramId, uniformLocation, activeUniformSize, activeUniformType, name};
+}
+
+bool ShaderProgram::hasVertexAttribute(const char *name) const
+{
+    GlError glError;
+    GLint attributeLocation = glGetAttribLocation(_shaderProgramId, name);
+    LOG_IF(WARNING, glError.hasOccured()) << "Unable to get vertex attribut location for " << glError.toString(name);
+    return !glError && attributeLocation != -1;
 }
 
 VertexAttributeDeclarationVector ShaderProgram::getVertexAttributeDeclarations() const

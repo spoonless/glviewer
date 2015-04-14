@@ -39,6 +39,8 @@ public:
 
     UniformDeclaration getActiveUniform(const char *name) const;
 
+    bool hasVertexAttribute(const char *name) const;
+
     VertexAttributeDeclarationVector getVertexAttributeDeclarations() const;
 
     inline GLuint getId() const
