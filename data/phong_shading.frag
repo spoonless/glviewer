@@ -67,7 +67,10 @@ void computeColors(in uint lightIndex, inout vec3 ambient, inout vec3 diffuse, i
 }
 
 void main() {
-    vec3 ambient, diffuse, specular;
+    vec3 ambient = vec3(.0);
+    vec3 diffuse = vec3(.0);
+    vec3 specular = vec3(.0);
+
     for (uint i = 0u; i < nbLights; ++i)
     {
         computeColors(i, ambient, diffuse, specular);
