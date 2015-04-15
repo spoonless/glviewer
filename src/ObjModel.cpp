@@ -139,6 +139,11 @@ void LineReader::copyReadLine()
         _is.getline(_line + nbRead, BUFFER_CHUNK_SIZE);
         _capacity += BUFFER_CHUNK_SIZE;
     }
+    if (_is.eof())
+    {
+        _is.clear();
+        _is.setstate(std::ios::eofbit);
+    }
 }
 
 inline char* read(const char *line, glm::vec4 &vec4)

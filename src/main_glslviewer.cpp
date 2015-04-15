@@ -174,15 +174,15 @@ public:
                 sys::Path mtlfile(currentPath, libraryName->c_str());
                 sys::Duration loadfileDuration;
                 std::ifstream isMat(mtlfile);
-                isMat >> materialMaps[*libraryName];
-                if(!isMat.eof() && isMat.fail())
+
+                if(isMat >> materialMaps[*libraryName])
                 {
-                    warn(mtlfile, "Cannot read file (maybe the path is wrong)!");
-                    materialMaps.erase(*libraryName);
+                    message(mtlfile, loadfileDuration.elapsed());
                 }
                 else
                 {
-                    message(mtlfile, loadfileDuration.elapsed());
+                    warn(mtlfile, "Cannot read file (maybe the path is wrong)!");
+                    materialMaps.erase(*libraryName);
                 }
             }
 
@@ -446,16 +446,12 @@ public:
         {
             sys::Duration loadfileDuration;
             std::ifstream is(objFilename);
-            is >> model;
-            if(!is.eof() && is.fail())
+            if(! (is >> model))
             {
                 check(LoadFile::failed("Cannot read file (maybe the path is wrong)!", 0), std::string("loading '") + objFilename + "'");
                 return;
             }
-            else
-            {
-                check(LoadFile::succeeded(loadfileDuration.elapsed()), std::string("loading '") + objFilename + "'");
-            }
+            check(LoadFile::succeeded(loadfileDuration.elapsed()), std::string("loading '") + objFilename + "'");
         }
         else
         {
@@ -534,12 +530,14 @@ public:
         }
 
         const glv::BoundingBox &boundingBox = mesh.getBoundingBox();
-        glm::mat4x4 modelMatrix = glm::translate(-boundingBox.center());
+        glm::mat4x4 modelMatrix = glm::mat4x4(1.0f);
 
         glm::vec3 eyePosition {0,0,glm::distance(boundingBox.min, boundingBox.max) * 0.75f};
         glm::mat4x4 viewMatrix = glm::lookAt(eyePosition, glm::vec3(0,0,0), glm::normalize(glm::vec3(0,0.5,-0.5)));
         viewMatrix = glm::rotate(viewMatrix, cursorPosition.x * static_cast<float>(PI) * 4, glm::vec3(0,1,0));
         viewMatrix = glm::rotate(viewMatrix, cursorPosition.y * static_cast<float>(PI) * 4, glm::vec3(0,0,1));
+        viewMatrix *= glm::translate(-boundingBox.center());
+
         glm::mat4x4 projectionMatrix = _camera.projectionMatrix();
 
         if(resolutionUniform)
