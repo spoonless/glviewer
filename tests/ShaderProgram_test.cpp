@@ -418,6 +418,21 @@ TEST(ShaderProgram, hasVertexAttributeWhenOneAttribute)
     ASSERT_FALSE(shaderProgram.hasVertexAttribute("unknown"));
 }
 
+TEST(ShaderProgram, cannothaveVertexAttributeWhenProgramNotLinked)
+{
+    ShaderProgram shaderProgram;
+    const char* source =
+            GLSL_VERSION_HEADER
+            "in vec4 vertices;"
+            "void main() {"
+            " gl_Position = vertices;"
+            "}";
+
+    addShader(shaderProgram, ShaderType::VERTEX_SHADER, source);
+
+    ASSERT_FALSE(shaderProgram.hasVertexAttribute("vertices"));
+}
+
 TEST(ShaderProgram, canGetUniformFloatVectorValue)
 {
     ShaderProgram shaderProgram;

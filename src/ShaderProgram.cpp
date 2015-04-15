@@ -252,8 +252,12 @@ bool ShaderProgram::hasVertexAttribute(const char *name) const
 {
     GlError glError;
     GLint attributeLocation = glGetAttribLocation(_shaderProgramId, name);
-    LOG_IF(WARNING, glError.hasOccured()) << "Unable to get vertex attribut location for " << glError.toString(name);
-    return !glError && attributeLocation != -1;
+    if (glError)
+    {
+        LOG(WARNING) << "Unable to get vertex attribute location for " << glError.toString(name);
+        return false;
+    }
+    return attributeLocation != -1;
 }
 
 VertexAttributeDeclarationVector ShaderProgram::getVertexAttributeDeclarations() const
