@@ -531,32 +531,32 @@ void vfm::ObjModel::computeTangents()
             glm::vec4 a = this->vertices[vertexIndices[1]->vertex-1] - this->vertices[vertexIndices[0]->vertex-1];
             glm::vec4 b = this->vertices[vertexIndices[2]->vertex-1] - this->vertices[vertexIndices[0]->vertex-1];
 
-            auto textureIndex0 = vertexIndices[1]->texture-1;
-            auto textureIndex1 = vertexIndices[1]->texture-1;
-            auto textureIndex2 = vertexIndices[2]->texture-1;
+            auto textureIndex0 = vertexIndices[0]->texture;
+            auto textureIndex1 = vertexIndices[1]->texture;
+            auto textureIndex2 = vertexIndices[2]->texture;
 
             if (textureIndex0 == 0 || textureIndex1 == 0 || textureIndex2 == 0)
             {
                 continue;
             }
 
-            glm::vec3 u = this->textures[textureIndex1] - this->textures[textureIndex0];
-            glm::vec3 v = this->textures[textureIndex2] - this->textures[textureIndex0];
+            glm::vec3 u = this->textures[textureIndex1 -1] - this->textures[textureIndex0 -1];
+            glm::vec3 v = this->textures[textureIndex2 -1] - this->textures[textureIndex0 -1];
 
             float r = 1.0f / (u.s * v.t - v.s * u.t);
 
-            glm::vec3 sdir{(v.t * a.x - u.t * b.x) * r, (v.t * a.y - u.t * b.y) * r, (b.t * a.z - u.t * b.z) * r};
+            glm::vec3 sdir{(v.t * a.x - u.t * b.x) * r, (v.t * a.y - u.t * b.y) * r, (v.t * a.z - u.t * b.z) * r};
             glm::vec3 tdir{(u.s * b.x - v.s * a.x) * r, (u.s * b.y - v.s * a.y) * r, (u.s * b.z - v.s * a.z) * r};
 
             for(size_t i = 0; i < 3; ++i)
             {
-                auto normalIndex = vertexIndices[i]->normal-1;
+                auto normalIndex = vertexIndices[i]->normal;
                 if (normalIndex == 0)
                 {
                     continue;
                 }
-                tan1[normalIndex] += sdir;
-                tan2[normalIndex] += tdir;
+                tan1[normalIndex -1] += sdir;
+                tan2[normalIndex -1] += tdir;
             }
         }
     }

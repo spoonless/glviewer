@@ -11,6 +11,7 @@
 namespace
 {
     enum VertexAttributeBuffer{VERTEX_POSITION, VERTEX_TEXTURE_COORD, VERTEX_NORMAL, VERTEX_TANGENT, NB_VERTEX_ATTRIBUTES};
+    constexpr size_t MAX_VERTEX_ATTRIBUTE_SIZE = 4;
 }
 
 const glv::MaterialIndex glv::MaterialHandler::NO_MATERIAL_INDEX = MAX_UINT;
@@ -112,7 +113,7 @@ glv::GlMeshGeneration glv::GlMesh::generate(const vfm::ObjModel &objModel)
         bufferElements += o.triangles.size();
     }
 
-    std::vector<GLfloat> tmpBuffer(bufferElements * NB_VERTEX_ATTRIBUTES);
+    std::vector<GLfloat> tmpBuffer(bufferElements * MAX_VERTEX_ATTRIBUTE_SIZE);
 
     bool buffersAvailable [NB_VERTEX_ATTRIBUTES] = {false};
     buffersAvailable[VERTEX_POSITION] = ! objModel.vertices.empty();
