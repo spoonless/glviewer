@@ -114,10 +114,12 @@ struct ObjModel
     Vec4Vector vertices;
     Vec3Vector normals;
     Vec3Vector textures;
+    Vec4Vector tangents;
     ObjectVector objects;
     MaterialIdVector materialIds;
 
     void computeNormals(bool normalized = false);
+    void computeTangents();
 };
 
 std::istream & operator >> (std::istream &is, ObjModel &vfm);

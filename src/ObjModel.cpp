@@ -1,3 +1,4 @@
+#include <memory>
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
@@ -498,5 +499,75 @@ void vfm::ObjModel::computeNormals(bool normalized)
         {
             normal = glm::normalize(normal);
         }
+    }
+}
+
+void vfm::ObjModel::computeTangents()
+{
+    this->tangents.clear();
+    if (this->normals.empty() || this->textures.empty())
+    {
+        return;
+    }
+
+    this->tangents.resize(this->normals.size());
+
+    auto tan1 = std::unique_ptr<glm::vec3[]>(new glm::vec3[this->normals.size()]);
+    auto tan2 = std::unique_ptr<glm::vec3[]>(new glm::vec3[this->normals.size()]);
+
+    VertexIndex *vertexIndices[3];
+    for(Object &o : this->objects)
+    {
+        for(auto it = o.triangles.begin(); it != o.triangles.end(); ++it)
+        {
+            vertexIndices[0] = &o.vertexIndices[*it++];
+            vertexIndices[1] = &o.vertexIndices[*it++];
+            vertexIndices[2] = &o.vertexIndices[*it];
+
+            glm::vec4 a = this->vertices[vertexIndices[1]->vertex-1] - this->vertices[vertexIndices[0]->vertex-1];
+            glm::vec4 b = this->vertices[vertexIndices[2]->vertex-1] - this->vertices[vertexIndices[0]->vertex-1];
+
+            auto textureIndex0 = vertexIndices[1]->texture-1;
+            auto textureIndex1 = vertexIndices[1]->texture-1;
+            auto textureIndex2 = vertexIndices[2]->texture-1;
+
+            if (textureIndex0 == 0 || textureIndex1 == 0 || textureIndex2 == 0)
+            {
+                continue;
+            }
+
+            glm::vec3 u = this->textures[textureIndex1] - this->textures[textureIndex0];
+            glm::vec3 v = this->textures[textureIndex2] - this->textures[textureIndex0];
+
+            float r = 1.0f / (u.s * v.t - v.s * u.t);
+
+            glm::vec3 sdir{(v.t * a.x - u.t * b.x) * r, (v.t * a.y - u.t * b.y) * r, (b.t * a.z - u.t * b.z) * r};
+            glm::vec3 tdir{(u.s * b.x - v.s * a.x) * r, (u.s * b.y - v.s * a.y) * r, (u.s * b.z - v.s * a.z) * r};
+
+            for(size_t i = 0; i < 3; ++i)
+            {
+                auto normalIndex = vertexIndices[i]->normal-1;
+                if (normalIndex == 0)
+                {
+                    continue;
+                }
+                tan1[normalIndex] += sdir;
+                tan2[normalIndex] += tdir;
+            }
+        }
+    }
+
+    for(size_t i = 0; i < this->normals.size(); ++i)
+    {
+        glm::vec3 &n = this->normals[i];
+        glm::vec3 &t = tan1[i];
+
+        glm::vec3 xyzTangent = glm::normalize(t - n * glm::dot(n, t));
+        glm::vec4 &tangent = this->tangents[i];
+
+        tangent.x = xyzTangent.x;
+        tangent.y = xyzTangent.y;
+        tangent.z = xyzTangent.z;
+        tangent.w = glm::sign(glm::dot(glm::cross(n, t), tan2[i]));
     }
 }
