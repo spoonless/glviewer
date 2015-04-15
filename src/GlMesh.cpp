@@ -8,6 +8,11 @@
 #define MAX_FLOAT std::numeric_limits<float>::max()
 #define MIN_FLOAT -std::numeric_limits<float>::max()
 
+namespace
+{
+    enum VertexAttributeBuffer{VERTEX_POSITION, VERTEX_TEXTURE_COORD, VERTEX_NORMAL, VERTEX_TANGENT, NB_VERTEX_ATTRIBUTES};
+}
+
 const glv::MaterialIndex glv::MaterialHandler::NO_MATERIAL_INDEX = MAX_UINT;
 
 glv::GlMesh::MaterialGroup::MaterialGroup(MaterialIndex index, size_t size) : index{index}, size{size} {}
@@ -69,7 +74,7 @@ void glv::GlMesh::clear()
     }
     _boundingBox = BoundingBox{};
     _buffers.clear();
-    _buffers.resize(3);
+    _buffers.resize(NB_VERTEX_ATTRIBUTES);
     _definedVertexAttributes.clear();
     _materialGroups.clear();
 }
@@ -107,11 +112,16 @@ glv::GlMeshGeneration glv::GlMesh::generate(const vfm::ObjModel &objModel)
         bufferElements += o.triangles.size();
     }
 
-    std::vector<GLfloat> tmpBuffer(bufferElements*3);
+    std::vector<GLfloat> tmpBuffer(bufferElements * NB_VERTEX_ATTRIBUTES);
 
-    bool buffersAvailable [] = {! objModel.vertices.empty(), ! objModel.normals.empty(), ! objModel.textures.empty()};
+    bool buffersAvailable [NB_VERTEX_ATTRIBUTES] = {false};
+    buffersAvailable[VERTEX_POSITION] = ! objModel.vertices.empty();
+    buffersAvailable[VERTEX_NORMAL] = ! objModel.normals.empty();
+    buffersAvailable[VERTEX_TEXTURE_COORD] = ! objModel.textures.empty();
+    buffersAvailable[VERTEX_TANGENT] = ! objModel.tangents.empty();
+
     glBindVertexArray(_vertexArray);
-    for(unsigned int i = 0; i < 3; ++i)
+    for(size_t i = 0; i < NB_VERTEX_ATTRIBUTES; ++i)
     {
         GLuint bufferId = 0;
         if (buffersAvailable[i])
@@ -135,7 +145,7 @@ glv::GlMeshGeneration glv::GlMesh::generate(const vfm::ObjModel &objModel)
     return GlMeshGeneration::succeeded(duration.elapsed());
 }
 
-void glv::GlMesh::generate(const vfm::ObjModel &objModel, unsigned int channel, std::vector<GLfloat> &buffer)
+void glv::GlMesh::generate(const vfm::ObjModel &objModel, size_t channel, std::vector<GLfloat> &buffer)
 {
     if (!_buffers[channel])
     {
@@ -149,27 +159,54 @@ void glv::GlMesh::generate(const vfm::ObjModel &objModel, unsigned int channel, 
     {
         for(size_t index : o.triangles)
         {
-            const size_t *vertexIndex = o.vertexIndices[index];
-            if (vertexIndex[channel] == 0)
+            const vfm::VertexIndex &vertexIndex = o.vertexIndices[index];
+            GLfloat x, y, z, w = 0;
+            switch(channel)
             {
-                buffer[i++] = 0; buffer[i++] = 0; buffer[i++] = 0;
+            case VERTEX_POSITION:
+                if (vertexIndex.vertex > 0)
+                {
+                    vec4 = &objModel.vertices[vertexIndex.vertex -1];
+                    x = vec4->x / vec4->w;
+                    y = vec4->y / vec4->w;
+                    z = vec4->z / vec4->w;
+                    _boundingBox.accept(x, y, z);
+
+                }
+                break;
+            case VERTEX_NORMAL:
+                if (vertexIndex.normal > 0)
+                {
+                    vec3 = &objModel.normals[vertexIndex.normal -1];
+                    x = vec3->x;
+                    y = vec3->y;
+                    z = vec3->z;
+                }
+                break;
+            case VERTEX_TANGENT:
+                if (vertexIndex.normal > 0)
+                {
+                    vec4 = &objModel.tangents[vertexIndex.normal -1];
+                    x = vec4->x;
+                    y = vec4->y;
+                    z = vec4->z;
+                    w = vec4->w;
+                }
+                break;
+            case VERTEX_TEXTURE_COORD:
+                if (vertexIndex.texture > 0)
+                {
+                    vec3 = &objModel.textures[vertexIndex.texture -1];
+                    x = vec3->x;
+                    y = vec3->y;
+                    z = vec3->z;
+                }
+                break;
             }
-            else switch(channel)
-            {
-            case 0:
-                vec4 = &objModel.vertices[vertexIndex[channel] -1];
-                buffer[i++] = vec4->x / vec4->w; buffer[i++] = vec4->y / vec4->w; buffer[i++] = vec4->z / vec4->w;
-                _boundingBox.accept(buffer[i-3], buffer[i-2], buffer[i-1]);
-                break;
-            case 1:
-                vec3 = &objModel.normals[vertexIndex[channel] -1];
-                buffer[i++] = vec3->x; buffer[i++] = vec3->y; buffer[i++] = vec3->z;
-                break;
-            case 2:
-                vec3 = &objModel.textures[vertexIndex[channel] -1];
-                buffer[i++] = vec3->x; buffer[i++] = vec3->y; buffer[i++] = vec3->z;
-                break;
-            }
+            buffer[i++] = x;
+            buffer[i++] = y;
+            buffer[i++] = z;
+            buffer[i++] = w;
         }
     }
 
@@ -183,17 +220,21 @@ size_t glv::GlMesh::getBufferIndex(const std::string &name)
 {
     if (name == "vertexPosition")
     {
-        return 0;
+        return VERTEX_POSITION;
     }
     else if (name == "vertexNormal")
     {
-        return 1;
+        return VERTEX_NORMAL;
     }
     else if (name == "vertexTextureCoord")
     {
-        return 2;
+        return VERTEX_TEXTURE_COORD;
     }
-    return _buffers.size();
+    else if (name == "vertexTangent")
+    {
+        return VERTEX_TANGENT;
+    }
+    return NB_VERTEX_ATTRIBUTES;
 }
 
 glv::VertexAttributeDataDefinition glv::GlMesh::defineVertexAttributeData(const VertexAttributeDeclaration& vad)
@@ -213,25 +254,29 @@ glv::VertexAttributeDataDefinition glv::GlMesh::defineVertexAttributeData(const 
     GLsizei stride = 0;
     switch(vad.type())
     {
+    case GL_FLOAT_VEC4:
+        vertexAttributeSize = 4;
+        stride = 0;
+        break;
     case GL_FLOAT_VEC3:
         vertexAttributeSize = 3;
-        stride = 0;
+        stride = 4*sizeof(GL_FLOAT);
         break;
     case GL_FLOAT_VEC2:
         vertexAttributeSize = 2;
-        stride = 3*sizeof(GL_FLOAT);
+        stride = 4*sizeof(GL_FLOAT);
         break;
     case GL_FLOAT:
         vertexAttributeSize = 1;
-        stride = 3*sizeof(GL_FLOAT);
+        stride = 4*sizeof(GL_FLOAT);
         break;
     default:
-        return VertexAttributeDataDefinition::failed(std::string("Invalid type for vertex attribute '") + vad.name() + "': expected float, vec2 or vec3.");
+        return VertexAttributeDataDefinition::failed(std::string("Invalid type for vertex attribute '") + vad.name() + "': expected float, vec2, vec3 or vec4.");
     }
 
     glBindVertexArray(_vertexArray);
     glBindBuffer(GL_ARRAY_BUFFER, _buffers[bufferIndex]);
-    glVertexAttribPointer(vad.index(), vertexAttributeSize, GL_FLOAT, (bufferIndex == 1 ? GL_TRUE : GL_FALSE), stride, (void*)0);
+    glVertexAttribPointer(vad.index(), vertexAttributeSize, GL_FLOAT, (bufferIndex == VERTEX_NORMAL ? GL_TRUE : GL_FALSE), stride, (void*)0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     if (glError)

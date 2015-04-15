@@ -51,16 +51,6 @@ struct VertexIndex
 
     bool operator == (const VertexIndex &vi) const;
 
-    inline operator size_t*()
-    {
-        return &vertex;
-    }
-
-    inline operator const size_t*() const
-    {
-        return &vertex;
-    }
-
     size_t vertex;
     size_t normal;
     size_t texture;

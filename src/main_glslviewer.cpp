@@ -463,6 +463,7 @@ public:
         {
             model.computeNormals();
         }
+        model.computeTangents();
 
         materialHandler.loadMaterials(textureLoader, objFilename, model);
 

@@ -460,6 +460,10 @@ std::istream & vfm::operator >> (std::istream &is, vfm::MaterialMap &materialMap
             {
                 material->map.bump = nextToken(line + 5);
             }
+            else if (!std::strncmp(line, "map_Bump ", 9))
+            {
+                material->map.bump = nextToken(line + 9);
+            }
         }
     }
 
@@ -568,6 +572,6 @@ void vfm::ObjModel::computeTangents()
         tangent.x = xyzTangent.x;
         tangent.y = xyzTangent.y;
         tangent.z = xyzTangent.z;
-        tangent.w = glm::sign(glm::dot(glm::cross(n, t), tan2[i]));
+        tangent.w = glm::dot(glm::cross(n, t), tan2[i]) < .0f ? -1.0f : 1.0f;
     }
 }
