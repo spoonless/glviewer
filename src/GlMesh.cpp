@@ -4,14 +4,227 @@
 #include "Duration.hpp"
 #include "GlMesh.hpp"
 
-#define MAX_UINT std::numeric_limits<unsigned int>::max()
-#define MAX_FLOAT std::numeric_limits<float>::max()
-#define MIN_FLOAT -std::numeric_limits<float>::max()
-
 namespace
 {
+    constexpr auto MAX_UINT = std::numeric_limits<unsigned int>::max();
+    constexpr auto MAX_FLOAT = std::numeric_limits<float>::max();
+    constexpr auto MIN_FLOAT = -std::numeric_limits<float>::max();
+
     enum VertexAttributeBuffer{VERTEX_POSITION, VERTEX_TEXTURE_COORD, VERTEX_NORMAL, VERTEX_TANGENT, NB_VERTEX_ATTRIBUTES};
-    constexpr size_t MAX_VERTEX_ATTRIBUTE_SIZE = 4;
+
+    size_t sizeOfType(GLenum type)
+    {
+        switch(type)
+        {
+        case GL_FLOAT_VEC4:
+            return 4;
+        case GL_FLOAT_VEC3:
+            return 3;
+        case GL_FLOAT_VEC2:
+            return 2;
+        case GL_FLOAT:
+            return 1;
+        default:
+            return 0;
+        }
+    }
+
+    void copy(GLfloat *dest, const glm::vec4 &source, size_t destWitdh, bool homogeneous = false)
+    {
+        switch(destWitdh)
+        {
+        case 4:
+            dest[3] = source.w;
+        case 3:
+            dest[2] = source.z;
+        case 2:
+            dest[1] = source.y;
+        case 1:
+            dest[0] = source.x;
+        }
+
+        if (homogeneous && destWitdh < 4 && source.w != .0f)
+        {
+            switch(destWitdh)
+            {
+            case 3:
+                dest[2] /= source.w;
+            case 2:
+                dest[1] /= source.w;
+            case 1:
+                dest[0] /= source.w;
+            }
+        }
+    }
+
+    void copy(GLfloat *dest, const glm::vec3 &source, size_t destWitdh)
+    {
+        switch(destWitdh)
+        {
+        case 4:
+            dest[3] = 1.0f;
+        case 3:
+            dest[2] = source.z;
+        case 2:
+            dest[1] = source.y;
+        case 1:
+            dest[0] = source.x;
+        }
+    }
+
+    VertexAttributeBuffer toVertexAttributeBuffer(const glv::VertexAttributeDeclaration &vad)
+    {
+        if (vad.name() == "vertexPosition")
+        {
+            return VERTEX_POSITION;
+        }
+        else if (vad.name() == "vertexNormal")
+        {
+            return VERTEX_NORMAL;
+        }
+        else if (vad.name() == "vertexTextureCoord")
+        {
+            return VERTEX_TEXTURE_COORD;
+        }
+        else if (vad.name() == "vertexTangent")
+        {
+            return VERTEX_TANGENT;
+        }
+        return NB_VERTEX_ATTRIBUTES;
+    }
+
+    struct VertexAttributeBufferDesc
+    {
+        GLuint index;
+        VertexAttributeBuffer type;
+        size_t offset;
+        size_t size;
+    };
+
+    using VertexAttributeBufferDescVector = std::vector<VertexAttributeBufferDesc>;
+
+    inline size_t computeVertexAttributesStructureSize(const VertexAttributeBufferDescVector &v)
+    {
+        return v.empty() ? 0 : v.back().offset + v.back().size;
+    }
+
+    VertexAttributeBufferDescVector createVertexAttributeBufferDescVector(const glv::VertexAttributeDeclarationVector &vads)
+    {
+        std::vector<VertexAttributeBufferDesc> vertexAttributeBufferDescVector;
+        size_t vertexAttributePointerOffset = 0;
+        VertexAttributeBufferDesc vabd;
+        for(const glv::VertexAttributeDeclaration &vad : vads)
+        {
+            vabd.index = vad.index();
+            vabd.size = sizeOfType(vad.type());
+            vabd.type = toVertexAttributeBuffer(vad);
+            vabd.offset = vertexAttributePointerOffset;
+            vertexAttributeBufferDescVector.push_back(vabd);
+
+            vertexAttributePointerOffset += vabd.size;
+        }
+        return vertexAttributeBufferDescVector;
+    }
+
+    glv::GlMeshGeneration checkAndComputeVertexAttributes(const glv::VertexAttributeDeclarationVector &vads, vfm::ObjModel &objModel)
+    {
+        bool noBufferAvailable = false;
+        int nbVertexAttributes = 0;
+        for(const glv::VertexAttributeDeclaration &vad : vads)
+        {
+            switch(toVertexAttributeBuffer(vad))
+            {
+            case VERTEX_POSITION:
+                noBufferAvailable = objModel.vertices.empty();
+                break;
+            case VERTEX_NORMAL:
+                if (objModel.normals.empty())
+                {
+                    objModel.computeNormals();
+                    noBufferAvailable = objModel.normals.empty();
+                }
+                break;
+            case VERTEX_TANGENT:
+                if (objModel.tangents.empty())
+                {
+                    objModel.computeTangents();
+                    noBufferAvailable = objModel.tangents.empty();
+                }
+                break;
+            case VERTEX_TEXTURE_COORD:
+                noBufferAvailable = objModel.textures.empty();
+                break;
+
+            default:
+                noBufferAvailable = true;
+            }
+
+            if (noBufferAvailable)
+            {
+                return glv::GlMeshGeneration::failed(std::string("No buffer available for vertex attribute '") + vad.name() + "'!");
+            }
+
+            if (! sizeOfType(vad.type()))
+            {
+                return glv::GlMeshGeneration::failed(std::string("Invalid type for vertex attribute '") + vad.name() + "': expected float, vec2, vec3 or vec4.");
+            }
+            ++nbVertexAttributes;
+        }
+
+        if (nbVertexAttributes == 0)
+        {
+            return glv::GlMeshGeneration::failed("No vertex attributes found!");
+        }
+        return glv::GlMeshGeneration::succeeded();
+    }
+
+    void fillBuffer(GLfloat *tmpBuffer, glv::BoundingBox &boundingBox, const vfm::ObjModel &objModel, const VertexAttributeBufferDescVector &vertexAttributeBufferDescVector)
+    {
+        int tmpBufferOffset = 0;
+        size_t vertexAttributesStructureSize = computeVertexAttributesStructureSize(vertexAttributeBufferDescVector);
+
+        for(const vfm::Object &o : objModel.objects)
+        {
+            for(size_t index : o.triangles)
+            {
+                const vfm::VertexIndex &vertexIndex = o.vertexIndices[index];
+                for (VertexAttributeBufferDesc vabd : vertexAttributeBufferDescVector)
+                {
+                    switch (vabd.type) {
+                    case VERTEX_POSITION:
+                        if (vertexIndex.vertex != 0)
+                        {
+                            const glm::vec4 & position = objModel.vertices[vertexIndex.vertex-1];
+                            copy(&tmpBuffer[tmpBufferOffset + vabd.offset], position, vabd.size, true);
+                            boundingBox.accept(position.x / position.w, position.y / position.w, position.z / position.w);
+                        }
+                        break;
+                    case VERTEX_NORMAL:
+                        if (vertexIndex.normal != 0)
+                        {
+                            copy(&tmpBuffer[tmpBufferOffset + vabd.offset], objModel.normals[vertexIndex.normal-1], vabd.size);
+                        }
+                        break;
+                    case VERTEX_TANGENT:
+                        if (vertexIndex.normal != 0)
+                        {
+                            copy(&tmpBuffer[tmpBufferOffset + vabd.offset], objModel.tangents[vertexIndex.normal-1], vabd.size);
+                        }
+                        break;
+                    case VERTEX_TEXTURE_COORD:
+                        if (vertexIndex.texture != 0)
+                        {
+                            copy(&tmpBuffer[tmpBufferOffset + vabd.offset], objModel.textures[vertexIndex.texture-1], vabd.size);
+                        }
+                        break;
+                    default:
+                        break;
+                    }
+                }
+                tmpBufferOffset += vertexAttributesStructureSize;
+            }
+        }
+    }
 }
 
 const glv::MaterialIndex glv::MaterialHandler::NO_MATERIAL_INDEX = MAX_UINT;
@@ -32,7 +245,7 @@ void glv::BoundingBox::accept(float x, float y, float z)
     max.z = std::max(max.z, z);
 }
 
-glv::GlMesh::GlMesh() : _vertexArray{0}
+glv::GlMesh::GlMesh() : _vertexArray{0}, _buffer{0}
 {
 }
 
@@ -69,29 +282,18 @@ void glv::GlMesh::clear()
         glDeleteVertexArrays(1, &_vertexArray);
         _vertexArray = 0;
     }
-    if (!_buffers.empty())
+    if (_buffer > 0)
     {
-		glDeleteBuffers(static_cast<GLsizei>(_buffers.size()), &_buffers[0]);
+        glDeleteBuffers(1, &_buffer);
+        _buffer = 0;
     }
-    _boundingBox = BoundingBox{};
-    _buffers.clear();
-    _buffers.resize(NB_VERTEX_ATTRIBUTES);
+    _boundingBox = {};
     _definedVertexAttributes.clear();
     _materialGroups.clear();
 }
 
-glv::GlMeshGeneration glv::GlMesh::generate(const vfm::ObjModel &objModel)
+size_t glv::GlMesh::generateMaterialGroupsAndGetVertexCount(const vfm::ObjModel &objModel)
 {
-    clear();
-    GlError glError;
-    sys::Duration duration;
-
-    glGenVertexArrays(1, &_vertexArray);
-    if (glError)
-    {
-        return GlMeshGeneration::failed(glError.toString("Error during vertex array generation"), duration.elapsed());
-    }
-
     size_t bufferElements = 0;
     for(const vfm::Object &o : objModel.objects)
     {
@@ -105,186 +307,65 @@ glv::GlMeshGeneration glv::GlMesh::generate(const vfm::ObjModel &objModel)
             {
                 _materialGroups.push_back(MaterialGroup{MaterialHandler::NO_MATERIAL_INDEX, o.materialActivations[0].start});
             }
-            for(vfm::MaterialActivationVector::const_iterator it = o.materialActivations.begin(); it != o.materialActivations.end(); ++it)
+            for(const vfm::MaterialActivation &ma : o.materialActivations)
             {
-                _materialGroups.push_back(MaterialGroup{it->materialIndex, it->end - it->start});
+                _materialGroups.push_back(MaterialGroup{ma.materialIndex, ma.end - ma.start});
             }
         }
         bufferElements += o.triangles.size();
     }
-
-    std::vector<GLfloat> tmpBuffer(bufferElements * MAX_VERTEX_ATTRIBUTE_SIZE);
-
-    bool buffersAvailable [NB_VERTEX_ATTRIBUTES] = {false};
-    buffersAvailable[VERTEX_POSITION] = ! objModel.vertices.empty();
-    buffersAvailable[VERTEX_NORMAL] = ! objModel.normals.empty();
-    buffersAvailable[VERTEX_TEXTURE_COORD] = ! objModel.textures.empty();
-    buffersAvailable[VERTEX_TANGENT] = ! objModel.tangents.empty();
-
-    glBindVertexArray(_vertexArray);
-    for(size_t i = 0; i < NB_VERTEX_ATTRIBUTES; ++i)
-    {
-        GLuint bufferId = 0;
-        if (buffersAvailable[i])
-        {
-            glGenBuffers(1, &bufferId);
-            if (glError)
-            {
-                glBindVertexArray(0);
-                return GlMeshGeneration::failed(glError.toString("Error during buffer generation"), duration.elapsed());
-            }
-            _buffers[i] = bufferId;
-            generate(objModel, i, tmpBuffer);
-            if (glError)
-            {
-                glBindVertexArray(0);
-                return GlMeshGeneration::failed(glError.toString("Error while copying buffer data"), duration.elapsed());
-            }
-        }
-    }
-    glBindVertexArray(0);
-    return GlMeshGeneration::succeeded(duration.elapsed());
+    return bufferElements;
 }
 
-void glv::GlMesh::generate(const vfm::ObjModel &objModel, size_t channel, std::vector<GLfloat> &buffer)
+glv::GlMeshGeneration glv::GlMesh::generate(vfm::ObjModel &objModel, const glv::VertexAttributeDeclarationVector &vads)
 {
-    if (!_buffers[channel])
-    {
-        return;
+    clear();
+    sys::Duration duration;
+
+    GlMeshGeneration result = checkAndComputeVertexAttributes(vads, objModel);
+    if (!result) {
+        return result;
     }
 
-    int i = 0;
-    const glm::vec4 *vec4 = 0;
-    const glm::vec3 *vec3 = 0;
-    for(const vfm::Object &o : objModel.objects)
-    {
-        for(size_t index : o.triangles)
-        {
-            const vfm::VertexIndex &vertexIndex = o.vertexIndices[index];
-            GLfloat x, y, z, w = 0;
-            switch(channel)
-            {
-            case VERTEX_POSITION:
-                if (vertexIndex.vertex > 0)
-                {
-                    vec4 = &objModel.vertices[vertexIndex.vertex -1];
-                    x = vec4->x / vec4->w;
-                    y = vec4->y / vec4->w;
-                    z = vec4->z / vec4->w;
-                    _boundingBox.accept(x, y, z);
+    const size_t vertexCount = generateMaterialGroupsAndGetVertexCount(objModel);
 
-                }
-                break;
-            case VERTEX_NORMAL:
-                if (vertexIndex.normal > 0)
-                {
-                    vec3 = &objModel.normals[vertexIndex.normal -1];
-                    x = vec3->x;
-                    y = vec3->y;
-                    z = vec3->z;
-                }
-                break;
-            case VERTEX_TANGENT:
-                if (vertexIndex.normal > 0)
-                {
-                    vec4 = &objModel.tangents[vertexIndex.normal -1];
-                    x = vec4->x;
-                    y = vec4->y;
-                    z = vec4->z;
-                    w = vec4->w;
-                }
-                break;
-            case VERTEX_TEXTURE_COORD:
-                if (vertexIndex.texture > 0)
-                {
-                    vec3 = &objModel.textures[vertexIndex.texture -1];
-                    x = vec3->x;
-                    y = vec3->y;
-                    z = vec3->z;
-                }
-                break;
-            }
-            buffer[i++] = x;
-            buffer[i++] = y;
-            buffer[i++] = z;
-            buffer[i++] = w;
-        }
-    }
+    VertexAttributeBufferDescVector vertexAttributeBufferDescVector = createVertexAttributeBufferDescVector(vads);
+    size_t vertexAttributesStructureSize = computeVertexAttributesStructureSize(vertexAttributeBufferDescVector);
 
-    glBindBuffer(GL_ARRAY_BUFFER, _buffers[channel]);
-    glBufferData(GL_ARRAY_BUFFER, buffer.size() * sizeof(GLfloat), &buffer[0], GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
+    std::vector<GLfloat> tmpBuffer(vertexCount * vertexAttributesStructureSize);
+    fillBuffer(tmpBuffer.data(), _boundingBox, objModel, vertexAttributeBufferDescVector);
 
-
-size_t glv::GlMesh::getBufferIndex(const std::string &name)
-{
-    if (name == "vertexPosition")
-    {
-        return VERTEX_POSITION;
-    }
-    else if (name == "vertexNormal")
-    {
-        return VERTEX_NORMAL;
-    }
-    else if (name == "vertexTextureCoord")
-    {
-        return VERTEX_TEXTURE_COORD;
-    }
-    else if (name == "vertexTangent")
-    {
-        return VERTEX_TANGENT;
-    }
-    return NB_VERTEX_ATTRIBUTES;
-}
-
-glv::VertexAttributeDataDefinition glv::GlMesh::defineVertexAttributeData(const VertexAttributeDeclaration& vad)
-{
     GlError glError;
-    size_t bufferIndex = getBufferIndex(vad.name());
-    if (bufferIndex >= _buffers.size() || _buffers[bufferIndex] == 0)
-    {
-        return VertexAttributeDataDefinition::failed(std::string("No buffer available for vertex attribute '") + vad.name() + "'");
-    }
-    if (vad.size() > 1)
-    {
-        return VertexAttributeDataDefinition::failed(std::string("Vertex attribute '") + vad.name() + "' cannot be an array");
-    }
 
-    GLint vertexAttributeSize = 0;
-    GLsizei stride = 0;
-    switch(vad.type())
-    {
-    case GL_FLOAT_VEC4:
-        vertexAttributeSize = 4;
-        stride = 0;
-        break;
-    case GL_FLOAT_VEC3:
-        vertexAttributeSize = 3;
-        stride = 4*sizeof(GL_FLOAT);
-        break;
-    case GL_FLOAT_VEC2:
-        vertexAttributeSize = 2;
-        stride = 4*sizeof(GL_FLOAT);
-        break;
-    case GL_FLOAT:
-        vertexAttributeSize = 1;
-        stride = 4*sizeof(GL_FLOAT);
-        break;
-    default:
-        return VertexAttributeDataDefinition::failed(std::string("Invalid type for vertex attribute '") + vad.name() + "': expected float, vec2, vec3 or vec4.");
-    }
-
-    glBindVertexArray(_vertexArray);
-    glBindBuffer(GL_ARRAY_BUFFER, _buffers[bufferIndex]);
-    glVertexAttribPointer(vad.index(), vertexAttributeSize, GL_FLOAT, (bufferIndex == VERTEX_NORMAL ? GL_TRUE : GL_FALSE), stride, (void*)0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    glGenVertexArrays(1, &_vertexArray);
     if (glError)
     {
-        return VertexAttributeDataDefinition::failed(glError.toString("defining vertex attribute"));
+        return GlMeshGeneration::failed(glError.toString("Error during vertex array generation"), duration.elapsed());
     }
-    _definedVertexAttributes.push_back(vad.index());
-    return VertexAttributeDataDefinition::succeeded();
-}
 
+    glBindVertexArray(_vertexArray);
+    glGenBuffers(1, &_buffer);
+    if (glError)
+    {
+        glBindVertexArray(0);
+        return GlMeshGeneration::failed(glError.toString("Error during buffers generation"), duration.elapsed());
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, _buffer);
+
+    for (VertexAttributeBufferDesc vabd : vertexAttributeBufferDescVector)
+    {
+        glVertexAttribPointer(vabd.index, vabd.size, GL_FLOAT, (vabd.type == VERTEX_NORMAL ? GL_TRUE : GL_FALSE), (vertexAttributesStructureSize * sizeof(GL_FLOAT)), (void*)(vabd.offset  * sizeof(GL_FLOAT)));
+        _definedVertexAttributes.push_back(vabd.index);
+    }
+    glBufferData(GL_ARRAY_BUFFER, tmpBuffer.size() * sizeof(GLfloat), tmpBuffer.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    if (glError)
+    {
+        return GlMeshGeneration::failed(glError.toString("defining vertex attribute"));
+    }
+
+    return GlMeshGeneration::succeeded(duration.elapsed());
+}

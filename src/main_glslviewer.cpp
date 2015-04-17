@@ -418,7 +418,6 @@ public:
         }
         if (good()) createProgram(vertexShader, fragmentShader);
         if (good()) createMesh(objFilename);
-        if (good()) defineVertexAttributes();
     }
 
     LoadFile readFile(const char *filename, std::string &content)
@@ -467,7 +466,7 @@ public:
 
         materialHandler.loadMaterials(textureLoader, objFilename, model);
 
-        check(mesh.generate(model), "generating mesh");
+        check(mesh.generate(model, this->program.getVertexAttributeDeclarations()), "generating mesh");
     }
 
     void createProgram(const std::string &vertexShader, const std::string &fragmentShader)
@@ -501,18 +500,6 @@ public:
 
             materialHandler.loadUniforms(program);
         }
-    }
-
-    bool defineVertexAttributes()
-    {
-        for (auto vertexAttributeDeclaration : program.getVertexAttributeDeclarations())
-        {
-            if(!check(this->mesh.defineVertexAttributeData(vertexAttributeDeclaration), "binding vertex attribute"))
-            {
-                return false;
-            }
-        }
-        return true;
     }
 
     void update(glv::GlWindowContext& glf)

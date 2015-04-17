@@ -12,7 +12,6 @@ namespace glv
 {
 
 using GlMeshGeneration = OperationResult;
-using VertexAttributeDataDefinition = OperationResult;
 
 class BoundingBox
 {
@@ -66,9 +65,10 @@ class GlMesh
 public:
     GlMesh();
     ~GlMesh();
+    GlMesh(const GlMesh&) = delete;
+    GlMesh& operator = (const GlMesh&) = delete;
 
-    GlMeshGeneration generate(const vfm::ObjModel &objModel);
-    VertexAttributeDataDefinition defineVertexAttributeData(const VertexAttributeDeclaration& vad);
+    GlMeshGeneration generate(vfm::ObjModel &objModel, const VertexAttributeDeclarationVector &vads);
 
     void render(MaterialHandler *handler = 0);
 
@@ -86,17 +86,14 @@ private:
         size_t size;
     };
 
-    typedef std::vector<MaterialGroup> MaterialGroupVector;
+    using MaterialGroupVector = std::vector<MaterialGroup>;
 
-    GlMesh(const GlMesh&);
-    GlMesh& operator = (const GlMesh&);
-    size_t getBufferIndex(const std::string &name);
-    void generate(const vfm::ObjModel &objModel, size_t channel, std::vector<GLfloat> &buffer);
     void clear();
+    size_t generateMaterialGroupsAndGetVertexCount(const vfm::ObjModel &objModel);
 
     GLuint _vertexArray;
+    GLuint _buffer;
     BoundingBox _boundingBox;
-    std::vector<GLuint> _buffers;
     std::vector<GLuint> _definedVertexAttributes;
     MaterialGroupVector _materialGroups;
 };
