@@ -15,7 +15,7 @@ namespace
 const char* EMPTY_PATH="";
 }
 
-sys::Path::Path(const char *path, size_t size): _length(0), _absoluteSectionLength(0), _path(nullptr)
+sys::Path::Path(const char *path, std::size_t size): _length(0), _absoluteSectionLength(0), _path(nullptr)
 {
     if(path != nullptr)
     {
@@ -120,7 +120,7 @@ const char *sys::Path::basename() const
     {
         return EMPTY_PATH;
     }
-    for (size_t i = this->_length; i > 0; --i)
+    for (std::size_t i = this->_length; i > 0; --i)
     {
         if(this->_path[i-1] == Path::SEPARATOR)
         {
@@ -133,7 +133,7 @@ const char *sys::Path::basename() const
 const char *sys::Path::extension() const
 {
     char *extension = 0;
-	for (size_t i = this->_length; i > std::max(static_cast<size_t>(1), this->_absoluteSectionLength); --i)
+	for (std::size_t i = this->_length; i > std::max(static_cast<std::size_t>(1), this->_absoluteSectionLength); --i)
     {
         if (this->_path[i-1] == '.')
         {
@@ -166,7 +166,7 @@ sys::Path sys::Path::withoutExtension() const
 
 sys::Path sys::Path::dirpath() const
 {
-    size_t i = this->_length;
+    std::size_t i = this->_length;
     for(; i > this->_absoluteSectionLength; --i)
     {
         if (this->_path[i-1] == Path::SEPARATOR && i < this->_length)

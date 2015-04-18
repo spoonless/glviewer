@@ -11,7 +11,7 @@ class Path
 public:
     static const char SEPARATOR;
 
-    Path(const char *path = 0, size_t size = 0);
+    Path(const char *path = 0, std::size_t size = 0);
     Path(Path &&path);
     Path(const Path &path);
     Path(const Path &parent, const Path &path);
@@ -35,8 +35,8 @@ public:
 private:
     void normalize();
     void computeAbsoluteSectionLength();
-    size_t _length;
-    size_t _absoluteSectionLength;
+    std::size_t _length;
+    std::size_t _absoluteSectionLength;
     char *_path;
 };
 

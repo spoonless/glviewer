@@ -12,7 +12,7 @@
 namespace vfm
 {
 
-typedef size_t MaterialIndex;
+typedef std::size_t MaterialIndex;
 typedef std::vector<glm::vec4> Vec4Vector;
 typedef std::vector<glm::vec3> Vec3Vector;
 
@@ -47,13 +47,13 @@ typedef std::map<std::string, Material> MaterialMap;
 
 struct VertexIndex
 {
-    VertexIndex (size_t vertex = 0, size_t normal = 0, size_t texture = 0);
+    VertexIndex (std::size_t vertex = 0, std::size_t normal = 0, std::size_t texture = 0);
 
     bool operator == (const VertexIndex &vi) const;
 
-    size_t vertex;
-    size_t normal;
-    size_t texture;
+    std::size_t vertex;
+    std::size_t normal;
+    std::size_t texture;
 };
 
 struct MaterialId
@@ -77,17 +77,17 @@ struct MaterialId
 
 struct MaterialActivation
 {
-    MaterialActivation(MaterialIndex materialIndex, size_t start = 0u, size_t end = 0u) : materialIndex(materialIndex), start(start), end(end) {}
+    MaterialActivation(MaterialIndex materialIndex, std::size_t start = 0u, std::size_t end = 0u) : materialIndex(materialIndex), start(start), end(end) {}
 
 	MaterialIndex materialIndex;
-    size_t start;
-    size_t end;
+    std::size_t start;
+    std::size_t end;
 };
 
 typedef std::vector<MaterialId> MaterialIdVector;
 typedef std::vector<MaterialActivation> MaterialActivationVector;
 typedef std::vector<VertexIndex> VertexIndexVector;
-typedef std::vector<size_t> IndexVector;
+typedef std::vector<std::size_t> IndexVector;
 
 struct Object
 {

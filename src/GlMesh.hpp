@@ -80,16 +80,16 @@ public:
 private:
     struct MaterialGroup
     {
-		MaterialGroup(MaterialIndex index, size_t size);
+        MaterialGroup(MaterialIndex index, std::size_t size);
 
         MaterialIndex index;
-        size_t size;
+        std::size_t size;
     };
 
     using MaterialGroupVector = std::vector<MaterialGroup>;
 
     void clear();
-    size_t generateMaterialGroupsAndGetVertexCount(const vfm::ObjModel &objModel);
+    std::size_t generateMaterialGroupsAndGetVertexCount(const vfm::ObjModel &objModel);
 
     GLuint _vertexArray;
     GLuint _buffer;

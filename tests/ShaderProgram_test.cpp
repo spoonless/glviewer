@@ -202,7 +202,7 @@ TEST(ShaderProgram, canGetUniformDeclarationWhenOneUniform)
 
     UniformDeclarationVector uniformDeclarationVector = shaderProgram.getUniformDeclarations();
 
-    ASSERT_EQ(static_cast<size_t>(1), uniformDeclarationVector.size());
+    ASSERT_EQ(static_cast<std::size_t>(1), uniformDeclarationVector.size());
     ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 0, 1, GL_FLOAT_VEC4, "position"), uniformDeclarationVector[0]);
 }
 
@@ -240,7 +240,7 @@ TEST(ShaderProgram, canGetFixedArrayUniformDeclaration)
 
     UniformDeclarationVector uniformDeclarationVector = shaderProgram.getUniformDeclarations();
 
-    ASSERT_EQ(static_cast<size_t>(1), uniformDeclarationVector.size());
+    ASSERT_EQ(static_cast<std::size_t>(1), uniformDeclarationVector.size());
     ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 0, 2, GL_FLOAT_VEC4, "position[0]"), uniformDeclarationVector[0]);
 }
 
@@ -259,7 +259,7 @@ TEST(ShaderProgram, canGetArrayUniformDeclaration)
 
     UniformDeclarationVector uniformDeclarationVector = shaderProgram.getUniformDeclarations();
 
-    ASSERT_EQ(static_cast<size_t>(1), uniformDeclarationVector.size());
+    ASSERT_EQ(static_cast<std::size_t>(1), uniformDeclarationVector.size());
     ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 0, 4, GL_FLOAT_VEC4, "position[0]"), uniformDeclarationVector[0]);
 }
 
@@ -282,7 +282,7 @@ TEST(ShaderProgram, canGetStructUniformDeclaration)
 
     UniformDeclarationVector uniformDeclarationVector = shaderProgram.getUniformDeclarations();
 
-    ASSERT_EQ(static_cast<size_t>(2), uniformDeclarationVector.size());
+    ASSERT_EQ(static_cast<std::size_t>(2), uniformDeclarationVector.size());
     ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 0, 1, GL_FLOAT_VEC4, "ms.position1"), uniformDeclarationVector[0]);
     ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 1, 1, GL_FLOAT_VEC3, "ms.position2"), uniformDeclarationVector[1]);
 }
@@ -306,7 +306,7 @@ TEST(ShaderProgram, canGetStructArrayUniformDeclaration)
 
     UniformDeclarationVector uniformDeclarationVector = shaderProgram.getUniformDeclarations();
 
-    ASSERT_EQ(static_cast<size_t>(2), uniformDeclarationVector.size());
+    ASSERT_EQ(static_cast<std::size_t>(2), uniformDeclarationVector.size());
     ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 0, 2, GL_FLOAT_VEC4, "ms[1].position1[0]"), uniformDeclarationVector[0]);
     ASSERT_EQ(UniformDeclaration(shaderProgram.getId(), 2, 1, GL_FLOAT_VEC3, "ms[1].position2"), uniformDeclarationVector[1]);
 }
@@ -327,7 +327,7 @@ TEST(ShaderProgram, canGetMultipleUniformDeclaration)
 
     UniformDeclarationVector uniformDeclarationVector = shaderProgram.getUniformDeclarations();
 
-    ASSERT_EQ(static_cast<size_t>(2), uniformDeclarationVector.size());
+    ASSERT_EQ(static_cast<std::size_t>(2), uniformDeclarationVector.size());
 
     for (unsigned int i = 0; i < uniformDeclarationVector.size(); ++i)
     {
@@ -376,7 +376,7 @@ TEST(ShaderProgram, canGetAttributeDeclarationWhenOneAttribute)
 
     VertexAttributeDeclarationVector vector = shaderProgram.getVertexAttributeDeclarations();
 
-    ASSERT_EQ(static_cast<size_t>(1), vector.size());
+    ASSERT_EQ(static_cast<std::size_t>(1), vector.size());
     ASSERT_EQ(VertexAttributeDeclaration(0, 1, GL_FLOAT_VEC4, "vertices"), vector[0]);
 }
 
@@ -396,7 +396,7 @@ TEST(ShaderProgram, canGetAttributeDeclarationWhenSeveralAttributes)
 
     VertexAttributeDeclarationVector vector = shaderProgram.getVertexAttributeDeclarations();
 
-    ASSERT_EQ(static_cast<size_t>(2), vector.size());
+    ASSERT_EQ(static_cast<std::size_t>(2), vector.size());
     ASSERT_EQ(VertexAttributeDeclaration(0, 1, GL_FLOAT, "magnitude"), vector[0]);
     ASSERT_EQ(VertexAttributeDeclaration(2, 1, GL_FLOAT_VEC4, "vertices"), vector[1]);
 }

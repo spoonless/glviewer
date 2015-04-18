@@ -26,7 +26,7 @@ void normalizeArrayName(std::string &name)
      */
     if (name.length() > ARRAY_NORMALIZATION_SUFFIX_LENGTH)
     {
-        size_t position = name.rfind(ARRAY_NORMALIZATION_SUFFIX);
+        std::size_t position = name.rfind(ARRAY_NORMALIZATION_SUFFIX);
         if (position == name.length() - ARRAY_NORMALIZATION_SUFFIX_LENGTH)
         {
             name.erase(position);

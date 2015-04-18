@@ -12,7 +12,7 @@ namespace
 
     enum VertexAttributeBuffer{VERTEX_POSITION, VERTEX_TEXTURE_COORD, VERTEX_NORMAL, VERTEX_TANGENT, NB_VERTEX_ATTRIBUTES};
 
-    size_t sizeOfType(GLenum type)
+    std::size_t sizeOfType(GLenum type)
     {
         switch(type)
         {
@@ -29,7 +29,7 @@ namespace
         }
     }
 
-    void copy(GLfloat *dest, const glm::vec4 &source, size_t destWitdh, bool homogeneous = false)
+    void copy(GLfloat *dest, const glm::vec4 &source, std::size_t destWitdh, bool homogeneous = false)
     {
         switch(destWitdh)
         {
@@ -57,7 +57,7 @@ namespace
         }
     }
 
-    void copy(GLfloat *dest, const glm::vec3 &source, size_t destWitdh)
+    void copy(GLfloat *dest, const glm::vec3 &source, std::size_t destWitdh)
     {
         switch(destWitdh)
         {
@@ -97,13 +97,13 @@ namespace
     {
         GLuint index;
         VertexAttributeBuffer type;
-        size_t offset;
-        size_t size;
+        std::size_t offset;
+        std::size_t size;
     };
 
     using VertexAttributeBufferDescVector = std::vector<VertexAttributeBufferDesc>;
 
-    inline size_t computeVertexAttributesStructureSize(const VertexAttributeBufferDescVector &v)
+    inline std::size_t computeVertexAttributesStructureSize(const VertexAttributeBufferDescVector &v)
     {
         return v.empty() ? 0 : v.back().offset + v.back().size;
     }
@@ -111,7 +111,7 @@ namespace
     VertexAttributeBufferDescVector createVertexAttributeBufferDescVector(const glv::VertexAttributeDeclarationVector &vads)
     {
         std::vector<VertexAttributeBufferDesc> vertexAttributeBufferDescVector;
-        size_t vertexAttributePointerOffset = 0;
+        std::size_t vertexAttributePointerOffset = 0;
         VertexAttributeBufferDesc vabd;
         for(const glv::VertexAttributeDeclaration &vad : vads)
         {
@@ -181,11 +181,11 @@ namespace
     void fillBuffer(GLfloat *tmpBuffer, glv::BoundingBox &boundingBox, const vfm::ObjModel &objModel, const VertexAttributeBufferDescVector &vertexAttributeBufferDescVector)
     {
         int tmpBufferOffset = 0;
-        size_t vertexAttributesStructureSize = computeVertexAttributesStructureSize(vertexAttributeBufferDescVector);
+        std::size_t vertexAttributesStructureSize = computeVertexAttributesStructureSize(vertexAttributeBufferDescVector);
 
         for(const vfm::Object &o : objModel.objects)
         {
-            for(size_t index : o.triangles)
+            for(std::size_t index : o.triangles)
             {
                 const vfm::VertexIndex &vertexIndex = o.vertexIndices[index];
                 for (VertexAttributeBufferDesc vabd : vertexAttributeBufferDescVector)
@@ -229,7 +229,7 @@ namespace
 
 const glv::MaterialIndex glv::MaterialHandler::NO_MATERIAL_INDEX = MAX_UINT;
 
-glv::GlMesh::MaterialGroup::MaterialGroup(MaterialIndex index, size_t size) : index{index}, size{size} {}
+glv::GlMesh::MaterialGroup::MaterialGroup(MaterialIndex index, std::size_t size) : index{index}, size{size} {}
 
 glv::BoundingBox::BoundingBox() : min{MAX_FLOAT, MAX_FLOAT, MAX_FLOAT}, max{MIN_FLOAT, MIN_FLOAT, MIN_FLOAT}
 {
@@ -292,9 +292,9 @@ void glv::GlMesh::clear()
     _materialGroups.clear();
 }
 
-size_t glv::GlMesh::generateMaterialGroupsAndGetVertexCount(const vfm::ObjModel &objModel)
+std::size_t glv::GlMesh::generateMaterialGroupsAndGetVertexCount(const vfm::ObjModel &objModel)
 {
-    size_t bufferElements = 0;
+    std::size_t bufferElements = 0;
     for(const vfm::Object &o : objModel.objects)
     {
         if(o.materialActivations.empty())
@@ -327,10 +327,10 @@ glv::GlMeshGeneration glv::GlMesh::generate(vfm::ObjModel &objModel, const glv::
         return result;
     }
 
-    const size_t vertexCount = generateMaterialGroupsAndGetVertexCount(objModel);
+    const std::size_t vertexCount = generateMaterialGroupsAndGetVertexCount(objModel);
 
     VertexAttributeBufferDescVector vertexAttributeBufferDescVector = createVertexAttributeBufferDescVector(vads);
-    size_t vertexAttributesStructureSize = computeVertexAttributesStructureSize(vertexAttributeBufferDescVector);
+    std::size_t vertexAttributesStructureSize = computeVertexAttributesStructureSize(vertexAttributeBufferDescVector);
 
     std::vector<GLfloat> tmpBuffer(vertexCount * vertexAttributesStructureSize);
     fillBuffer(tmpBuffer.data(), _boundingBox, objModel, vertexAttributeBufferDescVector);

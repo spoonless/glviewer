@@ -29,10 +29,10 @@ public:
         return *this;
     }
 
-    size_t operator [](const vfm::VertexIndex &vi)
+    std::size_t operator [](const vfm::VertexIndex &vi)
     {
-        size_t mapSize = _vertexIndexMap.size();
-        size_t *index = &_vertexIndexMap[vi];
+        std::size_t mapSize = _vertexIndexMap.size();
+        std::size_t *index = &_vertexIndexMap[vi];
         if (_vertexIndexMap.size() > mapSize)
         {
             *index = _object->vertexIndices.size();
@@ -56,7 +56,7 @@ private:
           return vi1.vertex < vi2.vertex;
         }
     };
-    typedef std::map<vfm::VertexIndex, size_t, VertexIndexComparator> VertexIndexMap;
+    typedef std::map<vfm::VertexIndex, std::size_t, VertexIndexComparator> VertexIndexMap;
 
     vfm::Object *_object;
     VertexIndexMap _vertexIndexMap;
@@ -71,7 +71,7 @@ inline const char *nextToken(const char* l)
 
 class LineReader
 {
-    static const size_t BUFFER_CHUNK_SIZE;
+    static const std::size_t BUFFER_CHUNK_SIZE;
 public:
     LineReader(std::istream &is);
     ~LineReader();
@@ -90,11 +90,11 @@ private:
     void copyReadLine();
 
     std::istream &_is;
-    size_t _capacity;
+    std::size_t _capacity;
     char *_line;
 };
 
-const size_t LineReader::BUFFER_CHUNK_SIZE = 256 * sizeof(char);
+const std::size_t LineReader::BUFFER_CHUNK_SIZE = 256 * sizeof(char);
 
 LineReader::LineReader(std::istream &is) : _is(is), _capacity{BUFFER_CHUNK_SIZE}
 {
@@ -184,18 +184,18 @@ inline char* read(const char *line, glm::vec3 &vec3)
 
 inline void createTriangles(const vfm::IndexVector &polygons, vfm::IndexVector &triangles)
 {
-    size_t nbIndices = polygons.size();
+    std::size_t nbIndices = polygons.size();
     if (nbIndices < 3)
     {
         return;
     }
 
-    size_t descIndex = nbIndices;
-    size_t ascIndex = 2;
+    std::size_t descIndex = nbIndices;
+    std::size_t ascIndex = 2;
 
-    size_t previous = polygons[0];
-    size_t current = polygons[1];
-    size_t next = polygons[2];
+    std::size_t previous = polygons[0];
+    std::size_t current = polygons[1];
+    std::size_t next = polygons[2];
 
     for(bool asc = false; ascIndex < descIndex; asc = !asc)
     {
@@ -216,20 +216,20 @@ inline void createTriangles(const vfm::IndexVector &polygons, vfm::IndexVector &
     }
 }
 
-inline size_t readIndex(const char *token, char **endToken, size_t nbElements)
+inline std::size_t readIndex(const char *token, char **endToken, std::size_t nbElements)
 {
     long value = std::strtol(token, endToken, 10);
-    size_t result = 0;
+    std::size_t result = 0;
     if (value >= 0)
     {
-        result = static_cast<size_t>(value);
+        result = static_cast<std::size_t>(value);
     }
     else
     {
         value += nbElements + 1;
         if (value > 0)
         {
-            result = static_cast<size_t>(value);
+            result = static_cast<std::size_t>(value);
         }
     }
     return result;
@@ -296,7 +296,7 @@ inline void endMaterialActivation(vfm::Object *object)
 
 }
 
-vfm::VertexIndex::VertexIndex (size_t vertex, size_t normal, size_t texture)
+vfm::VertexIndex::VertexIndex (std::size_t vertex, std::size_t normal, std::size_t texture)
     : vertex(vertex), normal(normal), texture(texture)
 {
 }
@@ -490,7 +490,7 @@ void vfm::ObjModel::computeNormals(bool normalized)
             glm::vec3 normal = glm::normalize(glm::cross(b-a, c-a));
             for (int i = 0; i < 3; ++i)
             {
-                size_t vertexIndex = vertexIndices[i]->vertex;
+                std::size_t vertexIndex = vertexIndices[i]->vertex;
                 this->normals[vertexIndex - 1] += normal;
                 vertexIndices[i]->normal = vertexIndex;
             }
@@ -548,7 +548,7 @@ void vfm::ObjModel::computeTangents()
             glm::vec3 sdir{(v.t * a.x - u.t * b.x) * r, (v.t * a.y - u.t * b.y) * r, (v.t * a.z - u.t * b.z) * r};
             glm::vec3 tdir{(u.s * b.x - v.s * a.x) * r, (u.s * b.y - v.s * a.y) * r, (u.s * b.z - v.s * a.z) * r};
 
-            for(size_t i = 0; i < 3; ++i)
+            for(std::size_t i = 0; i < 3; ++i)
             {
                 auto normalIndex = vertexIndices[i]->normal;
                 if (normalIndex == 0)
@@ -561,7 +561,7 @@ void vfm::ObjModel::computeTangents()
         }
     }
 
-    for(size_t i = 0; i < this->normals.size(); ++i)
+    for(std::size_t i = 0; i < this->normals.size(); ++i)
     {
         glm::vec3 &n = this->normals[i];
         glm::vec3 &t = tan1[i];
