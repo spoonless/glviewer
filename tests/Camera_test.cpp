@@ -2,7 +2,7 @@
 #include "glm/gtx/transform.hpp"
 #include "Camera.hpp"
 
-using namespace glv;
+using namespace gl;
 
 TEST(PerspectiveCamera, defaultProjectionMatrix)
 {

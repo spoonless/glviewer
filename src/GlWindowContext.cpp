@@ -5,7 +5,7 @@
 
 static bool gladOk = false;
 
-namespace glv
+namespace gl
 {
     namespace
     {
@@ -31,7 +31,7 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height)
     }
 }
 
-void glv::GlWindowContext::windowSizeCallback(GLFWwindow* window, int width, int height)
+void gl::GlWindowContext::windowSizeCallback(GLFWwindow* window, int width, int height)
 {
     GlWindowContext *glfw = static_cast<GlWindowContext*>(glfwGetWindowUserPointer(window));
     if(glfw)
@@ -44,17 +44,17 @@ void glv::GlWindowContext::windowSizeCallback(GLFWwindow* window, int width, int
     }
 }
 
-glv::GlWindowContext::GlWindowContext() : _window{nullptr}
+gl::GlWindowContext::GlWindowContext() : _window{nullptr}
 {
 
 }
 
-glv::GlWindowContext::~GlWindowContext()
+gl::GlWindowContext::~GlWindowContext()
 {
     glfwTerminate();
 }
 
-bool glv::GlWindowContext::init (std::string title, unsigned int width, unsigned int height)
+bool gl::GlWindowContext::init (std::string title, unsigned int width, unsigned int height)
 {
     glfwSetErrorCallback(errorCallback);
     LOG(INFO) << "Initializing GLFW...";
@@ -87,7 +87,7 @@ bool glv::GlWindowContext::init (std::string title, unsigned int width, unsigned
     return true;
 }
 
-bool glv::GlWindowContext::makeCurrent()
+bool gl::GlWindowContext::makeCurrent()
 {
     if (_window)
     {
@@ -101,29 +101,29 @@ bool glv::GlWindowContext::makeCurrent()
     return gladOk;
 }
 
-bool glv::GlWindowContext::shouldContinue()
+bool gl::GlWindowContext::shouldContinue()
 {
     return !glfwWindowShouldClose(_window);
 }
 
-void glv::GlWindowContext::swapAndPollEvents()
+void gl::GlWindowContext::swapAndPollEvents()
 {
     glfwSwapBuffers(_window);
     glfwPollEvents();
 }
 
-glm::vec2 glv::GlWindowContext::getCursorPosition()
+glm::vec2 gl::GlWindowContext::getCursorPosition()
 {
     double x,y;
     glfwGetCursorPos(this->_window, &x, &y);
     return glm::vec2(static_cast<float>(x/_windowSize.x), static_cast<float>(1.0 - (y/_windowSize.y)));
 }
 
-void glv::GlWindowContext::setWindowSizeCallback(const std::function<void(unsigned int, unsigned int)>  &windowSizeCallback)
+void gl::GlWindowContext::setWindowSizeCallback(const std::function<void(unsigned int, unsigned int)>  &windowSizeCallback)
 {
     _windowSizeCallback = windowSizeCallback;
     if (_window)
     {
-        glv::GlWindowContext::windowSizeCallback(_window, _windowSize.x, _windowSize.y);
+        gl::GlWindowContext::windowSizeCallback(_window, _windowSize.x, _windowSize.y);
     }
 }

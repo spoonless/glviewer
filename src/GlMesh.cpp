@@ -72,7 +72,7 @@ namespace
         }
     }
 
-    VertexAttributeBuffer toVertexAttributeBuffer(const glv::VertexAttributeDeclaration &vad)
+    VertexAttributeBuffer toVertexAttributeBuffer(const gl::VertexAttributeDeclaration &vad)
     {
         if (vad.name() == "vertexPosition")
         {
@@ -108,12 +108,12 @@ namespace
         return v.empty() ? 0 : v.back().offset + v.back().size;
     }
 
-    VertexAttributeBufferDescVector createVertexAttributeBufferDescVector(const glv::VertexAttributeDeclarationVector &vads)
+    VertexAttributeBufferDescVector createVertexAttributeBufferDescVector(const gl::VertexAttributeDeclarationVector &vads)
     {
         std::vector<VertexAttributeBufferDesc> vertexAttributeBufferDescVector;
         std::size_t vertexAttributePointerOffset = 0;
         VertexAttributeBufferDesc vabd;
-        for(const glv::VertexAttributeDeclaration &vad : vads)
+        for(const gl::VertexAttributeDeclaration &vad : vads)
         {
             vabd.index = vad.index();
             vabd.size = sizeOfType(vad.type());
@@ -126,11 +126,11 @@ namespace
         return vertexAttributeBufferDescVector;
     }
 
-    glv::GlMeshGeneration checkAndComputeVertexAttributes(const glv::VertexAttributeDeclarationVector &vads, vfm::ObjModel &objModel)
+    gl::GlMeshGeneration checkAndComputeVertexAttributes(const gl::VertexAttributeDeclarationVector &vads, vfm::ObjModel &objModel)
     {
         bool noBufferAvailable = false;
         int nbVertexAttributes = 0;
-        for(const glv::VertexAttributeDeclaration &vad : vads)
+        for(const gl::VertexAttributeDeclaration &vad : vads)
         {
             switch(toVertexAttributeBuffer(vad))
             {
@@ -161,24 +161,24 @@ namespace
 
             if (noBufferAvailable)
             {
-                return glv::GlMeshGeneration::failed(std::string("No buffer available for vertex attribute '") + vad.name() + "'!");
+                return gl::GlMeshGeneration::failed(std::string("No buffer available for vertex attribute '") + vad.name() + "'!");
             }
 
             if (! sizeOfType(vad.type()))
             {
-                return glv::GlMeshGeneration::failed(std::string("Invalid type for vertex attribute '") + vad.name() + "': expected float, vec2, vec3 or vec4.");
+                return gl::GlMeshGeneration::failed(std::string("Invalid type for vertex attribute '") + vad.name() + "': expected float, vec2, vec3 or vec4.");
             }
             ++nbVertexAttributes;
         }
 
         if (nbVertexAttributes == 0)
         {
-            return glv::GlMeshGeneration::failed("No vertex attributes found!");
+            return gl::GlMeshGeneration::failed("No vertex attributes found!");
         }
-        return glv::GlMeshGeneration::succeeded();
+        return gl::GlMeshGeneration::succeeded();
     }
 
-    void fillBuffer(GLfloat *tmpBuffer, glv::BoundingBox &boundingBox, const vfm::ObjModel &objModel, const VertexAttributeBufferDescVector &vertexAttributeBufferDescVector)
+    void fillBuffer(GLfloat *tmpBuffer, gl::BoundingBox &boundingBox, const vfm::ObjModel &objModel, const VertexAttributeBufferDescVector &vertexAttributeBufferDescVector)
     {
         int tmpBufferOffset = 0;
         std::size_t vertexAttributesStructureSize = computeVertexAttributesStructureSize(vertexAttributeBufferDescVector);
@@ -227,15 +227,15 @@ namespace
     }
 }
 
-const glv::MaterialIndex glv::MaterialHandler::NO_MATERIAL_INDEX = MAX_UINT;
+const gl::MaterialIndex gl::MaterialHandler::NO_MATERIAL_INDEX = MAX_UINT;
 
-glv::GlMesh::MaterialGroup::MaterialGroup(MaterialIndex index, std::size_t size) : index{index}, size{size} {}
+gl::GlMesh::MaterialGroup::MaterialGroup(MaterialIndex index, std::size_t size) : index{index}, size{size} {}
 
-glv::BoundingBox::BoundingBox() : min{MAX_FLOAT, MAX_FLOAT, MAX_FLOAT}, max{MIN_FLOAT, MIN_FLOAT, MIN_FLOAT}
+gl::BoundingBox::BoundingBox() : min{MAX_FLOAT, MAX_FLOAT, MAX_FLOAT}, max{MIN_FLOAT, MIN_FLOAT, MIN_FLOAT}
 {
 }
 
-void glv::BoundingBox::accept(float x, float y, float z)
+void gl::BoundingBox::accept(float x, float y, float z)
 {
     min.x = std::min(min.x, x);
     min.y = std::min(min.y, y);
@@ -245,17 +245,17 @@ void glv::BoundingBox::accept(float x, float y, float z)
     max.z = std::max(max.z, z);
 }
 
-glv::GlMesh::GlMesh() : _vertexArray{0}, _buffer{0}
+gl::GlMesh::GlMesh() : _vertexArray{0}, _buffer{0}
 {
 }
 
-void glv::GlMesh::render(glv::MaterialHandler *handler)
+void gl::GlMesh::render(gl::MaterialHandler *handler)
 {
     glBindVertexArray(_vertexArray);
     std::for_each(_definedVertexAttributes.begin(), _definedVertexAttributes.end(), glEnableVertexAttribArray);
 
     GLint firstPrimitive = 0;
-    for(glv::GlMesh::MaterialGroup &materialGroup : _materialGroups)
+    for(gl::GlMesh::MaterialGroup &materialGroup : _materialGroups)
     {
         if (handler)
         {
@@ -269,12 +269,12 @@ void glv::GlMesh::render(glv::MaterialHandler *handler)
     glBindVertexArray(0);
 }
 
-glv::GlMesh::~GlMesh()
+gl::GlMesh::~GlMesh()
 {
     clear();
 }
 
-void glv::GlMesh::clear()
+void gl::GlMesh::clear()
 {
     glBindVertexArray(0);
     if (_vertexArray > 0)
@@ -292,7 +292,7 @@ void glv::GlMesh::clear()
     _materialGroups.clear();
 }
 
-std::size_t glv::GlMesh::generateMaterialGroupsAndGetVertexCount(const vfm::ObjModel &objModel)
+std::size_t gl::GlMesh::generateMaterialGroupsAndGetVertexCount(const vfm::ObjModel &objModel)
 {
     std::size_t bufferElements = 0;
     for(const vfm::Object &o : objModel.objects)
@@ -317,7 +317,7 @@ std::size_t glv::GlMesh::generateMaterialGroupsAndGetVertexCount(const vfm::ObjM
     return bufferElements;
 }
 
-glv::GlMeshGeneration glv::GlMesh::generate(vfm::ObjModel &objModel, const glv::VertexAttributeDeclarationVector &vads)
+gl::GlMeshGeneration gl::GlMesh::generate(vfm::ObjModel &objModel, const gl::VertexAttributeDeclarationVector &vads)
 {
     clear();
     sys::Duration duration;

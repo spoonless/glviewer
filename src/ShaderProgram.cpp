@@ -7,7 +7,7 @@
 #include "ShaderProgram.hpp"
 #include "GlError.hpp"
 
-using namespace glv;
+using namespace gl;
 
 namespace
 {

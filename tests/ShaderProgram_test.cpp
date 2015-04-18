@@ -14,7 +14,7 @@
 #include "glm/mat4x3.hpp"
 #include "ShaderProgram.hpp"
 
-using namespace glv;
+using namespace gl;
 
 namespace
 {

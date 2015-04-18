@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include "Shader.hpp"
 
-using namespace glv;
+using namespace gl;
 
 namespace
 {

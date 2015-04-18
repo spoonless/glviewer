@@ -4,7 +4,7 @@
 #include "GlWindowContext.hpp"
 
 int main(int argc, char **argv) {
-    glv::GlWindowContext glwc;
+    gl::GlWindowContext glwc;
     if(!glwc.init("unitttest", 1, 1) || !glwc.makeCurrent())
     {
         return 1;

@@ -5,7 +5,7 @@
 #include "GlError.hpp"
 #include "Duration.hpp"
 
-using namespace glv;
+using namespace gl;
 
 namespace {
 

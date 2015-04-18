@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "GlError.hpp"
 
-using namespace glv;
+using namespace gl;
 
 TEST(GlError, cannotDetectErrorHappenedBeforeInit)
 {

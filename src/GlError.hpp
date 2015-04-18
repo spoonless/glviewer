@@ -4,7 +4,7 @@
 #include "gl.hpp"
 #include <string>
 
-namespace glv
+namespace gl
 {
 
 class GlError

@@ -143,11 +143,11 @@ struct LoadedMaterial
     LoadedTexture texture;
 };
 
-class MaterialHandler : public glv::MaterialHandler
+class MaterialHandler : public gl::MaterialHandler
 {
 public:
 
-    void loadUniforms(const glv::ShaderProgram &shaderProgram)
+    void loadUniforms(const gl::ShaderProgram &shaderProgram)
     {
         _uniformColor.load(shaderProgram);
         _uniformTexture.load(shaderProgram);
@@ -213,7 +213,7 @@ public:
         }
     }
 
-    virtual void use(glv::MaterialIndex index)
+    virtual void use(gl::MaterialIndex index)
     {
         if (index != NO_MATERIAL_INDEX && index < _materials.size())
         {
@@ -238,7 +238,7 @@ private:
     {
     public:
 
-        void load(const glv::ShaderProgram &shaderProgram)
+        void load(const gl::ShaderProgram &shaderProgram)
         {
             _ambiantSampler = shaderProgram.getActiveUniform("material.ambient");
             _diffuseSampler = shaderProgram.getActiveUniform("material.diffuse");
@@ -267,17 +267,17 @@ private:
         }
 
     private:
-        glv::UniformDeclaration _ambiantSampler;
-        glv::UniformDeclaration _diffuseSampler;
-        glv::UniformDeclaration _specularSampler;
-        glv::UniformDeclaration _specularCoeffSampler;
+        gl::UniformDeclaration _ambiantSampler;
+        gl::UniformDeclaration _diffuseSampler;
+        gl::UniformDeclaration _specularSampler;
+        gl::UniformDeclaration _specularCoeffSampler;
     } _uniformColor;
 
     class
     {
     public:
 
-        void load(const glv::ShaderProgram &shaderProgram)
+        void load(const gl::ShaderProgram &shaderProgram)
         {
             _ambiantSampler = shaderProgram.getActiveUniform("materialTexture.ambient.sampler");
             _diffuseSampler = shaderProgram.getActiveUniform("materialTexture.diffuse.sampler");
@@ -375,19 +375,19 @@ private:
         }
 
     private:
-        glv::UniformDeclaration _ambiantSampler;
-        glv::UniformDeclaration _diffuseSampler;
-        glv::UniformDeclaration _specularSampler;
-        glv::UniformDeclaration _specularCoeffSampler;
-        glv::UniformDeclaration _dissolveSampler;
-        glv::UniformDeclaration _bumpSampler;
+        gl::UniformDeclaration _ambiantSampler;
+        gl::UniformDeclaration _diffuseSampler;
+        gl::UniformDeclaration _specularSampler;
+        gl::UniformDeclaration _specularCoeffSampler;
+        gl::UniformDeclaration _dissolveSampler;
+        gl::UniformDeclaration _bumpSampler;
 
-        glv::UniformDeclaration _ambiantEnable;
-        glv::UniformDeclaration _diffuseEnable;
-        glv::UniformDeclaration _specularEnable;
-        glv::UniformDeclaration _specularCoeffEnable;
-        glv::UniformDeclaration _dissolveEnable;
-        glv::UniformDeclaration _bumpEnable;
+        gl::UniformDeclaration _ambiantEnable;
+        gl::UniformDeclaration _diffuseEnable;
+        gl::UniformDeclaration _specularEnable;
+        gl::UniformDeclaration _specularCoeffEnable;
+        gl::UniformDeclaration _dissolveEnable;
+        gl::UniformDeclaration _bumpEnable;
     } _uniformTexture;
 
 
@@ -398,7 +398,7 @@ class GlslViewer
 {
 public:
 
-    using LoadFile = glv::OperationResult;
+    using LoadFile = gl::OperationResult;
 
     GlslViewer(int argc, char **argv) : failure(false)
     {
@@ -471,10 +471,10 @@ public:
 
     void createProgram(const std::string &vertexShader, const std::string &fragmentShader)
     {
-        glv::Shader vs(glv::ShaderType::VERTEX_SHADER);
+        gl::Shader vs(gl::ShaderType::VERTEX_SHADER);
         check(vs.compile(vertexShader), "compiling vertex shader");
 
-        glv::Shader fs(glv::ShaderType::FRAGMENT_SHADER);
+        gl::Shader fs(gl::ShaderType::FRAGMENT_SHADER);
         check(fs.compile(fragmentShader), "compiling fragment shader");
 
         if (good())
@@ -502,7 +502,7 @@ public:
         }
     }
 
-    void update(glv::GlWindowContext& glf)
+    void update(gl::GlWindowContext& glf)
     {
         program.use();
 
@@ -517,7 +517,7 @@ public:
             *mouseUniform = cursorPosition;
         }
 
-        const glv::BoundingBox &boundingBox = mesh.getBoundingBox();
+        const gl::BoundingBox &boundingBox = mesh.getBoundingBox();
         glm::mat4x4 modelMatrix = glm::mat4x4(1.0f);
 
         glm::vec3 eyePosition {0,0,glm::distance(boundingBox.min, boundingBox.max) * 0.75f};
@@ -570,18 +570,18 @@ public:
         return !failure;
     }
 
-    const glv::Camera & camera() const
+    const gl::Camera & camera() const
     {
         return _camera;
     }
 
-    glv::Camera & camera()
+    gl::Camera & camera()
     {
         return _camera;
     }
 
 private:
-    bool check(const glv::OperationResult &r, const std::string &context)
+    bool check(const gl::OperationResult &r, const std::string &context)
     {
         if (r)
         {
@@ -597,26 +597,26 @@ private:
 
     bool failure;
     sys::Duration duration;
-    glv::ShaderProgram program;
-    glv::UniformDeclaration timeUniform;
-    glv::UniformDeclaration mouseUniform;
-    glv::UniformDeclaration resolutionUniform;
-    glv::UniformDeclaration modelMatrixUniform;
-    glv::UniformDeclaration viewMatrixUniform;
-    glv::UniformDeclaration projectionMatrixUniform;
-    glv::UniformDeclaration mvMatrixUniform;
-    glv::UniformDeclaration mvpMatrixUniform;
-    glv::UniformDeclaration normalMatrixUniform;
-    glv::GlMesh mesh;
+    gl::ShaderProgram program;
+    gl::UniformDeclaration timeUniform;
+    gl::UniformDeclaration mouseUniform;
+    gl::UniformDeclaration resolutionUniform;
+    gl::UniformDeclaration modelMatrixUniform;
+    gl::UniformDeclaration viewMatrixUniform;
+    gl::UniformDeclaration projectionMatrixUniform;
+    gl::UniformDeclaration mvMatrixUniform;
+    gl::UniformDeclaration mvpMatrixUniform;
+    gl::UniformDeclaration normalMatrixUniform;
+    gl::GlMesh mesh;
     MaterialHandler materialHandler;
     TextureLoader textureLoader;
-    glv::PerspectiveCamera _camera;
+    gl::PerspectiveCamera _camera;
 };
 
 int main(int argc, char **argv)
 {
     sys::initLogger();
-    glv::GlWindowContext glwc;
+    gl::GlWindowContext glwc;
     LOG(INFO) << APP_NAME " by " APP_AUTHOR " (v" APP_VERSION " compilation date " APP_COMPILATION_DATE ")";
 
     if(!glwc.init("GLSL viewer", 800, 600) || ! glwc.makeCurrent())
@@ -634,7 +634,7 @@ int main(int argc, char **argv)
 
         if (viewer.good())
         {
-            auto setViewport = std::bind(&glv::Viewport::set, &viewer.camera().viewport(), std::placeholders::_1, std::placeholders::_2);
+            auto setViewport = std::bind(&gl::Viewport::set, &viewer.camera().viewport(), std::placeholders::_1, std::placeholders::_2);
             glwc.setWindowSizeCallback(setViewport);
 
             glClearColor(0.5f,0.5f,0.5f,1.0f);

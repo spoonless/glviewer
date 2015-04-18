@@ -8,7 +8,7 @@
 #include "ObjModel.hpp"
 #include "UniformDeclaration.hpp"
 
-namespace glv
+namespace gl
 {
 
 using GlMeshGeneration = OperationResult;
