@@ -6,9 +6,9 @@
 
 namespace
 {
-    constexpr auto MAX_UINT = std::numeric_limits<unsigned int>::max();
-    constexpr auto MAX_FLOAT = std::numeric_limits<float>::max();
-    constexpr auto MIN_FLOAT = -std::numeric_limits<float>::max();
+    const auto MAX_UINT = std::numeric_limits<unsigned int>::max();
+    const auto MAX_FLOAT = std::numeric_limits<float>::max();
+    const auto MIN_FLOAT = -std::numeric_limits<float>::max();
 
     enum VertexAttributeBuffer{VERTEX_POSITION, VERTEX_TEXTURE_COORD, VERTEX_NORMAL, VERTEX_TANGENT, NB_VERTEX_ATTRIBUTES};
 

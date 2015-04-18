@@ -22,8 +22,8 @@
 const double PI = std::atan(1.0)*4;
 
 bool endsWith (const char *base, const char *str) {
-    int blen = std::strlen(base);
-    int slen = std::strlen(str);
+    std::size_t blen = std::strlen(base);
+	std::size_t slen = std::strlen(str);
     return (blen >= slen) && (0 == std::strcmp(base + blen - slen, str));
 }
 

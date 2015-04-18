@@ -51,7 +51,14 @@ gl::GlWindowContext::GlWindowContext() : _window{nullptr}
 
 gl::GlWindowContext::~GlWindowContext()
 {
-    glfwTerminate();
+	if (_window)
+	{
+		LOG(INFO) << "Destroying window...";
+		glfwDestroyWindow(_window);
+		_window = nullptr;
+	}
+	LOG(INFO) << "Terminating GLFW...";
+	glfwTerminate();
 }
 
 bool gl::GlWindowContext::init (std::string title, unsigned int width, unsigned int height)
@@ -96,9 +103,13 @@ bool gl::GlWindowContext::makeCurrent()
     }
     if (!gladOk)
     {
-		gladOk = gladLoadGL() == GL_TRUE;
+		if (gladLoadGL() != GL_TRUE)
+		{
+			LOG(WARNING) << "Cannot init GLAD!";
+			return false;
+		}
     }
-    return gladOk;
+    return true;
 }
 
 bool gl::GlWindowContext::shouldContinue()
