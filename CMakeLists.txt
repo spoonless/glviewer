@@ -58,6 +58,7 @@ configure_file("src/config.h.in" "${CMAKE_BINARY_DIR}/include/config.h")
 
 add_library(core_sources STATIC
     src/gl.hpp
+    src/gl.cpp
     src/glad.c
     src/log.hpp
     src/log.cpp
@@ -120,6 +121,7 @@ if(BUILD_UNITTESTS)
     add_executable(unittest
         tests/main.cpp
         tests/Path_test.cpp
+        tests/gl_test.cpp
         tests/GlError_test.cpp
         tests/ObjModel_test.cpp
         tests/Shader_test.cpp
