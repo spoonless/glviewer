@@ -12,23 +12,6 @@ namespace
 
     enum VertexAttributeBuffer{VERTEX_POSITION, VERTEX_TEXTURE_COORD, VERTEX_NORMAL, VERTEX_TANGENT, NB_VERTEX_ATTRIBUTES};
 
-    std::size_t sizeOfType(GLenum type)
-    {
-        switch(type)
-        {
-        case GL_FLOAT_VEC4:
-            return 4;
-        case GL_FLOAT_VEC3:
-            return 3;
-        case GL_FLOAT_VEC2:
-            return 2;
-        case GL_FLOAT:
-            return 1;
-        default:
-            return 0;
-        }
-    }
-
     void copy(GLfloat *dest, const glm::vec4 &source, std::size_t destWitdh, bool homogeneous = false)
     {
         switch(destWitdh)
@@ -116,7 +99,7 @@ namespace
         for(const gl::VertexAttributeDeclaration &vad : vads)
         {
             vabd.index = vad.index();
-            vabd.size = sizeOfType(vad.type());
+            vabd.size = vad.sizeOf() / sizeof(GLfloat);
             vabd.type = toVertexAttributeBuffer(vad);
             vabd.offset = vertexAttributePointerOffset;
             vertexAttributeBufferDescVector.push_back(vabd);
@@ -164,7 +147,7 @@ namespace
                 return gl::GlMeshGeneration::failed(std::string("No buffer available for vertex attribute '") + vad.name() + "'!");
             }
 
-            if (! sizeOfType(vad.type()))
+            if (vad.type() != GL_FLOAT_VEC2 && vad.type() != GL_FLOAT_VEC3 && vad.type() != GL_FLOAT_VEC4)
             {
                 return gl::GlMeshGeneration::failed(std::string("Invalid type for vertex attribute '") + vad.name() + "': expected float, vec2, vec3 or vec4.");
             }
