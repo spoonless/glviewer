@@ -256,6 +256,7 @@ gl::GlMesh::GlMesh() : _vertexArray{0}, _indexFormat{GL_UNSIGNED_SHORT}
 void gl::GlMesh::render(gl::MaterialHandler *handler)
 {
     glBindVertexArray(_vertexArray);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffers[0]);
     std::for_each(_definedVertexAttributes.begin(), _definedVertexAttributes.end(), glEnableVertexAttribArray);
 
     std::size_t firstPrimitive = 0;
@@ -271,6 +272,7 @@ void gl::GlMesh::render(gl::MaterialHandler *handler)
     }
 
     std::for_each(_definedVertexAttributes.begin(), _definedVertexAttributes.end(), glDisableVertexAttribArray);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
 
@@ -377,6 +379,7 @@ gl::GlMeshGeneration gl::GlMesh::generate(vfm::ObjModel &objModel, const gl::Ver
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffers[0]);
     createIndexBufferData(objModel);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     glBindBuffer(GL_ARRAY_BUFFER, _buffers[1]);
 
