@@ -89,13 +89,15 @@ private:
     using MaterialGroupVector = std::vector<MaterialGroup>;
 
     void clear();
-    std::size_t generateMaterialGroupsAndGetVertexCount(const vfm::ObjModel &objModel);
+    void createMaterialGroups(const vfm::ObjModel &objModel);
+    void createIndexBufferData(const vfm::ObjModel &objModel);
 
     GLuint _vertexArray;
-    GLuint _buffer;
-    BoundingBox _boundingBox;
+    GLenum _indexFormat;
+    std::vector<GLuint> _buffers;
     std::vector<GLuint> _definedVertexAttributes;
     MaterialGroupVector _materialGroups;
+    BoundingBox _boundingBox;
 };
 
 }

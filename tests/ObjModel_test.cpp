@@ -12,7 +12,7 @@ TEST(ObjModel, canLoadEmptyModel)
     stream >> model;
 
     ASSERT_EQ(0u, model.objects.size());
-    ASSERT_EQ(0u, model.vertices.size());
+    ASSERT_EQ(0u, model.positions.size());
     ASSERT_EQ(0u, model.normals.size());
     ASSERT_EQ(0u, model.textures.size());
     ASSERT_EQ(0u, model.materialIds.size());
@@ -31,10 +31,10 @@ TEST(ObjModel, canLoadVertices)
 
     stream >> model;
 
-    ASSERT_EQ(3u, model.vertices.size());
-    ASSERT_EQ(glm::vec4(0,0,0,1), model.vertices[0]);
-    ASSERT_EQ(glm::vec4(0.4,0.5,0.6,1), model.vertices[1]);
-    ASSERT_EQ(glm::vec4(1,1,1,0.5), model.vertices[2]);
+    ASSERT_EQ(3u, model.positions.size());
+    ASSERT_EQ(glm::vec4(0,0,0,1), model.positions[0]);
+    ASSERT_EQ(glm::vec4(0.4,0.5,0.6,1), model.positions[1]);
+    ASSERT_EQ(glm::vec4(1,1,1,0.5), model.positions[2]);
 }
 
 TEST(ObjModel, canLoadNormals)

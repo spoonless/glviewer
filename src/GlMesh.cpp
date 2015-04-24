@@ -1,3 +1,4 @@
+#include <memory>
 #include <limits>
 #include <algorithm>
 #include "GlError.hpp"
@@ -7,6 +8,8 @@
 namespace
 {
     const auto MAX_UINT = std::numeric_limits<unsigned int>::max();
+    const auto MAX_GL_UNSIGNED_BYTE = std::numeric_limits<GLubyte>::max();
+    const auto MAX_GL_UNSIGNED_SHORT = std::numeric_limits<GLushort>::max();
     const auto MAX_FLOAT = std::numeric_limits<float>::max();
     const auto MIN_FLOAT = -std::numeric_limits<float>::max();
 
@@ -118,7 +121,7 @@ namespace
             switch(toVertexAttributeBuffer(vad))
             {
             case VERTEX_POSITION:
-                noBufferAvailable = objModel.vertices.empty();
+                noBufferAvailable = objModel.positions.empty();
                 break;
             case VERTEX_NORMAL:
                 if (objModel.normals.empty())
@@ -168,16 +171,15 @@ namespace
 
         for(const vfm::Object &o : objModel.objects)
         {
-            for(std::size_t index : o.triangles)
+            for(const vfm::VertexIndex &vertexIndex : o.vertexIndices)
             {
-                const vfm::VertexIndex &vertexIndex = o.vertexIndices[index];
-                for (VertexAttributeBufferDesc vabd : vertexAttributeBufferDescVector)
+                for (const VertexAttributeBufferDesc &vabd : vertexAttributeBufferDescVector)
                 {
                     switch (vabd.type) {
                     case VERTEX_POSITION:
-                        if (vertexIndex.vertex != 0)
+                        if (vertexIndex.position != 0)
                         {
-                            const glm::vec4 & position = objModel.vertices[vertexIndex.vertex-1];
+                            const glm::vec4 & position = objModel.positions[vertexIndex.position-1];
                             copy(&tmpBuffer[tmpBufferOffset + vabd.offset], position, vabd.size, true);
                             boundingBox.accept(position.x / position.w, position.y / position.w, position.z / position.w);
                         }
@@ -208,6 +210,25 @@ namespace
             }
         }
     }
+
+    template<typename T>
+    void createPackedIndexBufferData(const vfm::ObjModel &objModel, std::size_t nbIndices)
+    {
+        auto indices = std::unique_ptr<T[]>(new T[nbIndices]);
+        std::size_t i = 0;
+        std::size_t startIndex = 0;
+        for (const vfm::Object &o : objModel.objects)
+        {
+            for(std::size_t index : o.triangles)
+            {
+                indices[i++] = static_cast<T>(startIndex + index);
+            }
+            startIndex += o.vertexIndices.size();
+        }
+
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, nbIndices * sizeof(T), &indices[0], GL_STATIC_DRAW);
+    }
+
 }
 
 const gl::MaterialIndex gl::MaterialHandler::NO_MATERIAL_INDEX = MAX_UINT;
@@ -228,7 +249,7 @@ void gl::BoundingBox::accept(float x, float y, float z)
     max.z = std::max(max.z, z);
 }
 
-gl::GlMesh::GlMesh() : _vertexArray{0}, _buffer{0}
+gl::GlMesh::GlMesh() : _vertexArray{0}, _indexFormat{GL_UNSIGNED_SHORT}
 {
 }
 
@@ -237,15 +258,16 @@ void gl::GlMesh::render(gl::MaterialHandler *handler)
     glBindVertexArray(_vertexArray);
     std::for_each(_definedVertexAttributes.begin(), _definedVertexAttributes.end(), glEnableVertexAttribArray);
 
-    GLint firstPrimitive = 0;
+    std::size_t firstPrimitive = 0;
+    std::size_t sizeofIndex = gl::glSizeof(_indexFormat);
     for(gl::GlMesh::MaterialGroup &materialGroup : _materialGroups)
     {
         if (handler)
         {
             handler->use(materialGroup.index);
         }
-        glDrawArrays(GL_TRIANGLES, firstPrimitive, static_cast<GLsizei>(materialGroup.size));
-		firstPrimitive += static_cast<GLsizei>(materialGroup.size);
+        glDrawElements(GL_TRIANGLES, materialGroup.size, _indexFormat, (void*)(firstPrimitive * sizeofIndex));
+        firstPrimitive += materialGroup.size;
     }
 
     std::for_each(_definedVertexAttributes.begin(), _definedVertexAttributes.end(), glDisableVertexAttribArray);
@@ -265,19 +287,18 @@ void gl::GlMesh::clear()
         glDeleteVertexArrays(1, &_vertexArray);
         _vertexArray = 0;
     }
-    if (_buffer > 0)
+    if (! _buffers.empty())
     {
-        glDeleteBuffers(1, &_buffer);
-        _buffer = 0;
+        glDeleteBuffers(_buffers.size(), &_buffers[0]);
+        _buffers.clear();
     }
     _boundingBox = {};
     _definedVertexAttributes.clear();
     _materialGroups.clear();
 }
 
-std::size_t gl::GlMesh::generateMaterialGroupsAndGetVertexCount(const vfm::ObjModel &objModel)
+void gl::GlMesh::createMaterialGroups(const vfm::ObjModel &objModel)
 {
-    std::size_t bufferElements = 0;
     for(const vfm::Object &o : objModel.objects)
     {
         if(o.materialActivations.empty())
@@ -295,9 +316,28 @@ std::size_t gl::GlMesh::generateMaterialGroupsAndGetVertexCount(const vfm::ObjMo
                 _materialGroups.push_back(MaterialGroup{ma.materialIndex, ma.end - ma.start});
             }
         }
-        bufferElements += o.triangles.size();
     }
-    return bufferElements;
+}
+
+void gl::GlMesh::createIndexBufferData(const vfm::ObjModel &objModel)
+{
+    std::size_t nbIndices = objModel.nbTriangleVertices();
+
+    if(nbIndices < MAX_GL_UNSIGNED_BYTE)
+    {
+        this->_indexFormat = GL_UNSIGNED_BYTE;
+        createPackedIndexBufferData<GLubyte>(objModel, nbIndices);
+    }
+    else if(nbIndices < MAX_GL_UNSIGNED_SHORT)
+    {
+        this->_indexFormat = GL_UNSIGNED_SHORT;
+        createPackedIndexBufferData<GLushort>(objModel, nbIndices);
+    }
+    else
+    {
+        this->_indexFormat = GL_UNSIGNED_INT;
+        createPackedIndexBufferData<GLuint>(objModel, nbIndices);
+    }
 }
 
 gl::GlMeshGeneration gl::GlMesh::generate(vfm::ObjModel &objModel, const gl::VertexAttributeDeclarationVector &vads)
@@ -310,13 +350,13 @@ gl::GlMeshGeneration gl::GlMesh::generate(vfm::ObjModel &objModel, const gl::Ver
         return result;
     }
 
-    const std::size_t vertexCount = generateMaterialGroupsAndGetVertexCount(objModel);
+    createMaterialGroups(objModel);
 
     VertexAttributeBufferDescVector vertexAttributeBufferDescVector = createVertexAttributeBufferDescVector(vads);
     std::size_t vertexAttributesStructureSize = computeVertexAttributesStructureSize(vertexAttributeBufferDescVector);
 
-    std::vector<GLfloat> tmpBuffer(vertexCount * vertexAttributesStructureSize);
-    fillBuffer(tmpBuffer.data(), _boundingBox, objModel, vertexAttributeBufferDescVector);
+    std::vector<GLfloat> vertexAttributeBuffer(objModel.nbVertexIndices() * vertexAttributesStructureSize);
+    fillBuffer(vertexAttributeBuffer.data(), _boundingBox, objModel, vertexAttributeBufferDescVector);
 
     GlError glError;
 
@@ -327,21 +367,25 @@ gl::GlMeshGeneration gl::GlMesh::generate(vfm::ObjModel &objModel, const gl::Ver
     }
 
     glBindVertexArray(_vertexArray);
-    glGenBuffers(1, &_buffer);
+    _buffers.resize(2);
+    glGenBuffers(_buffers.size(), &_buffers[0]);
     if (glError)
     {
         glBindVertexArray(0);
         return GlMeshGeneration::failed(glError.toString("Error during buffers generation"), duration.elapsed());
     }
 
-    glBindBuffer(GL_ARRAY_BUFFER, _buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffers[0]);
+    createIndexBufferData(objModel);
+
+    glBindBuffer(GL_ARRAY_BUFFER, _buffers[1]);
 
     for (VertexAttributeBufferDesc vabd : vertexAttributeBufferDescVector)
     {
         glVertexAttribPointer(vabd.index, vabd.size, GL_FLOAT, (vabd.type == VERTEX_NORMAL ? GL_TRUE : GL_FALSE), (vertexAttributesStructureSize * sizeof(GL_FLOAT)), (void*)(vabd.offset  * sizeof(GL_FLOAT)));
         _definedVertexAttributes.push_back(vabd.index);
     }
-    glBufferData(GL_ARRAY_BUFFER, tmpBuffer.size() * sizeof(GLfloat), tmpBuffer.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertexAttributeBuffer.size() * sizeof(GLfloat), vertexAttributeBuffer.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 

@@ -45,7 +45,7 @@ private:
     struct VertexIndexComparator {
         bool operator() (const vfm::VertexIndex &vi1, const vfm::VertexIndex &vi2) const
         {
-          if (vi1.vertex == vi2.vertex)
+          if (vi1.position == vi2.position)
           {
               if(vi1.normal == vi2.normal)
               {
@@ -53,7 +53,7 @@ private:
               }
               return vi1.normal < vi2.normal;
           }
-          return vi1.vertex < vi2.vertex;
+          return vi1.position < vi2.position;
         }
     };
     typedef std::map<vfm::VertexIndex, std::size_t, VertexIndexComparator> VertexIndexMap;
@@ -244,7 +244,7 @@ void read (const char *line, const vfm::ObjModel &model, vfm::VertexIndexVector 
     {
         vertexIndex.normal = vertexIndex.texture = 0;
 
-        vertexIndex.vertex = readIndex(token, &endToken, model.vertices.size());
+        vertexIndex.position = readIndex(token, &endToken, model.positions.size());
 
         if (token == endToken)
         {
@@ -296,14 +296,34 @@ inline void endMaterialActivation(vfm::Object *object)
 
 }
 
+std::size_t vfm::ObjModel::nbTriangleVertices() const
+{
+    std::size_t nb = 0;
+    for (const vfm::Object &o : this->objects)
+    {
+        nb += o.triangles.size();
+    }
+    return nb;
+}
+
+std::size_t vfm::ObjModel::nbVertexIndices() const
+{
+    std::size_t nb = 0;
+    for (const vfm::Object &o : this->objects)
+    {
+        nb += o.vertexIndices.size();
+    }
+    return nb;
+}
+
 vfm::VertexIndex::VertexIndex (std::size_t vertex, std::size_t normal, std::size_t texture)
-    : vertex(vertex), normal(normal), texture(texture)
+    : position(vertex), normal(normal), texture(texture)
 {
 }
 
 bool vfm::VertexIndex::operator == (const VertexIndex &vi) const
 {
-    return this->vertex == vi.vertex && this->normal == vi.normal && this->texture == vi.texture;
+    return this->position == vi.position && this->normal == vi.normal && this->texture == vi.texture;
 }
 
 std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
@@ -343,7 +363,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
         else if(!std::strncmp("v ", line, 2))
         {
             read(line+2, vec4);
-            model.vertices.push_back(vec4);
+            model.positions.push_back(vec4);
         }
         else if(!std::strncmp("vt ", line, 3))
         {
@@ -474,7 +494,7 @@ std::istream & vfm::operator >> (std::istream &is, vfm::MaterialMap &materialMap
 void vfm::ObjModel::computeNormals(bool normalized)
 {
     this->normals.clear();
-    this->normals.resize(this->vertices.size());
+    this->normals.resize(this->positions.size());
     VertexIndex *vertexIndices[3];
     for(Object &o : this->objects)
     {
@@ -483,14 +503,14 @@ void vfm::ObjModel::computeNormals(bool normalized)
             vertexIndices[0] = &o.vertexIndices[*it++];
             vertexIndices[1] = &o.vertexIndices[*it++];
             vertexIndices[2] = &o.vertexIndices[*it];
-            glm::vec3 a(this->vertices[vertexIndices[0]->vertex-1]);
-            glm::vec3 b(this->vertices[vertexIndices[1]->vertex-1]);
-            glm::vec3 c(this->vertices[vertexIndices[2]->vertex-1]);
+            glm::vec3 a(this->positions[vertexIndices[0]->position-1]);
+            glm::vec3 b(this->positions[vertexIndices[1]->position-1]);
+            glm::vec3 c(this->positions[vertexIndices[2]->position-1]);
 
             glm::vec3 normal = glm::normalize(glm::cross(b-a, c-a));
             for (int i = 0; i < 3; ++i)
             {
-                std::size_t vertexIndex = vertexIndices[i]->vertex;
+                std::size_t vertexIndex = vertexIndices[i]->position;
                 this->normals[vertexIndex - 1] += normal;
                 vertexIndices[i]->normal = vertexIndex;
             }
@@ -528,8 +548,8 @@ void vfm::ObjModel::computeTangents()
             vertexIndices[1] = &o.vertexIndices[*it++];
             vertexIndices[2] = &o.vertexIndices[*it];
 
-            glm::vec4 a = this->vertices[vertexIndices[1]->vertex-1] - this->vertices[vertexIndices[0]->vertex-1];
-            glm::vec4 b = this->vertices[vertexIndices[2]->vertex-1] - this->vertices[vertexIndices[0]->vertex-1];
+            glm::vec4 a = this->positions[vertexIndices[1]->position-1] - this->positions[vertexIndices[0]->position-1];
+            glm::vec4 b = this->positions[vertexIndices[2]->position-1] - this->positions[vertexIndices[0]->position-1];
 
             auto textureIndex0 = vertexIndices[0]->texture;
             auto textureIndex1 = vertexIndices[1]->texture;

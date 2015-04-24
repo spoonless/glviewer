@@ -47,11 +47,11 @@ typedef std::map<std::string, Material> MaterialMap;
 
 struct VertexIndex
 {
-    VertexIndex (std::size_t vertex = 0, std::size_t normal = 0, std::size_t texture = 0);
+    VertexIndex (std::size_t position = 0, std::size_t normal = 0, std::size_t texture = 0);
 
     bool operator == (const VertexIndex &vi) const;
 
-    std::size_t vertex;
+    std::size_t position;
     std::size_t normal;
     std::size_t texture;
 };
@@ -101,12 +101,15 @@ typedef std::vector<Object> ObjectVector;
 
 struct ObjModel
 {
-    Vec4Vector vertices;
+    Vec4Vector positions;
     Vec3Vector normals;
     Vec3Vector textures;
     Vec4Vector tangents;
     ObjectVector objects;
     MaterialIdVector materialIds;
+
+    std::size_t nbTriangleVertices() const;
+    std::size_t nbVertexIndices() const;
 
     void computeNormals(bool normalized = false);
     void computeTangents();

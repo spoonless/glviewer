@@ -22,7 +22,7 @@ int main (int argc, char **argv)
     ifs >> model;
     ifs.close();
 
-    std::clog << std::setw(12) << "Vertices: " << model.vertices.size() << std::endl;
+    std::clog << std::setw(12) << "Vertices: " << model.positions.size() << std::endl;
     std::clog << std::setw(12) << "Normals: " << model.normals.size() << std::endl;
     std::clog << std::setw(12) << "Textures: " << model.textures.size() << std::endl;
     std::clog << std::setw(12) << "Objects: " << model.objects.size() << std::endl;
