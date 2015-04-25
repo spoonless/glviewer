@@ -35,8 +35,8 @@ void main()
         eyeTangent.z, eyeBinormal.z, eyeNormal.z
     );
 
-    fragLightDir = normalize(toTangentSpace * eyeLightDir);
-    fragViewDir = normalize(toTangentSpace * -fragPosition);
+    fragLightDir = toTangentSpace * eyeLightDir;
+    fragViewDir = toTangentSpace * -fragPosition;
     fragTextureCoord = vertexTextureCoord;
     gl_Position = mvpMat * vec4(vertexPosition,1.0);
 }
