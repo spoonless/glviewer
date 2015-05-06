@@ -121,6 +121,7 @@ if(BUILD_UNITTESTS)
     add_executable(unittest
         tests/main.cpp
         tests/Path_test.cpp
+        tests/CommandLineParser_test.cpp
         tests/gl_test.cpp
         tests/GlError_test.cpp
         tests/ObjModel_test.cpp
