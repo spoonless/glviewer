@@ -303,6 +303,26 @@ void ShortArg::reset(short int& value)
     value = 0;
 }
 
+using CharArg = Argument<char>;
+using EnumCharArg = EnumArgument<char>;
+
+template<>
+OperationResult CharArg::convert(char& dest, char const *src)
+{
+    if (std::strlen(src) > 1)
+    {
+        return OperationResult::failed("Only one character expected!");
+    }
+    dest = src[0];
+    return OperationResult::succeeded();
+}
+
+template<>
+void CharArg::reset(char& value)
+{
+    value = 0;
+}
+
 using StringArg = Argument<std::string>;
 using EnumStringArg = EnumArgument<std::string>;
 
@@ -615,6 +635,35 @@ TEST(CommandLineParser, cannotParseShortArgWhenValueTooSmall)
     ASSERT_FALSE(result);
     ASSERT_FALSE(arg);
     ASSERT_EQ(0, arg.value());
+}
+
+TEST(CommandLineParser, canParseCharArgByName)
+{
+    sys::CharArg arg;
+
+    sys::CommandLineParser clp;
+    clp.option(arg).name("character");
+
+    char const *argv[] = {"", "--character", "z"};
+    bool result = clp.parse(3, argv);
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(arg);
+    ASSERT_EQ('z', arg.value());
+}
+
+TEST(CommandLineParser, cannotParseCharArgWhenMoreThanOneChar)
+{
+    sys::CharArg arg;
+
+    sys::CommandLineParser clp;
+    clp.option(arg).name("character");
+
+    char const *argv[] = {"", "--character", "zz"};
+    bool result = clp.parse(3, argv);
+
+    ASSERT_FALSE(result);
+    ASSERT_FALSE(arg);
 }
 
 TEST(CommandLineParser, canParseStringArgByName)
