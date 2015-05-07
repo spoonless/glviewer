@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <vector>
 #include <cstdlib>
+#include <cstring>
 
 #include <gtest/gtest.h>
 
@@ -12,35 +13,75 @@ namespace sys
 
 using OperationResult = gl::OperationResult;
 
-class ParseableArgument
+class BaseArgument
 {
-    friend class CommandLineParser;
 public:
-    ParseableArgument() : _valueSet(false)
+    virtual ~BaseArgument()
     {
-    }
-
-    inline operator bool() const
-    {
-        return _valueSet;
     }
 
 protected:
-    virtual OperationResult convert(char const *value) = 0;
+    friend class CommandLineParser;
 
-    virtual bool isSwitch() const = 0;
+    BaseArgument() : _valueSet(false)
+    {
+    }
+
+    virtual OperationResult convert(char const *value) = 0;
 
     virtual void reset() = 0;
 
+    virtual bool isSwitch() const = 0;
+
     bool _valueSet;
+};
+
+class CommandLineArgument
+{
+    friend class CommandLineParser;
+public:
+
+    CommandLineArgument(BaseArgument *argument): _argument(argument)
+    {
+    }
+
+    CommandLineArgument(CommandLineArgument &&desc):
+        _argument(desc._argument),
+        _description(std::move(desc._description)),
+        _shortName(std::move(desc._shortName)),
+        _name(std::move(desc._name))
+    {
+    }
+
+    CommandLineArgument(const CommandLineArgument &desc) = delete;
+
+    CommandLineArgument & description(char const *value)
+    {
+        _description = value;
+        return *this;
+    }
+
+    CommandLineArgument & name(char const *name)
+    {
+        _name = name;
+        return *this;
+    }
+
+    CommandLineArgument & shortName(char const *value)
+    {
+        _shortName = value;
+        return *this;
+    }
+
+private:
+    BaseArgument *_argument;
     std::string _description;
     std::string _shortName;
     std::string _name;
-    std::string _mappedFileExtension;
 };
 
 template<typename T>
-class Argument : public ParseableArgument
+class Argument : public BaseArgument
 {
 public:
     using ValueType = T;
@@ -50,38 +91,19 @@ public:
         reset(_value);
     }
 
-    Argument<T> & description(char const *value)
+    ~Argument() override
     {
-        _description = value;
-        return *this;
-    }
-
-    Argument<T> & name(char const *name)
-    {
-        _name = name;
-        return *this;
-    }
-
-    Argument<T> & shortName(char const *value)
-    {
-        _shortName = value;
-        return *this;
-    }
-
-    Argument<T> & mappedFileExtension(char const *value)
-    {
-        _mappedFileExtension = value;
-        return *this;
-    }
-
-    inline operator bool() const
-    {
-        return _valueSet;
+        reset(_value);
     }
 
     inline T value() const
     {
         return _value;
+    }
+
+    inline operator bool() const
+    {
+        return _valueSet;
     }
 
 protected:
@@ -92,7 +114,10 @@ protected:
         return result;
     }
 
-    bool isSwitch() const override;
+    bool isSwitch() const override
+    {
+        return std::is_same<T, bool>::value;
+    }
 
     void reset() override
     {
@@ -109,19 +134,7 @@ private:
 
 };
 
-template<typename T>
-bool Argument<T>::isSwitch() const
-{
-    return false;
-}
-
 using BoolArg = Argument<bool>;
-
-template<>
-bool BoolArg::isSwitch() const
-{
-    return true;
-}
 
 template<>
 OperationResult BoolArg::convert(bool& dest, char const *src)
@@ -213,42 +226,84 @@ void ShortArg::reset(short int& value)
     value = 0;
 }
 
+using StringArg = Argument<std::string>;
+
+template<>
+OperationResult StringArg::convert(std::string& dest, char const *src)
+{
+    dest = src;
+    return OperationResult::succeeded();
+}
+
+template<>
+void StringArg::reset(std::string& value)
+{
+    value.clear();
+}
+
+using CharSeqArg = Argument<const char*>;
+
+template<>
+CharSeqArg::Argument():_value(nullptr)
+{
+}
+
+template<>
+OperationResult CharSeqArg::convert(const char *& dest, char const *src)
+{
+    delete[] dest;
+    dest = nullptr;
+    if (src)
+    {
+        std::size_t s = std::strlen(src) + 1;
+        dest = const_cast<const char*>(new char[s]);
+        std::memcpy(const_cast<char*>(dest), src, s);
+    }
+    return OperationResult::succeeded();
+}
+
+template<>
+void CharSeqArg::reset(const char *& value)
+{
+    delete[] value;
+    value = nullptr;
+}
+
 class CommandLineParser
 {
 public:
 
     bool parse(int argc, char const **argv);
 
-    void add(ParseableArgument& arg);
+    CommandLineArgument &parameter(BaseArgument& arg);
 
 private:
-    std::vector<ParseableArgument*> _arguments;
+    std::vector<CommandLineArgument> _commandLineArguments;
 
 };
 
-
 bool CommandLineParser::parse(int argc, char const **argv)
 {
-    std::for_each(_arguments.begin(), _arguments.end(), [](ParseableArgument* pa){
-        pa->reset();
+    std::for_each(_commandLineArguments.begin(), _commandLineArguments.end(), [](CommandLineArgument& pa){
+        pa._argument->reset();
     });
 
     bool result = true;
-    for(int i = 0; result && i < argc; ++i)
+    for(int i = 1; result && i < argc; ++i)
     {
-        for (ParseableArgument* pa : _arguments)
+        for (CommandLineArgument& pa : _commandLineArguments)
         {
-            bool matchName = argv[i][0] == '-' && argv[i][1] == '-' && pa->_name == (argv[i]+2);
-            bool matchShortName = ! matchName && argv[i][0] == '-' && pa->_shortName == (argv[i]+1);
+            bool matchName = argv[i][0] == '-' && argv[i][1] == '-' && pa._name == (argv[i]+2);
+            bool matchShortName = ! matchName && argv[i][0] == '-' && pa._shortName == (argv[i]+1);
             if (matchName || matchShortName)
             {
-                if (pa->isSwitch())
+                if (pa._argument->isSwitch())
                 {
-                    result = pa->convert("");
+                    result = pa._argument->convert("");
                 }
                 else if (i+1 < argc)
                 {
-                    result = pa->convert(argv[++i]);
+                    result = pa._argument->convert(argv[++i]);
                 }
                 else {
                     // TODO provide an error message
@@ -262,9 +317,10 @@ bool CommandLineParser::parse(int argc, char const **argv)
     return result;
 }
 
-void CommandLineParser::add(ParseableArgument& arg)
+CommandLineArgument &CommandLineParser::parameter(BaseArgument& arg)
 {
-    _arguments.push_back(&arg);
+    _commandLineArguments.push_back(CommandLineArgument(&arg));
+    return _commandLineArguments.back();
 }
 
 
@@ -281,13 +337,12 @@ TEST(CommandLineParser, boolArgIsNotParsedByDefault)
 TEST(CommandLineParser, canParseBoolArgByShortName)
 {
     sys::BoolArg arg;
-    arg.shortName("b");
 
     sys::CommandLineParser clp;
-    clp.add(arg);
+    clp.parameter(arg).shortName("b");
 
-    char const *argv[] = {"-b"};
-    bool result = clp.parse(1, argv);
+    char const *argv[] = {"", "-b"};
+    bool result = clp.parse(2, argv);
 
     ASSERT_TRUE(result);
     ASSERT_TRUE(arg);
@@ -297,13 +352,12 @@ TEST(CommandLineParser, canParseBoolArgByShortName)
 TEST(CommandLineParser, canParseBoolArgByName)
 {
     sys::BoolArg arg;
-    arg.name("b");
 
     sys::CommandLineParser clp;
-    clp.add(arg);
+    clp.parameter(arg).name("b");
 
-    char const *argv[] = {"--b"};
-    bool result = clp.parse(1, argv);
+    char const *argv[] = {"", "--b"};
+    bool result = clp.parse(2, argv);
 
     ASSERT_TRUE(result);
     ASSERT_TRUE(arg);
@@ -321,13 +375,12 @@ TEST(CommandLineParser, intArgIsNotParsedByDefault)
 TEST(CommandLineParser, canParseIntArgByName)
 {
     sys::IntArg arg;
-    arg.name("i");
 
     sys::CommandLineParser clp;
-    clp.add(arg);
+    clp.parameter(arg).name("i");
 
-    char const *argv[] = {"--i", "1"};
-    bool result = clp.parse(2, argv);
+    char const *argv[] = {"", "--i", "1"};
+    bool result = clp.parse(3, argv);
 
     ASSERT_TRUE(result);
     ASSERT_TRUE(arg);
@@ -337,13 +390,12 @@ TEST(CommandLineParser, canParseIntArgByName)
 TEST(CommandLineParser, canParseIntArgWithEmptyValue)
 {
     sys::IntArg arg;
-    arg.name("i");
 
     sys::CommandLineParser clp;
-    clp.add(arg);
+    clp.parameter(arg).name("i");
 
-    char const *argv[] = {"--i", "  "};
-    bool result = clp.parse(2, argv);
+    char const *argv[] = {"", "--i", "  "};
+    bool result = clp.parse(3, argv);
 
     ASSERT_FALSE(result);
     ASSERT_FALSE(arg);
@@ -353,13 +405,12 @@ TEST(CommandLineParser, canParseIntArgWithEmptyValue)
 TEST(CommandLineParser, cannotParseIntArgWhenNoValueIsProvided)
 {
     sys::IntArg arg;
-    arg.name("i");
 
     sys::CommandLineParser clp;
-    clp.add(arg);
+    clp.parameter(arg).name("i");
 
-    char const *argv[] = {"--i"};
-    bool result = clp.parse(1, argv);
+    char const *argv[] = {"", "--i"};
+    bool result = clp.parse(2, argv);
 
     ASSERT_FALSE(result);
     ASSERT_FALSE(arg);
@@ -369,13 +420,12 @@ TEST(CommandLineParser, cannotParseIntArgWhenNoValueIsProvided)
 TEST(CommandLineParser, cannotParseIntArg)
 {
     sys::IntArg arg;
-    arg.name("i");
 
     sys::CommandLineParser clp;
-    clp.add(arg);
+    clp.parameter(arg).name("i");
 
-    char const *argv[] = {"--i", "12upaer"};
-    bool result = clp.parse(2, argv);
+    char const *argv[] = {"", "--i", "12upaer"};
+    bool result = clp.parse(3, argv);
 
     ASSERT_FALSE(result);
     ASSERT_FALSE(arg);
@@ -385,13 +435,12 @@ TEST(CommandLineParser, cannotParseIntArg)
 TEST(CommandLineParser, canParseLongLongArgByName)
 {
     sys::LongLongArg arg;
-    arg.name("l");
 
     sys::CommandLineParser clp;
-    clp.add(arg);
+    clp.parameter(arg).name("l");
 
-    char const *argv[] = {"--l", "-10000"};
-    bool result = clp.parse(2, argv);
+    char const *argv[] = {"", "--l", "-10000"};
+    bool result = clp.parse(3, argv);
 
     ASSERT_TRUE(result);
     ASSERT_TRUE(arg);
@@ -401,13 +450,12 @@ TEST(CommandLineParser, canParseLongLongArgByName)
 TEST(CommandLineParser, canParseLongArgByName)
 {
     sys::LongArg arg;
-    arg.name("l");
 
     sys::CommandLineParser clp;
-    clp.add(arg);
+    clp.parameter(arg).name("l");
 
-    char const *argv[] = {"--l", "-1000"};
-    bool result = clp.parse(2, argv);
+    char const *argv[] = {"", "--l", "-1000"};
+    bool result = clp.parse(3, argv);
 
     ASSERT_TRUE(result);
     ASSERT_TRUE(arg);
@@ -417,13 +465,12 @@ TEST(CommandLineParser, canParseLongArgByName)
 TEST(CommandLineParser, canParseShortArgByName)
 {
     sys::ShortArg arg;
-    arg.name("s");
 
     sys::CommandLineParser clp;
-    clp.add(arg);
+    clp.parameter(arg).name("s");
 
-    char const *argv[] = {"--s", "10"};
-    bool result = clp.parse(2, argv);
+    char const *argv[] = {"", "--s", "10"};
+    bool result = clp.parse(3, argv);
 
     ASSERT_TRUE(result);
     ASSERT_TRUE(arg);
@@ -433,13 +480,12 @@ TEST(CommandLineParser, canParseShortArgByName)
 TEST(CommandLineParser, cannotParseShortArgWhenValueTooLarge)
 {
     sys::ShortArg arg;
-    arg.name("s");
 
     sys::CommandLineParser clp;
-    clp.add(arg);
+    clp.parameter(arg).name("s");
 
-    char const *argv[] = {"--s", "70000"};
-    bool result = clp.parse(2, argv);
+    char const *argv[] = {"", "--s", "70000"};
+    bool result = clp.parse(3, argv);
 
     ASSERT_FALSE(result);
     ASSERT_FALSE(arg);
@@ -449,15 +495,71 @@ TEST(CommandLineParser, cannotParseShortArgWhenValueTooLarge)
 TEST(CommandLineParser, cannotParseShortArgWhenValueTooSmall)
 {
     sys::ShortArg arg;
-    arg.name("s");
 
     sys::CommandLineParser clp;
-    clp.add(arg);
+    clp.parameter(arg).name("s");
 
-    char const *argv[] = {"--s", "-70000"};
-    bool result = clp.parse(2, argv);
+    char const *argv[] = {"", "--s", "-70000"};
+    bool result = clp.parse(3, argv);
 
     ASSERT_FALSE(result);
     ASSERT_FALSE(arg);
     ASSERT_EQ(0, arg.value());
+}
+
+TEST(CommandLineParser, canParseStringArgByName)
+{
+    sys::StringArg arg;
+
+    sys::CommandLineParser clp;
+    clp.parameter(arg).name("string");
+
+    char const *argv[] = {"", "--string", "hello world"};
+    bool result = clp.parse(3, argv);
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(arg);
+    ASSERT_EQ(std::string("hello world"), arg.value());
+}
+
+TEST(CommandLineParser, canParseCharSeqArgByName)
+{
+    sys::CharSeqArg arg;
+
+    sys::CommandLineParser clp;
+    clp.parameter(arg).name("string");
+
+    char const *argv[] = {"", "--string", "hello world"};
+    bool result = clp.parse(3, argv);
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(arg);
+    ASSERT_STREQ("hello world", arg.value());
+}
+
+TEST(CommandLineParser, canParseMultipleArguments)
+{
+    sys::CharSeqArg arg1;
+    sys::IntArg arg2;
+    sys::BoolArg arg3;
+    sys::BoolArg arg4;
+
+    sys::CommandLineParser clp;
+    clp.parameter(arg1).name("arg1");
+    clp.parameter(arg2).name("arg2");
+    clp.parameter(arg3).name("arg3");
+    clp.parameter(arg4).name("arg4").shortName("4");
+
+    char const *argv[] = {"", "--arg1", "hello", "-4", "--arg2", "10"};
+    bool result = clp.parse(6, argv);
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(arg1);
+    ASSERT_TRUE(arg2);
+    ASSERT_FALSE(arg3);
+    ASSERT_TRUE(arg4);
+
+    ASSERT_STREQ("hello", arg1.value());
+    ASSERT_EQ(10, arg2.value());
+    ASSERT_TRUE(arg4.value());
 }
