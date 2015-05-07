@@ -3,6 +3,8 @@
 #include <vector>
 #include <cstdlib>
 #include <cstring>
+#include <initializer_list>
+#include <functional>
 
 #include <gtest/gtest.h>
 
@@ -150,7 +152,7 @@ protected:
         reset(_value);
     }
 
-private:
+protected:
 
     static OperationResult convert(ValueType& dest, char const *src) = delete;
     static void reset(ValueType& dest) = delete;
@@ -158,6 +160,52 @@ private:
     ValueType _value;
 
 };
+
+
+template<typename T>
+class EnumArgument : public Argument<T>
+{
+public:
+    EnumArgument(std::initializer_list<T> l): _list(l)
+    {
+
+    }
+
+protected:
+    OperationResult convert(char const *value) override
+    {
+        OperationResult result = Argument<T>::convert(value);
+        if (result)
+        {
+            auto found = std::find_if(std::begin(_list), std::end(_list), std::bind(areEqual, this->value(), std::placeholders::_1));
+
+            if (found == std::end(_list))
+            {
+                Argument<T>::reset();
+                return OperationResult::failed("not matched any of possible values");
+            }
+        }
+        return result;
+    }
+
+private:
+
+    static bool areEqual(const T &v1, const T  &v2);
+
+    std::vector<T> _list;
+};
+
+template<typename T>
+bool EnumArgument<T>::areEqual(const T &v1, const T &v2)
+{
+    return v1 == v2;
+}
+
+template<>
+bool EnumArgument<char const *>::areEqual(char const * const&v1, char const * const&v2)
+{
+    return v1 == nullptr ? v1 == v2 : std::strcmp(v1, v2) == 0;
+}
 
 using BoolArg = Argument<bool>;
 
@@ -196,6 +244,7 @@ OperationResult convertToInteger(T& dest, char const *src)
 }
 
 using IntArg = Argument<int>;
+using EnumIntArg = EnumArgument<int>;
 
 template<>
 OperationResult IntArg::convert(int& dest, char const *src)
@@ -210,6 +259,7 @@ void IntArg::reset(int& value)
 }
 
 using LongLongArg = Argument<long long int>;
+using EnumLongLongArg = EnumArgument<long long int>;
 
 template<>
 OperationResult LongLongArg::convert(long long int& dest, char const *src)
@@ -224,6 +274,7 @@ void LongLongArg::reset(long long int& value)
 }
 
 using LongArg = Argument<long int>;
+using EnumLongArg = EnumArgument<long int>;
 
 template<>
 OperationResult LongArg::convert(long int& dest, char const *src)
@@ -238,6 +289,7 @@ void LongArg::reset(long int& value)
 }
 
 using ShortArg = Argument<short int>;
+using EnumShortArg = EnumArgument<short int>;
 
 template<>
 OperationResult ShortArg::convert(short int& dest, char const *src)
@@ -252,6 +304,7 @@ void ShortArg::reset(short int& value)
 }
 
 using StringArg = Argument<std::string>;
+using EnumStringArg = EnumArgument<std::string>;
 
 template<>
 OperationResult StringArg::convert(std::string& dest, char const *src)
@@ -267,6 +320,7 @@ void StringArg::reset(std::string& value)
 }
 
 using CharSeqArg = Argument<const char*>;
+using EnumCharSeqArg = EnumArgument<const char*>;
 
 template<>
 CharSeqArg::Argument():_value(nullptr)
@@ -311,11 +365,11 @@ private:
 
 bool CommandLineParser::parse(int argc, char const **argv)
 {
-    std::for_each(_commandLineOptions.begin(), _commandLineOptions.end(), [](CommandLineOption& clo){
+    std::for_each(std::begin(_commandLineOptions), std::end(_commandLineOptions), [](CommandLineOption& clo){
         clo._argument->reset();
     });
 
-    std::for_each(_commandLineArguments.begin(), _commandLineArguments.end(), [](CommandLineArgument& cla){
+    std::for_each(std::begin(_commandLineArguments), std::end(_commandLineArguments), [](CommandLineArgument& cla){
         cla._argument->reset();
     });
 
@@ -646,4 +700,63 @@ TEST(CommandLineParser, cannotParseTooManyArguments)
     bool result = clp.parse(3, argv);
 
     ASSERT_FALSE(result);
+}
+
+TEST(CommandLineParser, canParseEnumeratedArguments)
+{
+    sys::EnumIntArg arg = {1,2,3};
+
+    sys::CommandLineParser clp;
+    clp.argument(arg);
+
+    char const *argv[] = {"", "2"};
+    bool result = clp.parse(2, argv);
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(arg);
+    ASSERT_EQ(2, arg.value());
+}
+
+TEST(CommandLineParser, canParseCharSeqEnumeratedArguments)
+{
+    sys::EnumCharSeqArg arg = {"a", "b", "c"};
+
+    sys::CommandLineParser clp;
+    clp.argument(arg);
+
+    char const *argv[] = {"", "c"};
+    bool result = clp.parse(2, argv);
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(arg);
+    ASSERT_STREQ("c", arg.value());
+}
+
+TEST(CommandLineParser, canParseStringEnumeratedArguments)
+{
+    sys::EnumStringArg arg = {"a", "b", "c"};
+
+    sys::CommandLineParser clp;
+    clp.argument(arg);
+
+    char const *argv[] = {"", "a"};
+    bool result = clp.parse(2, argv);
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(arg);
+    ASSERT_EQ(std::string("a"), arg.value());
+}
+
+TEST(CommandLineParser, cannotParseEnumeratedArguments)
+{
+    sys::EnumIntArg arg = {1,2,3};
+
+    sys::CommandLineParser clp;
+    clp.argument(arg);
+
+    char const *argv[] = {"", "4"};
+    bool result = clp.parse(2, argv);
+
+    ASSERT_FALSE(result);
+    ASSERT_FALSE(arg);
 }
