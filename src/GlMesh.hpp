@@ -11,7 +11,7 @@
 namespace gl
 {
 
-using GlMeshGeneration = OperationResult;
+using GlMeshGeneration = sys::OperationResult;
 
 class BoundingBox
 {

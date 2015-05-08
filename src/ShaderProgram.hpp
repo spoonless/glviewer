@@ -9,9 +9,9 @@
 namespace gl
 {
 
-using ShaderAttachment = OperationResult;
-using ShaderLink = OperationResult;
-using ShaderValidation = OperationResult;
+using ShaderAttachment = sys::OperationResult;
+using ShaderLink = sys::OperationResult;
+using ShaderValidation = sys::OperationResult;
 
 class ShaderProgram
 {

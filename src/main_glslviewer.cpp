@@ -398,7 +398,7 @@ class GlslViewer
 {
 public:
 
-    using LoadFile = gl::OperationResult;
+    using LoadFile = sys::OperationResult;
 
     GlslViewer(int argc, char **argv) : failure(false)
     {
@@ -581,7 +581,7 @@ public:
     }
 
 private:
-    bool check(const gl::OperationResult &r, const std::string &context)
+    bool check(const sys::OperationResult &r, const std::string &context)
     {
         if (r)
         {

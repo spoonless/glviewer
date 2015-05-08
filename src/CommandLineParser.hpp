@@ -12,8 +12,6 @@
 namespace sys
 {
 
-using OperationResult = gl::OperationResult;
-
 class BaseArgument
 {
 public:

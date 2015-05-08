@@ -7,7 +7,7 @@
 namespace gl
 {
 
-using ShaderCompilation = OperationResult;
+using ShaderCompilation = sys::OperationResult;
 
 enum class ShaderType {VERTEX_SHADER, GEOMETRY_SHADER, FRAGMENT_SHADER};
 

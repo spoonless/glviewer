@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace gl
+namespace sys
 {
 
 class OperationResult {
