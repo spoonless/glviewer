@@ -64,6 +64,8 @@ add_library(core_sources STATIC
     src/log.cpp
     src/Path.hpp
     src/Path.cpp
+    src/CommandLineParser.hpp
+    src/CommandLineParser.cpp
     src/Duration.hpp
     src/Duration.cpp
     src/GlError.hpp
