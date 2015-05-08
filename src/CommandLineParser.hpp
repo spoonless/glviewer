@@ -173,7 +173,7 @@ public:
 
     CommandLineArgument(BaseArgument *argument);
 
-    CommandLineArgument(CommandLineArgument &&desc);
+    CommandLineArgument(CommandLineArgument &&cla);
 
     CommandLineArgument(const CommandLineArgument &) = delete;
 
@@ -187,8 +187,8 @@ public:
 
     bool parse(int argc, char const **argv);
 
-    CommandLineOption &option(BaseArgument& arg);
-    CommandLineArgument &argument(BaseArgument& arg);
+    CommandLineOption &option(BaseArgument &arg);
+    CommandLineArgument &argument(BaseArgument &arg);
 
 private:
     std::vector<CommandLineOption> _commandLineOptions;
@@ -209,6 +209,18 @@ using EnumLongArg = EnumArgument<long int>;
 
 using ShortArg = Argument<short int>;
 using EnumShortArg = EnumArgument<short int>;
+
+using UIntArg = Argument<unsigned int>;
+using EnumUIntArg = EnumArgument<unsigned int>;
+
+using ULongLongArg = Argument<unsigned long long int>;
+using EnumULongLongArg = EnumArgument<unsigned long long int>;
+
+using ULongArg = Argument<unsigned long int>;
+using EnumULongArg = EnumArgument<unsigned long int>;
+
+using UShortArg = Argument<unsigned short int>;
+using EnumUShortArg = EnumArgument<unsigned short int>;
 
 using CharArg = Argument<char>;
 using EnumCharArg = EnumArgument<char>;

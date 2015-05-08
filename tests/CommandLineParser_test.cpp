@@ -62,7 +62,7 @@ TEST(CommandLineParser, canParseIntArgByName)
     ASSERT_EQ(1, arg.value());
 }
 
-TEST(CommandLineParser, canParseIntArgWithEmptyValue)
+TEST(CommandLineParser, cannotParseIntArgWithEmptyValue)
 {
     sys::IntArg arg;
 
@@ -180,6 +180,80 @@ TEST(CommandLineParser, cannotParseShortArgWhenValueTooSmall)
     ASSERT_FALSE(result);
     ASSERT_FALSE(arg);
     ASSERT_EQ(0, arg.value());
+}
+
+TEST(CommandLineParser, canParseUIntArg)
+{
+    sys::UIntArg arg;
+
+    sys::CommandLineParser clp;
+    clp.argument(arg);
+
+    char const *argv[] = {"", "0"};
+    bool result = clp.parse(2, argv);
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(arg);
+    ASSERT_EQ(0, arg.value());
+}
+
+TEST(CommandLineParser, cannotParseUIntArgWhenNegativeValue)
+{
+    sys::UIntArg arg;
+
+    sys::CommandLineParser clp;
+    clp.argument(arg);
+
+    char const *argv[] = {"", "-1"};
+    bool result = clp.parse(2, argv);
+
+    ASSERT_FALSE(result);
+    ASSERT_FALSE(arg);
+}
+
+TEST(CommandLineParser, canParseULongLongArg)
+{
+    sys::ULongLongArg arg;
+
+    sys::CommandLineParser clp;
+    clp.argument(arg);
+
+    char const *argv[] = {"", "1000000"};
+    bool result = clp.parse(2, argv);
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(arg);
+    ASSERT_EQ(1000000, arg.value());
+}
+
+TEST(CommandLineParser, canParseULongArg)
+{
+    sys::ULongArg arg;
+
+    sys::CommandLineParser clp;
+    clp.argument(arg);
+
+    char const *argv[] = {"", "1000000"};
+    bool result = clp.parse(2, argv);
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(arg);
+    ASSERT_EQ(1000000, arg.value());
+}
+
+TEST(CommandLineParser, canParseUShortArg)
+{
+    sys::UShortArg arg;
+
+    sys::CommandLineParser clp;
+    clp.argument(arg);
+
+    char const *argv[] = {"", "10"};
+    bool result = clp.parse(2, argv);
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(arg);
+    ASSERT_EQ(10, arg.value());
 }
 
 TEST(CommandLineParser, canParseCharArgByName)

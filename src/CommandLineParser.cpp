@@ -1,3 +1,4 @@
+#include <type_traits>
 #include <cstring>
 
 #include "CommandLineParser.hpp"
@@ -5,7 +6,7 @@
 namespace
 {
 
-template<typename T>
+template<typename T, typename = typename std::enable_if<std::is_signed<T>::value && std::is_integral<T>::value>::type>
 sys::OperationResult convertToInteger(T& dest, char const *src)
 {
     char* end = nullptr;
@@ -26,6 +27,26 @@ sys::OperationResult convertToInteger(T& dest, char const *src)
     return sys::OperationResult::succeeded();
 }
 
+template<typename T, typename = typename std::enable_if<std::is_unsigned<T>::value && std::is_integral<T>::value>::type>
+sys::OperationResult convertToUnsignedInteger(T& dest, char const *src)
+{
+    char* end = nullptr;
+    unsigned long long int value = std::strtoull(src, &end, 10);
+    if (*end != 0 || src == end)
+    {
+        return sys::OperationResult::failed("cannot convert to unsigned number");
+    }
+    if (value > static_cast<unsigned long long int>(std::numeric_limits<T>::max()))
+    {
+        return sys::OperationResult::failed("value too large");
+    }
+    if (value < static_cast<unsigned long long int>(std::numeric_limits<T>::lowest()))
+    {
+        return sys::OperationResult::failed("value too small");
+    }
+    dest = static_cast<T>(value);
+    return sys::OperationResult::succeeded();
+}
 
 }
 
@@ -108,6 +129,54 @@ void ShortArg::reset(short int& value)
 }
 
 template<>
+OperationResult UIntArg::convert(unsigned int& dest, char const *src)
+{
+    return convertToUnsignedInteger(dest, src);
+}
+
+template<>
+void UIntArg::reset(unsigned int& value)
+{
+    value = 0u;
+}
+
+template<>
+OperationResult ULongLongArg::convert(unsigned long long int& dest, char const *src)
+{
+    return convertToUnsignedInteger(dest, src);
+}
+
+template<>
+void ULongLongArg::reset(unsigned long long int& value)
+{
+    value = 0u;
+}
+
+template<>
+OperationResult ULongArg::convert(unsigned long int& dest, char const *src)
+{
+    return convertToUnsignedInteger(dest, src);
+}
+
+template<>
+void ULongArg::reset(unsigned long int& value)
+{
+    value = 0u;
+}
+
+template<>
+OperationResult UShortArg::convert(unsigned short int& dest, char const *src)
+{
+    return convertToUnsignedInteger(dest, src);
+}
+
+template<>
+void UShortArg::reset(unsigned short int& value)
+{
+    value = 0u;
+}
+
+template<>
 OperationResult CharArg::convert(char& dest, char const *src)
 {
     if (std::strlen(src) > 1)
@@ -179,8 +248,8 @@ CommandLineArgument::CommandLineArgument(BaseArgument *argument): _argument(argu
 {
 }
 
-CommandLineArgument::CommandLineArgument(CommandLineArgument &&desc):
-    _argument(desc._argument)
+CommandLineArgument::CommandLineArgument(CommandLineArgument &&cla):
+    _argument(cla._argument)
 {
 }
 
@@ -243,13 +312,13 @@ bool CommandLineParser::parse(int argc, char const **argv)
     return result;
 }
 
-CommandLineOption &CommandLineParser::option(BaseArgument& arg)
+CommandLineOption &CommandLineParser::option(BaseArgument &arg)
 {
     _commandLineOptions.push_back(CommandLineOption(&arg));
     return _commandLineOptions.back();
 }
 
-CommandLineArgument &CommandLineParser::argument(BaseArgument& arg)
+CommandLineArgument &CommandLineParser::argument(BaseArgument &arg)
 {
     _commandLineArguments.push_back(CommandLineArgument(&arg));
     return _commandLineArguments.back();
