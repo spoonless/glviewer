@@ -122,6 +122,21 @@ TEST(CommandLineParser, canParseLongLongArgByName)
     ASSERT_EQ(-10000ll, arg.value());
 }
 
+TEST(CommandLineParser, cannotParseLongLongArgWhenValueTooLarge)
+{
+    sys::LongLongArg arg;
+
+    sys::CommandLineParser clp;
+    clp.option(arg).name("s");
+
+    char const *argv[] = {"", "--s", "-200000000000000000000000000000"};
+    bool result = clp.parse(3, argv);
+
+    ASSERT_FALSE(result);
+    ASSERT_FALSE(arg);
+    ASSERT_EQ(0, arg.value());
+}
+
 TEST(CommandLineParser, canParseLongArgByName)
 {
     sys::LongArg arg;
@@ -224,6 +239,21 @@ TEST(CommandLineParser, canParseULongLongArg)
     ASSERT_TRUE(result);
     ASSERT_TRUE(arg);
     ASSERT_EQ(1000000, arg.value());
+}
+
+TEST(CommandLineParser, cannotParseUnsignedLongLongArgWhenValueTooLarge)
+{
+    sys::ULongLongArg arg;
+
+    sys::CommandLineParser clp;
+    clp.option(arg).name("s");
+
+    char const *argv[] = {"", "--s", "200000000000000000000000000000"};
+    bool result = clp.parse(3, argv);
+
+    ASSERT_FALSE(result);
+    ASSERT_FALSE(arg);
+    ASSERT_EQ(0, arg.value());
 }
 
 TEST(CommandLineParser, canParseULongArg)

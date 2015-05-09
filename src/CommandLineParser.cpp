@@ -1,5 +1,6 @@
 #include <type_traits>
 #include <cstring>
+#include <cerrno>
 
 #include "CommandLineParser.hpp"
 
@@ -11,6 +12,12 @@ sys::OperationResult convertToInteger(T& dest, char const *src)
 {
     char* end = nullptr;
     long long int value = std::strtoll(src, &end, 10);
+    if (errno == ERANGE)
+    {
+        const char *msg = std::strerror(errno);
+        errno = 0;
+        return sys::OperationResult::failed(msg);
+    }
     if (*end != 0 || src == end)
     {
         return sys::OperationResult::failed("cannot convert to number");
@@ -32,6 +39,12 @@ sys::OperationResult convertToUnsignedInteger(T& dest, char const *src)
 {
     char* end = nullptr;
     unsigned long long int value = std::strtoull(src, &end, 10);
+    if (errno == ERANGE)
+    {
+        const char *msg = std::strerror(errno);
+        errno = 0;
+        return sys::OperationResult::failed(msg);
+    }
     if (*end != 0 || src == end)
     {
         return sys::OperationResult::failed("cannot convert to unsigned number");
