@@ -17,15 +17,9 @@ class BaseArgument
 public:
     virtual ~BaseArgument();
 
-    inline operator bool() const
-    {
-        return _valueSet;
-    }
+    operator bool() const;
 
-    inline bool operator !()
-    {
-        return !_valueSet;
-    }
+    bool operator !() const;
 
 protected:
     friend class CommandLineParser;
@@ -39,45 +33,34 @@ protected:
     bool _valueSet;
 };
 
+inline BaseArgument::operator bool() const
+{
+    return _valueSet;
+}
+
+inline bool BaseArgument::operator !() const
+{
+    return !_valueSet;
+}
+
 template<typename T>
 class Argument : public BaseArgument
 {
 public:
     using ValueType = T;
 
-    Argument()
-    {
-        reset(_value);
-    }
+    Argument();
+    ~Argument() override;
 
-    ~Argument() override
-    {
-        reset(_value);
-    }
-
-    inline T value() const
-    {
-        return _value;
-    }
+    T &value();
+    const T &value() const;
 
 protected:
-    OperationResult convert(char const *value) override
-    {
-        OperationResult result = convert(_value, value);
-        _valueSet = result.ok();
-        return result;
-    }
+    OperationResult convert(char const *value) override;
 
-    bool isSwitch() const override
-    {
-        return std::is_same<T, bool>::value;
-    }
+    bool isSwitch() const override;
 
-    void reset() override
-    {
-        _valueSet = false;
-        reset(_value);
-    }
+    void reset() override;
 
 protected:
     static OperationResult convert(ValueType& dest, char const *src);
@@ -85,6 +68,51 @@ protected:
 
     ValueType _value;
 };
+
+template<typename T>
+Argument<T>::Argument()
+{
+    reset(_value);
+}
+
+template<typename T>
+Argument<T>::~Argument()
+{
+    reset(_value);
+}
+
+template<typename T>
+inline T &Argument<T>::value()
+{
+    return _value;
+}
+
+template<typename T>
+inline const T &Argument<T>::value() const
+{
+    return _value;
+}
+
+template<typename T>
+OperationResult Argument<T>::convert(char const *value)
+{
+    OperationResult result = convert(_value, value);
+    _valueSet = result.ok();
+    return result;
+}
+
+template<typename T>
+bool Argument<T>::isSwitch() const
+{
+    return std::is_same<T, bool>::value;
+}
+
+template<typename T>
+void Argument<T>::reset()
+{
+    _valueSet = false;
+    reset(_value);
+}
 
 template<typename T>
 class EnumArgument : public Argument<T>
@@ -136,28 +164,12 @@ class CommandLineOption
 public:
 
     CommandLineOption(BaseArgument *argument);
-
     CommandLineOption(CommandLineOption &&clp);
-
     CommandLineOption(const CommandLineOption &) = delete;
 
-    CommandLineOption & description(char const *value)
-    {
-        _description = value;
-        return *this;
-    }
-
-    CommandLineOption & name(char const *name)
-    {
-        _name = name;
-        return *this;
-    }
-
-    CommandLineOption & shortName(char const *value)
-    {
-        _shortName = value;
-        return *this;
-    }
+    CommandLineOption & description(char const *value);
+    CommandLineOption & name(char const *name);
+    CommandLineOption & shortName(char const *value);
 
 private:
     BaseArgument *_argument;

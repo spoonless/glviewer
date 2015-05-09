@@ -244,6 +244,24 @@ CommandLineOption::CommandLineOption(CommandLineOption &&clp):
 {
 }
 
+CommandLineOption & CommandLineOption::description(char const *value)
+{
+    _description = value;
+    return *this;
+}
+
+CommandLineOption & CommandLineOption::name(char const *name)
+{
+    _name = name;
+    return *this;
+}
+
+CommandLineOption & CommandLineOption::shortName(char const *value)
+{
+    _shortName = value;
+    return *this;
+}
+
 CommandLineArgument::CommandLineArgument(BaseArgument *argument): _argument(argument)
 {
 }
