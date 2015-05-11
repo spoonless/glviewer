@@ -243,6 +243,10 @@ using EnumStringArg = EnumArgument<std::string>;
 using CharSeqArg = Argument<const char*>;
 using EnumCharSeqArg = EnumArgument<const char*>;
 
+using FloatArg = Argument<float>;
+using DoubleArg = Argument<double>;
+using LongDoubleArg = Argument<long double>;
+
 }
 
 #endif

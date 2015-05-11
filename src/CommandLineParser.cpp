@@ -7,26 +7,34 @@
 namespace
 {
 
-template<typename T, typename = typename std::enable_if<std::is_signed<T>::value && std::is_integral<T>::value>::type>
+template<typename T, typename C = typename std::conditional<std::is_signed<T>::value, long long, unsigned long long>::type>
 sys::OperationResult convertToInteger(T& dest, char const *src)
 {
     char* end = nullptr;
-    long long int value = std::strtoll(src, &end, 10);
+    C value = 0;
+    errno = 0;
+    if (std::is_signed<T>::value)
+    {
+        value = std::strtoll(src, &end, 10);
+    }
+    else
+    {
+        value = std::strtoull(src, &end, 10);
+    }
     if (errno == ERANGE)
     {
-        const char *msg = std::strerror(errno);
         errno = 0;
-        return sys::OperationResult::failed(msg);
+        return sys::OperationResult::failed("cannot convert to number");
     }
     if (*end != 0 || src == end)
     {
         return sys::OperationResult::failed("cannot convert to number");
     }
-    if (value > static_cast<long long int>(std::numeric_limits<T>::max()))
+    if (value > static_cast<C>(std::numeric_limits<T>::max()))
     {
         return sys::OperationResult::failed("value too large");
     }
-    if (value < static_cast<long long int>(std::numeric_limits<T>::lowest()))
+    if (value < static_cast<C>(std::numeric_limits<T>::lowest()))
     {
         return sys::OperationResult::failed("value too small");
     }
@@ -34,26 +42,26 @@ sys::OperationResult convertToInteger(T& dest, char const *src)
     return sys::OperationResult::succeeded();
 }
 
-template<typename T, typename = typename std::enable_if<std::is_unsigned<T>::value && std::is_integral<T>::value>::type>
-sys::OperationResult convertToUnsignedInteger(T& dest, char const *src)
+template<typename T>
+sys::OperationResult convertToFloatingPointNumber(T& dest, char const *src)
 {
     char* end = nullptr;
-    unsigned long long int value = std::strtoull(src, &end, 10);
+    errno = 0;
+    long double value = std::strtold(src, &end);
     if (errno == ERANGE)
     {
-        const char *msg = std::strerror(errno);
         errno = 0;
-        return sys::OperationResult::failed(msg);
+        return sys::OperationResult::failed("cannot convert to floating point number");
     }
     if (*end != 0 || src == end)
     {
-        return sys::OperationResult::failed("cannot convert to unsigned number");
+        return sys::OperationResult::failed("cannot convert to floating point number");
     }
-    if (value > static_cast<unsigned long long int>(std::numeric_limits<T>::max()))
+    if (value > static_cast<long double>(std::numeric_limits<T>::max()))
     {
         return sys::OperationResult::failed("value too large");
     }
-    if (value < static_cast<unsigned long long int>(std::numeric_limits<T>::lowest()))
+    if (value < static_cast<long double>(std::numeric_limits<T>::lowest()))
     {
         return sys::OperationResult::failed("value too small");
     }
@@ -144,7 +152,7 @@ void ShortArg::reset(short int& value)
 template<>
 OperationResult UIntArg::convert(unsigned int& dest, char const *src)
 {
-    return convertToUnsignedInteger(dest, src);
+    return convertToInteger(dest, src);
 }
 
 template<>
@@ -156,7 +164,7 @@ void UIntArg::reset(unsigned int& value)
 template<>
 OperationResult ULongLongArg::convert(unsigned long long int& dest, char const *src)
 {
-    return convertToUnsignedInteger(dest, src);
+    return convertToInteger(dest, src);
 }
 
 template<>
@@ -168,7 +176,7 @@ void ULongLongArg::reset(unsigned long long int& value)
 template<>
 OperationResult ULongArg::convert(unsigned long int& dest, char const *src)
 {
-    return convertToUnsignedInteger(dest, src);
+    return convertToInteger(dest, src);
 }
 
 template<>
@@ -180,7 +188,7 @@ void ULongArg::reset(unsigned long int& value)
 template<>
 OperationResult UShortArg::convert(unsigned short int& dest, char const *src)
 {
-    return convertToUnsignedInteger(dest, src);
+    return convertToInteger(dest, src);
 }
 
 template<>
@@ -243,6 +251,42 @@ void CharSeqArg::reset(const char *& value)
 {
     delete[] value;
     value = nullptr;
+}
+
+template<>
+OperationResult FloatArg::convert(float& dest, char const *src)
+{
+    return convertToFloatingPointNumber(dest, src);
+}
+
+template<>
+void FloatArg::reset(float& value)
+{
+    value = 0;
+}
+
+template<>
+OperationResult DoubleArg::convert(double& dest, char const *src)
+{
+    return convertToFloatingPointNumber(dest, src);
+}
+
+template<>
+void DoubleArg::reset(double& value)
+{
+    value = 0;
+}
+
+template<>
+OperationResult LongDoubleArg::convert(long double& dest, char const *src)
+{
+    return convertToFloatingPointNumber(dest, src);
+}
+
+template<>
+void LongDoubleArg::reset(long double& value)
+{
+    value = 0;
 }
 
 CommandLineOption::CommandLineOption(BaseArgument *argument): _argument(argument)

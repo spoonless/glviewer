@@ -459,3 +459,51 @@ TEST(CommandLineParser, cannotParseEnumeratedArguments)
     ASSERT_FALSE(result);
     ASSERT_FALSE(arg);
 }
+
+TEST(CommandLineParser, canParseFloatArg)
+{
+    sys::FloatArg arg;
+
+    sys::CommandLineParser clp;
+    clp.argument(arg);
+
+    char const *argv[] = {"", "10.6"};
+    bool result = clp.parse(2, argv);
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(arg);
+    ASSERT_EQ(10.6f, arg.value());
+}
+
+TEST(CommandLineParser, canParseDoubleArg)
+{
+    sys::DoubleArg arg;
+    sys::DoubleArg argWithExponent;
+
+    sys::CommandLineParser clp;
+    clp.argument(arg);
+    clp.argument(argWithExponent);
+
+    char const *argv[] = {"", "-10.6", "1.06E1"};
+    bool result = clp.parse(3, argv);
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(arg);
+    ASSERT_EQ(-10.6, arg.value());
+    ASSERT_EQ(10.6, argWithExponent.value());
+}
+
+TEST(CommandLineParser, canParseLongDoubleArg)
+{
+    sys::LongDoubleArg arg;
+
+    sys::CommandLineParser clp;
+    clp.argument(arg);
+
+    char const *argv[] = {"", "1e100"};
+    bool result = clp.parse(2, argv);
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(arg);
+    ASSERT_EQ(1e100l, arg.value());
+}
