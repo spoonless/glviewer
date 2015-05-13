@@ -77,7 +77,7 @@ public:
     {
         std::vector<GLuint> texturesId;
         std::transform(_textureIdMap.begin(), _textureIdMap.end(), std::back_inserter(texturesId), getTextureId);
-        glDeleteTextures(texturesId.size(), &texturesId[0]);
+		glDeleteTextures(static_cast<GLsizei>(texturesId.size()), &texturesId[0]);
     }
 
     GLuint load(const sys::Path &basepath, const std::string &filename)

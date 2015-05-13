@@ -166,7 +166,7 @@ namespace
 
     void fillBuffer(GLfloat *tmpBuffer, gl::BoundingBox &boundingBox, const vfm::ObjModel &objModel, const VertexAttributeBufferDescVector &vertexAttributeBufferDescVector)
     {
-        int tmpBufferOffset = 0;
+        std::size_t tmpBufferOffset = 0;
         std::size_t vertexAttributesStructureSize = computeVertexAttributesStructureSize(vertexAttributeBufferDescVector);
 
         for(const vfm::Object &o : objModel.objects)
@@ -267,7 +267,7 @@ void gl::GlMesh::render(gl::MaterialHandler *handler)
         {
             handler->use(materialGroup.index);
         }
-        glDrawElements(GL_TRIANGLES, materialGroup.size, _indexFormat, (void*)(firstPrimitive * sizeofIndex));
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(materialGroup.size), _indexFormat, (void*)(firstPrimitive * sizeofIndex));
         firstPrimitive += materialGroup.size;
     }
 
@@ -291,7 +291,7 @@ void gl::GlMesh::clear()
     }
     if (! _buffers.empty())
     {
-        glDeleteBuffers(_buffers.size(), &_buffers[0]);
+		glDeleteBuffers(static_cast<GLsizei>(_buffers.size()), &_buffers[0]);
         _buffers.clear();
     }
     _boundingBox = {};
@@ -370,7 +370,7 @@ gl::GlMeshGeneration gl::GlMesh::generate(vfm::ObjModel &objModel, const gl::Ver
 
     glBindVertexArray(_vertexArray);
     _buffers.resize(2);
-    glGenBuffers(_buffers.size(), &_buffers[0]);
+	glGenBuffers(static_cast<GLsizei>(_buffers.size()), &_buffers[0]);
     if (glError)
     {
         glBindVertexArray(0);
@@ -385,7 +385,7 @@ gl::GlMeshGeneration gl::GlMesh::generate(vfm::ObjModel &objModel, const gl::Ver
 
     for (VertexAttributeBufferDesc vabd : vertexAttributeBufferDescVector)
     {
-        glVertexAttribPointer(vabd.index, vabd.size, GL_FLOAT, (vabd.type == VERTEX_NORMAL ? GL_TRUE : GL_FALSE), (vertexAttributesStructureSize * sizeof(GL_FLOAT)), (void*)(vabd.offset  * sizeof(GL_FLOAT)));
+		glVertexAttribPointer(vabd.index, static_cast<GLsizei>(vabd.size), GL_FLOAT, (vabd.type == VERTEX_NORMAL ? GL_TRUE : GL_FALSE), static_cast<GLsizei>(vertexAttributesStructureSize * sizeof(GL_FLOAT)), (void*)(vabd.offset  * sizeof(GL_FLOAT)));
         _definedVertexAttributes.push_back(vabd.index);
     }
     glBufferData(GL_ARRAY_BUFFER, vertexAttributeBuffer.size() * sizeof(GLfloat), vertexAttributeBuffer.data(), GL_STATIC_DRAW);

@@ -46,6 +46,20 @@ template<typename T> void checkUniform(ShaderProgram &shaderProgram, const char 
     ASSERT_EQ(modifiedValue, v);
 }
 
+template<> void checkUniform(ShaderProgram &shaderProgram, const char *uniformName, const bool &expectedValue)
+{
+	UniformDeclaration u = shaderProgram.getActiveUniform(uniformName);
+
+	bool v = *u;
+	ASSERT_EQ(expectedValue, v);
+
+	bool modifiedValue = !v;
+	*u = modifiedValue;
+	v = *u;
+	ASSERT_EQ(modifiedValue, v);
+}
+
+
 }
 
 TEST(ShaderProgram, canCreateShaderProgram)
