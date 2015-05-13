@@ -216,43 +216,88 @@ private:
 };
 
 using BoolArg = Argument<bool>;
+template<> OperationResult BoolArg::convert(bool &, char const *);
+template<> void BoolArg::reset(bool &);
 
 using IntArg = Argument<int>;
+template<> OperationResult IntArg::convert(int &, char const *);
+template<> void IntArg::reset(int &);
+
 using EnumIntArg = EnumArgument<int>;
 
 using LongLongArg = Argument<long long int>;
+template<> OperationResult LongLongArg::convert(long long int &, char const *);
+template<> void LongLongArg::reset(long long int &);
+
 using EnumLongLongArg = EnumArgument<long long int>;
 
 using LongArg = Argument<long int>;
+template<> OperationResult LongArg::convert(long &, char const *);
+template<> void LongArg::reset(long &);
+
 using EnumLongArg = EnumArgument<long int>;
 
 using ShortArg = Argument<short int>;
+template<> OperationResult ShortArg::convert(short int &, char const *);
+template<> void ShortArg::reset(short int &);
+
 using EnumShortArg = EnumArgument<short int>;
 
 using UIntArg = Argument<unsigned int>;
+template<> OperationResult UIntArg::convert(unsigned int &, char const *);
+template<> void UIntArg::reset(unsigned int &);
+
 using EnumUIntArg = EnumArgument<unsigned int>;
 
 using ULongLongArg = Argument<unsigned long long int>;
+template<> OperationResult ULongLongArg::convert(unsigned long long int &, char const *);
+template<> void ULongLongArg::reset(unsigned long long int &);
+
 using EnumULongLongArg = EnumArgument<unsigned long long int>;
 
 using ULongArg = Argument<unsigned long int>;
+template<> OperationResult ULongArg::convert(unsigned long int &, char const *);
+template<> void ULongArg::reset(unsigned long int &);
+
 using EnumULongArg = EnumArgument<unsigned long int>;
 
 using UShortArg = Argument<unsigned short int>;
+template<> OperationResult UShortArg::convert(unsigned short int &, char const *);
+template<> void UShortArg::reset(unsigned short int &);
+
 using EnumUShortArg = EnumArgument<unsigned short int>;
 
 using CharArg = Argument<char>;
+template<> OperationResult CharArg::convert(char &, char const *);
+template<> void CharArg::reset(char &);
+
 using EnumCharArg = EnumArgument<char>;
 
 using StringArg = Argument<std::string>;
+template<> OperationResult StringArg::convert(std::string &, char const *);
+template<> void StringArg::reset(std::string &);
+
 using EnumStringArg = EnumArgument<std::string>;
 
 using CharSeqArg = Argument<const char*>;
+template<> CharSeqArg::Argument();
+template<> OperationResult CharSeqArg::convert(char const *&, char const *);
+template<> void CharSeqArg::reset(char const *&);
+
 using EnumCharSeqArg = EnumArgument<const char*>;
+template<> bool EnumCharSeqArg::areEqual(char const * const &, char const * const &);
 
 using FloatArg = Argument<float>;
+template<> OperationResult FloatArg::convert(float &, char const *);
+template<> void FloatArg::reset(float &);
+
 using DoubleArg = Argument<double>;
+template<> OperationResult DoubleArg::convert(double &, char const *);
+template<> void DoubleArg::reset(double &);
+
 using LongDoubleArg = Argument<long double>;
+template<> OperationResult LongDoubleArg::convert(long double &, char const *);
+template<> void LongDoubleArg::reset(long double &);
 
 }
 

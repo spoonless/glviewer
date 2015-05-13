@@ -94,7 +94,7 @@ BaseArgument::BaseArgument() : _valueSet(false)
 }
 
 template<>
-bool EnumArgument<char const *>::areEqual(char const * const&v1, char const * const&v2)
+bool EnumCharSeqArg::areEqual(char const * const&v1, char const * const&v2)
 {
     return v1 == nullptr || v2 == nullptr ? v1 == v2 : std::strcmp(v1, v2) == 0;
 }
@@ -239,8 +239,9 @@ void StringArg::reset(std::string& value)
 }
 
 template<>
-CharSeqArg::Argument():_value(nullptr)
+CharSeqArg::Argument()
 {
+	_value = nullptr;
 }
 
 template<>
