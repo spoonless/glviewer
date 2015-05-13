@@ -2,16 +2,38 @@
 #include <iomanip>
 #include <fstream>
 #include "ObjModel.hpp"
+#include "CommandLineParser.hpp"
 
-int main (int argc, char **argv)
+struct Arguments
 {
-    if (argc == 1)
+    sys::CharSeqArg filename;
+    sys::BoolArg verbose;
+
+    bool parse(int argc, const char **argv)
     {
-        std::clog << "Usage: " << argv[0] << " [filename]" << std::endl;
+        sys::CommandLineParser clp;
+        clp.argument(filename);
+        clp.option(verbose).shortName("v");
+
+        if (!clp.parse(argc, argv) || !filename)
+        {
+            std::clog << "Usage: " << argv[0] << " [-v] filename" << std::endl;
+            return false;
+        }
+        return true;
+    }
+};
+
+int main (int argc, const char **argv)
+{
+    Arguments args;
+
+    if (!args.parse(argc, argv))
+    {
         return 1;
     }
 
-    std::ifstream ifs{argv[1]};
+    std::ifstream ifs(args.filename.value());
     if (!ifs.is_open())
     {
         std::clog << "Cannot open file " << argv[1] << std::endl;
@@ -27,9 +49,12 @@ int main (int argc, char **argv)
     std::clog << std::setw(12) << "Textures: " << model.textures.size() << std::endl;
     std::clog << std::setw(12) << "Objects: " << model.objects.size() << std::endl;
 
-    for (vfm::Object &o : model.objects)
+    if (args.verbose.value())
     {
-        std::clog << "Object '" << o.name << "' has " << o.vertexIndices.size() << " vertices" << " and " << o.triangles.size()/3 << " triangles" << std::endl;
+        for (vfm::Object &o : model.objects)
+        {
+            std::clog << "Object '" << o.name << "' has " << o.vertexIndices.size() << " vertices" << " and " << o.triangles.size()/3 << " triangles" << std::endl;
+        }
     }
 
     return 0;

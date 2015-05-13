@@ -72,12 +72,12 @@ sys::OperationResult convertToFloatingPointNumber(T& dest, char const *src)
 
 bool isShortOption(const char *v, const std::string &optionName)
 {
-    return v[0] == '-' && optionName == &v[1];
+    return !optionName.empty() && v[0] == '-' && optionName == &v[1];
 }
 
 bool isLongOption(const char *v, const std::string &optionName)
 {
-    return v[0] == '-' && v[1] == '-' && optionName == &v[2];
+    return !optionName.empty() && v[0] == '-' && v[1] == '-' && optionName == &v[2];
 }
 
 }
