@@ -70,6 +70,16 @@ sys::OperationResult convertToFloatingPointNumber(T& dest, char const *src)
     return sys::OperationResult::succeeded();
 }
 
+bool isShortOption(const char *v, const std::string &optionName)
+{
+    return v[0] == '-' && optionName == &v[1];
+}
+
+bool isLongOption(const char *v, const std::string &optionName)
+{
+    return v[0] == '-' && v[1] == '-' && optionName == &v[2];
+}
+
 }
 
 namespace sys
@@ -320,6 +330,11 @@ CommandLineOption & CommandLineOption::shortName(char const *value)
     return *this;
 }
 
+bool CommandLineOption::matches(char const *value)
+{
+    return !*_argument && (isShortOption(value, this->_shortName) || isLongOption(value, this->_name));
+}
+
 CommandLineArgument::CommandLineArgument(BaseArgument *argument): _argument(argument)
 {
 }
@@ -346,6 +361,11 @@ CommandLineArgument & CommandLineArgument::pattern(const char *pattern)
     return *this;
 }
 
+bool CommandLineArgument::matches(char const *value)
+{
+    return !*_argument && (!_selector || _selector(value));
+}
+
 bool CommandLineParser::parse(int argc, char const **argv)
 {
     std::for_each(std::begin(_commandLineOptions), std::end(_commandLineOptions), [](CommandLineOption& clo){
@@ -362,9 +382,7 @@ bool CommandLineParser::parse(int argc, char const **argv)
         bool found = false;
         for (CommandLineOption& clo : _commandLineOptions)
         {
-            bool matchName = argv[i][0] == '-' && argv[i][1] == '-' && clo._name == (argv[i]+2);
-            bool matchShortName = ! matchName && argv[i][0] == '-' && clo._shortName == (argv[i]+1);
-            if (matchName || matchShortName)
+            if (clo.matches(argv[i]))
             {
                 if (clo._argument->isSwitch())
                 {
@@ -387,14 +405,11 @@ bool CommandLineParser::parse(int argc, char const **argv)
         {
             for (CommandLineArgument& cla : _commandLineArguments)
             {
-                if(!*cla._argument)
+                if (cla.matches(argv[i]))
                 {
-                    if (! cla._selector || cla._selector(argv[i]))
-                    {
-                        result = cla._argument->convert(argv[i]);
-                        found = true;
-                        break;
-                    }
+                    result = cla._argument->convert(argv[i]);
+                    found = true;
+                    break;
                 }
             }
         }

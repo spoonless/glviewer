@@ -172,6 +172,8 @@ public:
     CommandLineOption & name(char const *name);
     CommandLineOption & shortName(char const *value);
 
+    bool matches(const char *v);
+
 private:
     BaseArgument *_argument;
     std::string _description;
@@ -190,6 +192,8 @@ public:
 
     CommandLineArgument & selector(std::function<bool(const char*)> selector);
     CommandLineArgument & pattern(const char *pattern);
+
+    bool matches(const char *v);
 
 private:
     BaseArgument *_argument;
