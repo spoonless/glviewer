@@ -1,6 +1,7 @@
 #include <type_traits>
 #include <cstring>
 #include <cerrno>
+#include <regex>
 
 #include "CommandLineParser.hpp"
 
@@ -324,8 +325,25 @@ CommandLineArgument::CommandLineArgument(BaseArgument *argument): _argument(argu
 }
 
 CommandLineArgument::CommandLineArgument(CommandLineArgument &&cla):
-    _argument(cla._argument)
+    _argument(cla._argument),
+    _selector(std::move(cla._selector))
 {
+}
+
+CommandLineArgument & CommandLineArgument::selector(std::function<bool(const char*)> selector)
+{
+    _selector = selector;
+    return *this;
+}
+
+CommandLineArgument & CommandLineArgument::pattern(const char *pattern)
+{
+    std::regex regex(pattern);
+    _selector = [regex](const char *v)
+    {
+        return std::regex_match(v, regex);
+    };
+    return *this;
 }
 
 bool CommandLineParser::parse(int argc, char const **argv)
@@ -371,9 +389,12 @@ bool CommandLineParser::parse(int argc, char const **argv)
             {
                 if(!*cla._argument)
                 {
-                    result = cla._argument->convert(argv[i]);
-                    found = true;
-                    break;
+                    if (! cla._selector || cla._selector(argv[i]))
+                    {
+                        result = cla._argument->convert(argv[i]);
+                        found = true;
+                        break;
+                    }
                 }
             }
         }

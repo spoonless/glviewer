@@ -2,6 +2,7 @@
 #define COMMAND_LINE_PARSER_HPP
 
 #include <type_traits>
+#include <functional>
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -184,13 +185,15 @@ class CommandLineArgument
 public:
 
     CommandLineArgument(BaseArgument *argument);
-
     CommandLineArgument(CommandLineArgument &&cla);
-
     CommandLineArgument(const CommandLineArgument &) = delete;
+
+    CommandLineArgument & selector(std::function<bool(const char*)> selector);
+    CommandLineArgument & pattern(const char *pattern);
 
 private:
     BaseArgument *_argument;
+    std::function<bool(const char*)> _selector;
 };
 
 class CommandLineParser

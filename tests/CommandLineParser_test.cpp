@@ -286,6 +286,42 @@ TEST(CommandLineParser, canParseUShortArg)
     ASSERT_EQ(10, arg.value());
 }
 
+TEST(CommandLineParser, canParseArgumentWithSelector)
+{
+    sys::CharSeqArg arg1;
+    sys::CharSeqArg arg2;
+
+    sys::CommandLineParser clp;
+    clp.argument(arg1).selector([](const char *v){
+        return std::string("arg1") == v;
+    });
+
+    clp.argument(arg2).selector([](const char *v){
+        return std::string("arg2") == v;
+    });
+
+    char const *argv[] = {"", "arg2", "arg1"};
+    bool result = clp.parse(3, argv);
+
+    ASSERT_TRUE(result);
+    ASSERT_STREQ("arg1", arg1.value());
+    ASSERT_STREQ("arg2", arg2.value());
+}
+
+TEST(CommandLineParser, canParseArgumentWithPattern)
+{
+    sys::CharSeqArg arg;
+
+    sys::CommandLineParser clp;
+    clp.argument(arg).pattern(".+\\.txt");
+
+    char const *argv[] = {"", "myfile.txt"};
+    bool result = clp.parse(2, argv);
+
+    ASSERT_TRUE(result);
+    ASSERT_STREQ("myfile.txt", arg.value());
+}
+
 TEST(CommandLineParser, canParseCharArgByName)
 {
     sys::CharArg arg;
