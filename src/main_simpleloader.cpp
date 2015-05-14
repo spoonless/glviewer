@@ -1,51 +1,49 @@
+#include <cstdlib>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include "ObjModel.hpp"
 #include "CommandLineParser.hpp"
 
-struct Arguments
+struct CommandLine
 {
     sys::CharSeqArg filename;
     sys::BoolArg verbose;
+    sys::BoolArg help;
 
-    bool parse(int argc, const char **argv)
-    {
-        sys::CommandLineParser clp;
-        clp.parameter(filename).placeholder("FILE").description("The filename to load and parse.");
-        clp.option(verbose).name("verbose").shortName("v").description("Display information by objects.");
-
-        sys::OperationResult result = clp.parse(argc, argv);
-        if (!result)
-        {
-            std::cerr << result.message() << std::endl;
-        }
-
-        if (!filename)
-        {
-            std::cerr << "Missing file path!" << std::endl;
-        }
-
-        if (!result || !filename)
-        {
-            std::cerr << "Usage: " << argv[0] << " [OPTIONS] FILE" << std::endl;
-            std::cerr << clp;
-            return false;
-        }
-        return true;
-    }
+    CommandLine(int argc, const char **argv);
 };
+
+CommandLine::CommandLine(int argc, const char **argv)
+{
+    sys::CommandLineParser clp;
+    clp.parameter(filename).placeholder("FILE").description("The filename to load and parse.");
+    clp.option(help).name("help").shortName("h").description("Display this help message.");
+    clp.option(verbose).name("verbose").shortName("v").description("Display information by objects.");
+    clp.validator([this](){
+        if(help) return sys::OperationResult::succeeded();
+        return sys::OperationResult::test(filename, "Missing OBJ filename!");
+    });
+
+    sys::OperationResult result = clp.parse(argc, argv);
+    if (!result)
+    {
+        std::cerr << result.message() << std::endl << std::endl;
+    }
+
+    if (!result || help)
+    {
+        std::cerr << "Usage: " << argv[0] << " [OPTIONS] FILE" << std::endl;
+        std::cerr << clp;
+        std::exit(1);
+    }
+}
 
 int main (int argc, const char **argv)
 {
-    Arguments args;
+    CommandLine cmdLine(argc, argv);
 
-    if (!args.parse(argc, argv))
-    {
-        return 1;
-    }
-
-    std::ifstream ifs(args.filename.value());
+    std::ifstream ifs(cmdLine.filename.value());
     if (!ifs.is_open())
     {
         std::clog << "Cannot open file " << argv[1] << std::endl;
@@ -61,7 +59,7 @@ int main (int argc, const char **argv)
     std::clog << std::setw(12) << "Textures: " << model.textures.size() << std::endl;
     std::clog << std::setw(12) << "Objects: " << model.objects.size() << std::endl;
 
-    if (args.verbose.value())
+    if (cmdLine.verbose.value())
     {
         for (vfm::Object &o : model.objects)
         {

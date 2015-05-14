@@ -214,12 +214,14 @@ public:
 
     CommandLineOption &option(BaseArgument &arg);
     CommandLineParameter &parameter(BaseArgument &arg);
+    void validator(std::function<OperationResult()> validator);
 
     void displayArguments(std::ostream &os) const;
 
 private:
     std::vector<CommandLineOption> _commandLineOptions;
     std::vector<CommandLineParameter> _commandLineParameters;
+    std::function<OperationResult()> _validator;
 };
 
 std::ostream & operator << (std::ostream &os, const CommandLineParser &clp);
