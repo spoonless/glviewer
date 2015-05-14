@@ -12,12 +12,24 @@ struct Arguments
     bool parse(int argc, const char **argv)
     {
         sys::CommandLineParser clp;
-        clp.argument(filename);
-        clp.option(verbose).shortName("v");
+        clp.parameter(filename).placeholder("FILE").description("The filename to load and parse.");
+        clp.option(verbose).name("verbose").shortName("v").description("Display information by objects.");
 
-        if (!clp.parse(argc, argv) || !filename)
+        sys::OperationResult result = clp.parse(argc, argv);
+        if (!result)
         {
-            std::clog << "Usage: " << argv[0] << " [-v] filename" << std::endl;
+            std::cerr << result.message() << std::endl;
+        }
+
+        if (!filename)
+        {
+            std::cerr << "Missing file path!" << std::endl;
+        }
+
+        if (!result || !filename)
+        {
+            std::cerr << "Usage: " << argv[0] << " [OPTIONS] FILE" << std::endl;
+            std::cerr << clp;
             return false;
         }
         return true;
