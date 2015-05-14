@@ -2,6 +2,7 @@
 #include <cstring>
 #include <cerrno>
 #include <regex>
+#include <sstream>
 
 #include "CommandLineParser.hpp"
 
@@ -213,7 +214,7 @@ OperationResult CharArg::convert(char& dest, char const *src)
 {
     if (std::strlen(src) > 1)
     {
-        return OperationResult::failed("Only one character expected!");
+        return OperationResult::failed("only one character expected!");
     }
     dest = src[0];
     return OperationResult::succeeded();
@@ -336,23 +337,23 @@ bool CommandLineOption::matches(char const *value)
     return !*_argument && (isShortOption(value, this->_shortName) || isLongOption(value, this->_name));
 }
 
-CommandLineArgument::CommandLineArgument(BaseArgument *argument): _argument(argument)
+CommandLineParameter::CommandLineParameter(BaseArgument *argument): _argument(argument)
 {
 }
 
-CommandLineArgument::CommandLineArgument(CommandLineArgument &&cla):
+CommandLineParameter::CommandLineParameter(CommandLineParameter &&cla):
     _argument(cla._argument),
     _selector(std::move(cla._selector))
 {
 }
 
-CommandLineArgument & CommandLineArgument::selector(std::function<bool(const char*)> selector)
+CommandLineParameter & CommandLineParameter::selector(std::function<bool(const char*)> selector)
 {
     _selector = selector;
     return *this;
 }
 
-CommandLineArgument & CommandLineArgument::pattern(const char *pattern)
+CommandLineParameter & CommandLineParameter::pattern(const char *pattern)
 {
     std::regex regex(pattern);
     _selector = [regex](const char *v)
@@ -362,23 +363,35 @@ CommandLineArgument & CommandLineArgument::pattern(const char *pattern)
     return *this;
 }
 
-bool CommandLineArgument::matches(char const *value)
+CommandLineParameter & CommandLineParameter::description(char const *value)
+{
+    _description = value;
+    return *this;
+}
+
+CommandLineParameter & CommandLineParameter::placeholder(char const *value)
+{
+    _placeholder = value;
+    return *this;
+}
+
+bool CommandLineParameter::matches(char const *value)
 {
     return !*_argument && (!_selector || _selector(value));
 }
 
-bool CommandLineParser::parse(int argc, char const **argv)
+OperationResult CommandLineParser::parse(int argc, char const **argv)
 {
     std::for_each(std::begin(_commandLineOptions), std::end(_commandLineOptions), [](CommandLineOption& clo){
         clo._argument->reset();
     });
 
-    std::for_each(std::begin(_commandLineArguments), std::end(_commandLineArguments), [](CommandLineArgument& cla){
+    std::for_each(std::begin(_commandLineParameters), std::end(_commandLineParameters), [](CommandLineParameter& cla){
         cla._argument->reset();
     });
 
-    bool result = true;
-    for(int i = 1; result && i < argc; ++i)
+    std::stringstream message;
+    for(int i = 1; i < argc; ++i)
     {
         bool found = false;
         for (CommandLineOption& clo : _commandLineOptions)
@@ -387,41 +400,57 @@ bool CommandLineParser::parse(int argc, char const **argv)
             {
                 if (clo._argument->isSwitch())
                 {
-                    result = clo._argument->convert("");
-                    found = result;
+                    OperationResult result = clo._argument->convert("");
+                    if (!result)
+                    {
+                        message << "Invalid option " << argv[i] << ": " << result.message();
+                        return OperationResult::failed(message.str());
+                    }
                 }
                 else if (i+1 < argc)
                 {
-                    result = clo._argument->convert(argv[++i]);
-                    found = result;
+                    OperationResult result = clo._argument->convert(argv[++i]);
+                    if (!result)
+                    {
+                        message << "Invalid option " << argv[i] << " value: " << result.message();
+                        return OperationResult::failed(message.str());
+                    }
                 }
                 else {
-                    // TODO provide an error message
-                    result = false;
+                    message << "Invalid option " << argv[i] << " value: one value is expected!";
+                    return OperationResult::failed(message.str());
                 }
+                found = true;
                 break;
             }
         }
-        if (result && !found)
+
+        if (!found)
         {
-            for (CommandLineArgument& cla : _commandLineArguments)
+            for (CommandLineParameter& clp : _commandLineParameters)
             {
-                if (cla.matches(argv[i]))
+                if (clp.matches(argv[i]))
                 {
-                    result = cla._argument->convert(argv[i]);
+                    OperationResult result = clp._argument->convert(argv[i]);
+                    if (!result)
+                    {
+                        message << "Invalid parameter '" << argv[i] << "': " << result.message();
+                        return OperationResult::failed(message.str());
+                    }
                     found = true;
                     break;
                 }
             }
         }
-        if (!found)
+
+        if(!found)
         {
-            // TODO provide an error message
-            result = false;
+            message << "Unexpected parameter or option '" << argv[i] << "'!";
+            return OperationResult::failed(message.str());
         }
     }
 
-    return result;
+    return OperationResult::succeeded();
 }
 
 CommandLineOption &CommandLineParser::option(BaseArgument &arg)
@@ -430,10 +459,59 @@ CommandLineOption &CommandLineParser::option(BaseArgument &arg)
     return _commandLineOptions.back();
 }
 
-CommandLineArgument &CommandLineParser::argument(BaseArgument &arg)
+CommandLineParameter &CommandLineParser::parameter(BaseArgument &arg)
 {
-    _commandLineArguments.push_back(CommandLineArgument(&arg));
-    return _commandLineArguments.back();
+    _commandLineParameters.push_back(CommandLineParameter(&arg));
+    return _commandLineParameters.back();
+}
+
+void CommandLineParser::displayArguments(std::ostream &os) const
+{
+    if (!_commandLineOptions.empty())
+    {
+        os << std::endl << "Options:" << std::endl;
+    }
+    for (const CommandLineOption& clo : _commandLineOptions)
+    {
+        if (!clo._name.empty() && !clo._shortName.empty())
+        {
+            os << "   -" << clo._shortName << ", --" << clo._name << std::endl;
+        }
+        else if (!clo._name.empty())
+        {
+            os << "   --" << clo._name << std::endl;
+        }
+        else if (!clo._shortName.empty())
+        {
+            os << "   -" << clo._shortName << std::endl;
+        }
+        if (!clo._description.empty() && (!clo._name.empty() || !clo._shortName.empty()))
+        {
+            os << "      " << clo._description << std::endl;
+        }
+    }
+
+    if (!_commandLineParameters.empty())
+    {
+        os << std::endl << "Parameters:" << std::endl;
+    }
+    for (const CommandLineParameter& clp : _commandLineParameters)
+    {
+        if (!clp._placeholder.empty())
+        {
+            os << "   " << clp._placeholder << std::endl;
+        }
+        if (!clp._description.empty())
+        {
+            os << (clp._placeholder.empty() ? "   " : "      ") << clp._description << std::endl;
+        }
+    }
+}
+
+std::ostream & operator << (std::ostream &os, const CommandLineParser &clp)
+{
+    clp.displayArguments(os);
+    return os;
 }
 
 }

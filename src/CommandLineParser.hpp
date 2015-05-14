@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <cstring>
+#include <ostream>
 
 #include "OperationResult.hpp"
 
@@ -172,48 +173,56 @@ public:
     CommandLineOption & name(char const *name);
     CommandLineOption & shortName(char const *value);
 
+private:
     bool matches(const char *v);
 
-private:
     BaseArgument *_argument;
     std::string _description;
     std::string _shortName;
     std::string _name;
 };
 
-class CommandLineArgument
+class CommandLineParameter
 {
     friend class CommandLineParser;
 public:
 
-    CommandLineArgument(BaseArgument *argument);
-    CommandLineArgument(CommandLineArgument &&cla);
-    CommandLineArgument(const CommandLineArgument &) = delete;
+    CommandLineParameter(BaseArgument *argument);
+    CommandLineParameter(CommandLineParameter &&cla);
+    CommandLineParameter(const CommandLineParameter &) = delete;
 
-    CommandLineArgument & selector(std::function<bool(const char*)> selector);
-    CommandLineArgument & pattern(const char *pattern);
+    CommandLineParameter & selector(std::function<bool(const char*)> selector);
+    CommandLineParameter & pattern(const char *pattern);
 
-    bool matches(const char *v);
+    CommandLineParameter & description(char const *value);
+    CommandLineParameter & placeholder(char const *value);
 
 private:
+    bool matches(const char *v);
+
     BaseArgument *_argument;
     std::function<bool(const char*)> _selector;
+    std::string _placeholder;
+    std::string _description;
 };
 
 class CommandLineParser
 {
 public:
 
-    bool parse(int argc, char const **argv);
+    OperationResult parse(int argc, char const **argv);
 
     CommandLineOption &option(BaseArgument &arg);
-    CommandLineArgument &argument(BaseArgument &arg);
+    CommandLineParameter &parameter(BaseArgument &arg);
+
+    void displayArguments(std::ostream &os) const;
 
 private:
     std::vector<CommandLineOption> _commandLineOptions;
-    std::vector<CommandLineArgument> _commandLineArguments;
-
+    std::vector<CommandLineParameter> _commandLineParameters;
 };
+
+std::ostream & operator << (std::ostream &os, const CommandLineParser &clp);
 
 using BoolArg = Argument<bool>;
 template<> OperationResult BoolArg::convert(bool &, char const *);

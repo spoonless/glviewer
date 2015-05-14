@@ -202,7 +202,7 @@ TEST(CommandLineParser, canParseUIntArg)
     sys::UIntArg arg;
 
     sys::CommandLineParser clp;
-    clp.argument(arg);
+    clp.parameter(arg);
 
     char const *argv[] = {"", "0"};
     bool result = clp.parse(2, argv);
@@ -217,7 +217,7 @@ TEST(CommandLineParser, cannotParseUIntArgWhenNegativeValue)
     sys::UIntArg arg;
 
     sys::CommandLineParser clp;
-    clp.argument(arg);
+    clp.parameter(arg);
 
     char const *argv[] = {"", "-1"};
     bool result = clp.parse(2, argv);
@@ -231,7 +231,7 @@ TEST(CommandLineParser, canParseULongLongArg)
     sys::ULongLongArg arg;
 
     sys::CommandLineParser clp;
-    clp.argument(arg);
+    clp.parameter(arg);
 
     char const *argv[] = {"", "1000000"};
     bool result = clp.parse(2, argv);
@@ -261,7 +261,7 @@ TEST(CommandLineParser, canParseULongArg)
     sys::ULongArg arg;
 
     sys::CommandLineParser clp;
-    clp.argument(arg);
+    clp.parameter(arg);
 
     char const *argv[] = {"", "1000000"};
     bool result = clp.parse(2, argv);
@@ -276,7 +276,7 @@ TEST(CommandLineParser, canParseUShortArg)
     sys::UShortArg arg;
 
     sys::CommandLineParser clp;
-    clp.argument(arg);
+    clp.parameter(arg);
 
     char const *argv[] = {"", "10"};
     bool result = clp.parse(2, argv);
@@ -286,17 +286,17 @@ TEST(CommandLineParser, canParseUShortArg)
     ASSERT_EQ(10, arg.value());
 }
 
-TEST(CommandLineParser, canParseArgumentWithSelector)
+TEST(CommandLineParser, canParseParameterWithSelector)
 {
     sys::CharSeqArg arg1;
     sys::CharSeqArg arg2;
 
     sys::CommandLineParser clp;
-    clp.argument(arg1).selector([](const char *v){
+    clp.parameter(arg1).selector([](const char *v){
         return std::string("arg1") == v;
     });
 
-    clp.argument(arg2).selector([](const char *v){
+    clp.parameter(arg2).selector([](const char *v){
         return std::string("arg2") == v;
     });
 
@@ -308,12 +308,12 @@ TEST(CommandLineParser, canParseArgumentWithSelector)
     ASSERT_STREQ("arg2", arg2.value());
 }
 
-TEST(CommandLineParser, canParseArgumentWithPattern)
+TEST(CommandLineParser, canParseParameterWithPattern)
 {
     sys::CharSeqArg arg;
 
     sys::CommandLineParser clp;
-    clp.argument(arg).pattern(".+\\.txt");
+    clp.parameter(arg).pattern(".+\\.txt");
 
     char const *argv[] = {"", "myfile.txt"};
     bool result = clp.parse(2, argv);
@@ -408,12 +408,12 @@ TEST(CommandLineParser, canParseMultipleArguments)
     ASSERT_TRUE(arg4.value());
 }
 
-TEST(CommandLineParser, canParseArguments)
+TEST(CommandLineParser, canParseParameter)
 {
     sys::CharSeqArg arg;
 
     sys::CommandLineParser clp;
-    clp.argument(arg);
+    clp.parameter(arg);
 
     char const *argv[] = {"", "hello"};
     bool result = clp.parse(2, argv);
@@ -423,12 +423,12 @@ TEST(CommandLineParser, canParseArguments)
     ASSERT_STREQ("hello", arg.value());
 }
 
-TEST(CommandLineParser, cannotParseTooManyArguments)
+TEST(CommandLineParser, cannotParseTooManyParameters)
 {
     sys::CharSeqArg arg;
 
     sys::CommandLineParser clp;
-    clp.argument(arg);
+    clp.parameter(arg);
 
     char const *argv[] = {"", "hello", "world"};
     bool result = clp.parse(3, argv);
@@ -441,7 +441,7 @@ TEST(CommandLineParser, canParseEnumeratedArguments)
     sys::EnumIntArg arg = {1,2,3};
 
     sys::CommandLineParser clp;
-    clp.argument(arg);
+    clp.parameter(arg);
 
     char const *argv[] = {"", "2"};
     bool result = clp.parse(2, argv);
@@ -456,7 +456,7 @@ TEST(CommandLineParser, canParseCharSeqEnumeratedArguments)
     sys::EnumCharSeqArg arg = {"a", "b", "c"};
 
     sys::CommandLineParser clp;
-    clp.argument(arg);
+    clp.parameter(arg);
 
     char const *argv[] = {"", "c"};
     bool result = clp.parse(2, argv);
@@ -472,7 +472,7 @@ TEST(CommandLineParser, canParseStringEnumeratedArguments)
     sys::EnumStringArg arg = {"a", "b", "c"};
 
     sys::CommandLineParser clp;
-    clp.argument(arg);
+    clp.parameter(arg);
 
     char const *argv[] = {"", "a"};
     bool result = clp.parse(2, argv);
@@ -487,7 +487,7 @@ TEST(CommandLineParser, cannotParseEnumeratedArguments)
     sys::EnumIntArg arg = {1,2,3};
 
     sys::CommandLineParser clp;
-    clp.argument(arg);
+    clp.parameter(arg);
 
     char const *argv[] = {"", "4"};
     bool result = clp.parse(2, argv);
@@ -501,7 +501,7 @@ TEST(CommandLineParser, canParseFloatArg)
     sys::FloatArg arg;
 
     sys::CommandLineParser clp;
-    clp.argument(arg);
+    clp.parameter(arg);
 
     char const *argv[] = {"", "10.6"};
     bool result = clp.parse(2, argv);
@@ -517,8 +517,8 @@ TEST(CommandLineParser, canParseDoubleArg)
     sys::DoubleArg argWithExponent;
 
     sys::CommandLineParser clp;
-    clp.argument(arg);
-    clp.argument(argWithExponent);
+    clp.parameter(arg);
+    clp.parameter(argWithExponent);
 
     char const *argv[] = {"", "-10.6", "1.06E1"};
     bool result = clp.parse(3, argv);
@@ -534,7 +534,7 @@ TEST(CommandLineParser, canParseLongDoubleArg)
     sys::LongDoubleArg arg;
 
     sys::CommandLineParser clp;
-    clp.argument(arg);
+    clp.parameter(arg);
 
     char const *argv[] = {"", "1e100"};
     bool result = clp.parse(2, argv);
