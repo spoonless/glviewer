@@ -24,6 +24,24 @@ TEST(CommandLineParser, canParseBoolArgByShortName)
     ASSERT_TRUE(arg.value());
 }
 
+TEST(CommandLineParser, canParseInvertBoolWithValidator)
+{
+    sys::BoolArg arg;
+
+    sys::CommandLineParser clp;
+    clp.option(arg).shortName("b");
+    clp.validator([&arg](){
+        return sys::OperationResult::test(!arg, "failed");
+    });
+
+    char const *argv[] = {"", "-b"};
+    bool result = clp.parse(2, argv);
+
+    ASSERT_FALSE(result);
+    ASSERT_TRUE(arg);
+    ASSERT_TRUE(arg.value());
+}
+
 TEST(CommandLineParser, canParseBoolArgByName)
 {
     sys::BoolArg arg;

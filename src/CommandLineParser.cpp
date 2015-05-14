@@ -26,19 +26,19 @@ sys::OperationResult convertToInteger(T& dest, char const *src)
     if (errno == ERANGE)
     {
         errno = 0;
-        return sys::OperationResult::failed("cannot convert to number");
+        return sys::OperationResult::failed("cannot convert to number!");
     }
     if (*end != 0 || src == end)
     {
-        return sys::OperationResult::failed("cannot convert to number");
+        return sys::OperationResult::failed("cannot convert to number!");
     }
     if (value > static_cast<C>(std::numeric_limits<T>::max()))
     {
-        return sys::OperationResult::failed("value too large");
+        return sys::OperationResult::failed("value too large!");
     }
     if (value < static_cast<C>(std::numeric_limits<T>::lowest()))
     {
-        return sys::OperationResult::failed("value too small");
+        return sys::OperationResult::failed("value too small!");
     }
     dest = static_cast<T>(value);
     return sys::OperationResult::succeeded();
@@ -53,19 +53,19 @@ sys::OperationResult convertToFloatingPointNumber(T& dest, char const *src)
     if (errno == ERANGE)
     {
         errno = 0;
-        return sys::OperationResult::failed("cannot convert to floating point number");
+        return sys::OperationResult::failed("cannot convert to floating point number!");
     }
     if (*end != 0 || src == end)
     {
-        return sys::OperationResult::failed("cannot convert to floating point number");
+        return sys::OperationResult::failed("cannot convert to floating point number!");
     }
     if (value > static_cast<long double>(std::numeric_limits<T>::max()))
     {
-        return sys::OperationResult::failed("value too large");
+        return sys::OperationResult::failed("value too large!");
     }
     if (value < static_cast<long double>(std::numeric_limits<T>::lowest()))
     {
-        return sys::OperationResult::failed("value too small");
+        return sys::OperationResult::failed("value too small!");
     }
     dest = static_cast<T>(value);
     return sys::OperationResult::succeeded();
@@ -450,7 +450,7 @@ OperationResult CommandLineParser::parse(int argc, char const **argv)
         }
     }
 
-    return OperationResult::succeeded();
+    return _validator ? _validator() : OperationResult::succeeded();
 }
 
 CommandLineOption &CommandLineParser::option(BaseArgument &arg)
@@ -463,6 +463,11 @@ CommandLineParameter &CommandLineParser::parameter(BaseArgument &arg)
 {
     _commandLineParameters.push_back(CommandLineParameter(&arg));
     return _commandLineParameters.back();
+}
+
+void CommandLineParser::validator(std::function<OperationResult()> validator)
+{
+    _validator = validator;
 }
 
 void CommandLineParser::displayArguments(std::ostream &os) const

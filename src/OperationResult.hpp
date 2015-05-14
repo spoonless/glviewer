@@ -45,6 +45,21 @@ public:
         return OperationResult(false, message, duration);
     }
 
+    static inline OperationResult test(bool test, const char *errorMessage, unsigned long duration = 0)
+    {
+        return test ? OperationResult(test, duration) : OperationResult(test, errorMessage, duration);
+    }
+
+    static inline OperationResult test(bool test, std::string &errorMessage, unsigned long duration = 0)
+    {
+        return test ? OperationResult(test, duration) : OperationResult(test, errorMessage, duration);
+    }
+
+    static inline OperationResult test(bool test, std::string &&errorMessage, unsigned long duration = 0)
+    {
+        return test ? OperationResult(test, duration) : OperationResult(test, errorMessage, duration);
+    }
+
     OperationResult(OperationResult &&operationResult)
     {
         this->_ok = operationResult.ok();
