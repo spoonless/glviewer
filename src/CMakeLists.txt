@@ -33,6 +33,11 @@ target_link_libraries(core_sources ${CMAKE_THREAD_LIBS_INIT})
 add_executable(glslviewer
     main_glslviewer.cpp
 )
+
+set_target_properties(glslviewer
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
+
 target_link_libraries(glslviewer core_sources)
 
 add_custom_target(run
@@ -47,6 +52,11 @@ add_dependencies(run glslviewer)
 add_executable(simpleloader
     main_simpleloader.cpp
 )
+
+set_target_properties(simpleloader
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
+
 target_link_libraries(simpleloader core_sources)
 
 #########################################################################
