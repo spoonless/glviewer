@@ -71,8 +71,8 @@ endif()
 # Embedding exernal projects
 #########################################################################
 
-embed_package(Glfw)
 embed_package(Glm)
+embed_package(Glfw)
 embed_package(Soil)
 if(BUILD_WITH_G3LOG)
     embed_package(G3log)
@@ -81,6 +81,10 @@ endif()
 if(BUILD_TESTING)
     embed_package(Gtest)
 endif()
+
+# hack: as GLM is a headers only library, we declare dependency with GLFW
+# to force transitive dependency through GLFW
+add_dependencies(glfw glm)
 
 #########################################################################
 # building sub directories
