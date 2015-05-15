@@ -6,6 +6,8 @@ include_directories("include")
 
 add_library(sys STATIC
     include/OperationResult.hpp
+    include/Duration.hpp
+    src/Duration.cpp
     include/CommandLineParser.hpp
     src/CommandLineParser.cpp
     include/log.hpp
