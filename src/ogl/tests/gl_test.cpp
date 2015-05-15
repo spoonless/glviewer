@@ -5,7 +5,7 @@
 #include "glm/vec4.hpp"
 #include "glm/matrix.hpp"
 
-using namespace gl;
+using namespace ogl;
 
 TEST(GlError, canGetSizeOfGlType)
 {

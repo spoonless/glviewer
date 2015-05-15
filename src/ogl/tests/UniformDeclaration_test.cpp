@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <UniformDeclaration.hpp>
 
-using namespace gl;
+using namespace ogl;
 
 TEST(UniformDeclaration, canCopyUniformDeclaration)
 {

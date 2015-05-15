@@ -1,6 +1,6 @@
 #include "gl.hpp"
 
-std::size_t gl::glSizeof(GLenum glType)
+std::size_t ogl::glSizeof(GLenum glType)
 {
     switch(glType)
     {
