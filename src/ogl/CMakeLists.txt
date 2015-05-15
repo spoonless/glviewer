@@ -39,4 +39,5 @@ if(BUILD_TESTING)
     target_link_libraries(test_ogl ogl)
 
     add_test(MODULE_OGL test_ogl)
+    add_coverage(MODULE_OGL test_ogl)
 endif()

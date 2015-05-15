@@ -34,4 +34,5 @@ if(BUILD_TESTING)
     target_link_libraries(test_sys sys)
 
     add_test(MODULE_SYS test_sys)
+    add_coverage(MODULE_SYS test_sys)
 endif()
