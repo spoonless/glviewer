@@ -1,3 +1,7 @@
+#########################################################################
+# module library
+#########################################################################
+
 include_directories("include")
 
 add_library(ogl STATIC
@@ -19,8 +23,12 @@ add_library(ogl STATIC
 
 config_executable(ogl GLAD SYS GLFW OPENGL)
 
+#########################################################################
+# module tests
+#########################################################################
+
 if(BUILD_TESTING)
-    add_executable(ogl_test
+    add_executable(test_ogl
         tests/main.cpp
         tests/gl_test.cpp
         tests/GlError_test.cpp
@@ -29,8 +37,8 @@ if(BUILD_TESTING)
         tests/UniformDeclaration_test.cpp
     )
 
-    config_executable(ogl_test GTEST)
-    target_link_libraries(ogl_test ogl)
+    config_executable(test_ogl GTEST)
+    target_link_libraries(test_ogl ogl)
 
-    add_test(MODULE_OGL ogl_test)
+    add_test(MODULE_OGL test_ogl)
 endif()
