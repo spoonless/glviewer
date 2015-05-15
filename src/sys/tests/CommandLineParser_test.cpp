@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <sstream>
 #include "CommandLineParser.hpp"
 
 TEST(CommandLineParser, boolArgIsNotParsedByDefault)
@@ -529,6 +530,34 @@ TEST(CommandLineParser, canParseFloatArg)
     ASSERT_EQ(10.6f, arg.value());
 }
 
+TEST(CommandLineParser, cannotParseTooLargeFloatArg)
+{
+    sys::FloatArg arg;
+
+    sys::CommandLineParser clp;
+    clp.parameter(arg);
+
+    char const *argv[] = {"", "1e10000000000000000000000000000000000000000000000000000"};
+    bool result = clp.parse(2, argv);
+
+    ASSERT_FALSE(result);
+    ASSERT_FALSE(arg);
+}
+
+TEST(CommandLineParser, cannotParseInvalidFloatArg)
+{
+    sys::FloatArg arg;
+
+    sys::CommandLineParser clp;
+    clp.parameter(arg);
+
+    char const *argv[] = {"", "1.0.0"};
+    bool result = clp.parse(2, argv);
+
+    ASSERT_FALSE(result);
+    ASSERT_FALSE(arg);
+}
+
 TEST(CommandLineParser, canParseDoubleArg)
 {
     sys::DoubleArg arg;
@@ -560,4 +589,37 @@ TEST(CommandLineParser, canParseLongDoubleArg)
     ASSERT_TRUE(result);
     ASSERT_TRUE(arg);
     ASSERT_EQ(1e100l, arg.value());
+}
+
+TEST(CommandLineParser, canDisplayOptions)
+{
+    sys::CharSeqArg arg;
+    std::stringstream sstream;
+
+    sys::CommandLineParser clp;
+    clp.option(arg).name("myFirstOption").shortName("fo").description("test of my first option");
+    clp.option(arg).name("mySecondOption").description("test of my second option");
+    clp.option(arg).shortName("to").description("test of my third option");
+    clp.option(arg).description("undocumented option");
+    clp.parameter(arg).description("my first parameter");
+    clp.parameter(arg).placeholder("[param]").description("my second parameter");
+
+    sstream << clp;
+
+    const char *expected =
+    "\n"
+    "Options:\n"
+    "   -fo, --myFirstOption\n"
+    "      test of my first option\n"
+    "   --mySecondOption\n"
+    "      test of my second option\n"
+    "   -to\n"
+    "      test of my third option\n"
+    "\n"
+    "Parameters:\n"
+    "   my first parameter\n"
+    "   [param]\n"
+    "      my second parameter\n";
+
+    ASSERT_STREQ(expected, sstream.str().c_str());
 }

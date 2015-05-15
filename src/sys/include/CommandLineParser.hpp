@@ -167,7 +167,7 @@ public:
 
     CommandLineOption(BaseArgument *argument);
     CommandLineOption(CommandLineOption &&clp);
-    CommandLineOption(const CommandLineOption &) = delete;
+    CommandLineOption(const CommandLineOption &) = default;
 
     CommandLineOption & description(char const *value);
     CommandLineOption & name(char const *name);
@@ -189,7 +189,7 @@ public:
 
     CommandLineParameter(BaseArgument *argument);
     CommandLineParameter(CommandLineParameter &&cla);
-    CommandLineParameter(const CommandLineParameter &) = delete;
+    CommandLineParameter(const CommandLineParameter &) = default;
 
     CommandLineParameter & selector(std::function<bool(const char*)> selector);
     CommandLineParameter & pattern(const char *pattern);
