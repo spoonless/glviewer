@@ -17,8 +17,6 @@ add_library(ogl STATIC
     src/UniformDeclaration.cpp
     include/GlWindowContext.hpp
     src/GlWindowContext.cpp
-    include/Duration.hpp
-    src/Duration.cpp
 )
 
 config_executable(ogl GLAD SYS GLFW OPENGL)
