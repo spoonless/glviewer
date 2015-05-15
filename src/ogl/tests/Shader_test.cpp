@@ -36,13 +36,30 @@ TEST(Shader, canCreateFragmentShader)
     ASSERT_EQ(GL_FRAGMENT_SHADER, getShaderType(shader));
 }
 
+TEST(Shader, canCreateGeometryShader)
+{
+    Shader shader(ShaderType::GEOMETRY_SHADER);
+
+    ASSERT_NE(0u, shader.getId());
+    ASSERT_TRUE(shader.exists());
+    ASSERT_EQ(ShaderType::GEOMETRY_SHADER, shader.getType());
+    ASSERT_EQ(GL_GEOMETRY_SHADER, getShaderType(shader));
+}
+
 TEST(Shader, canCompileShader)
 {
     Shader shader(ShaderType::FRAGMENT_SHADER);
-    ShaderCompilation compilationResult = shader.compile(GLSL_VERSION_HEADER
-                                            "void main(){}");
+    ShaderCompilation compilationResult = shader.compile(GLSL_VERSION_HEADER "void main(){}");
 
     ASSERT_TRUE(compilationResult);
+}
+
+TEST(Shader, cannotCompileEmptySource)
+{
+    Shader shader(ShaderType::FRAGMENT_SHADER);
+    ShaderCompilation compilationResult = shader.compile("");
+
+    ASSERT_FALSE(compilationResult);
 }
 
 TEST(Shader, cannotCompileErroneousCode)
@@ -52,6 +69,15 @@ TEST(Shader, cannotCompileErroneousCode)
 
     ASSERT_FALSE(compilationResult);
     ASSERT_NE("", compilationResult.message());
+}
+
+TEST(Shader, cannotGetSourceOnUncompiledShader)
+{
+    Shader shader(ShaderType::VERTEX_SHADER);
+
+    std::string outputSource = shader.getSource();
+
+    ASSERT_EQ(std::string(), outputSource);
 }
 
 TEST(Shader, canGetSource)

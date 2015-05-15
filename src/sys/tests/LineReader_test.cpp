@@ -33,14 +33,16 @@ TEST(LineReader, canTrimReadLines)
     std::stringstream sstream;
     sstream << "           hello world               " << std::endl;
     sstream << "\t\t\t\t\t\thello world\t\t\t\t\t\t\t" << std::endl;
+    sstream << "hello world\r" << std::endl;
     LineReader lr(sstream);
 
     const char *line = lr.read();
-
     ASSERT_STREQ("hello world", line);
 
     line = lr.read();
+    ASSERT_STREQ("hello world", line);
 
+    line = lr.read();
     ASSERT_STREQ("hello world", line);
 }
 
