@@ -67,6 +67,14 @@ public:
         this->_duration = operationResult.duration();
     }
 
+    OperationResult & operator = (OperationResult &&operationResult)
+    {
+        this->_ok = operationResult.ok();
+        this->_message = std::move(operationResult.message());
+        this->_duration = operationResult.duration();
+        return *this;
+    }
+
     operator bool() const
     {
         return _ok;
