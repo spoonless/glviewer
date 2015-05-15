@@ -64,4 +64,5 @@ if(BUILD_TESTING)
     target_link_libraries(unittest core_sources)
 
     add_test(unittest unittest)
+    add_coverage(unittest unittest)
 endif()

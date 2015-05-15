@@ -44,6 +44,8 @@ macro(embed_package PROJ_NAME)
     include_directories(${${UPPER_PROJ_NAME}_INCLUDE_DIR})
 endmacro()
 
+include("CodeCoverage")
+
 #########################################################################
 # Specific environment build configuration
 #########################################################################
@@ -65,6 +67,10 @@ set_cxx_standard(11)
 
 if(BUILD_TESTING)
     enable_testing()
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
+    enable_coverage()
 endif()
 
 #########################################################################
