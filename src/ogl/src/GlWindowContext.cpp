@@ -5,7 +5,7 @@
 
 static bool gladOk = false;
 
-namespace gl
+namespace ogl
 {
     namespace
     {
@@ -31,7 +31,7 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height)
     }
 }
 
-void gl::GlWindowContext::windowSizeCallback(GLFWwindow* window, int width, int height)
+void ogl::GlWindowContext::windowSizeCallback(GLFWwindow* window, int width, int height)
 {
     GlWindowContext *glfw = static_cast<GlWindowContext*>(glfwGetWindowUserPointer(window));
     if(glfw)
@@ -44,12 +44,12 @@ void gl::GlWindowContext::windowSizeCallback(GLFWwindow* window, int width, int 
     }
 }
 
-gl::GlWindowContext::GlWindowContext() : _window{nullptr}
+ogl::GlWindowContext::GlWindowContext() : _window{nullptr}
 {
 
 }
 
-gl::GlWindowContext::~GlWindowContext()
+ogl::GlWindowContext::~GlWindowContext()
 {
 	if (_window)
 	{
@@ -61,7 +61,7 @@ gl::GlWindowContext::~GlWindowContext()
 	glfwTerminate();
 }
 
-bool gl::GlWindowContext::init (std::string title, unsigned int width, unsigned int height)
+bool ogl::GlWindowContext::init (std::string title, unsigned int width, unsigned int height)
 {
     glfwSetErrorCallback(errorCallback);
     LOG(INFO) << "Initializing GLFW...";
@@ -94,7 +94,7 @@ bool gl::GlWindowContext::init (std::string title, unsigned int width, unsigned 
     return true;
 }
 
-bool gl::GlWindowContext::makeCurrent()
+bool ogl::GlWindowContext::makeCurrent()
 {
     if (_window)
     {
@@ -112,29 +112,29 @@ bool gl::GlWindowContext::makeCurrent()
     return true;
 }
 
-bool gl::GlWindowContext::shouldContinue()
+bool ogl::GlWindowContext::shouldContinue()
 {
     return !glfwWindowShouldClose(_window);
 }
 
-void gl::GlWindowContext::swapAndPollEvents()
+void ogl::GlWindowContext::swapAndPollEvents()
 {
     glfwSwapBuffers(_window);
     glfwPollEvents();
 }
 
-glm::vec2 gl::GlWindowContext::getCursorPosition()
+glm::vec2 ogl::GlWindowContext::getCursorPosition()
 {
     double x,y;
     glfwGetCursorPos(this->_window, &x, &y);
     return glm::vec2(static_cast<float>(x/_windowSize.x), static_cast<float>(1.0 - (y/_windowSize.y)));
 }
 
-void gl::GlWindowContext::setWindowSizeCallback(const std::function<void(unsigned int, unsigned int)>  &windowSizeCallback)
+void ogl::GlWindowContext::setWindowSizeCallback(const std::function<void(unsigned int, unsigned int)>  &windowSizeCallback)
 {
     _windowSizeCallback = windowSizeCallback;
     if (_window)
     {
-        gl::GlWindowContext::windowSizeCallback(_window, _windowSize.x, _windowSize.y);
+        ogl::GlWindowContext::windowSizeCallback(_window, _windowSize.x, _windowSize.y);
     }
 }

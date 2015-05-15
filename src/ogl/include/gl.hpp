@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include "glad/glad.h"
 
-namespace gl
+namespace ogl
 {
     std::size_t glSizeof(GLenum glType);
 }

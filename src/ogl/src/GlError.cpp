@@ -1,6 +1,6 @@
 #include "GlError.hpp"
 
-using namespace gl;
+using namespace ogl;
 
 GlError::GlError()
     :_errorFlag{GL_NO_ERROR}

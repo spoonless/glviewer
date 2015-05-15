@@ -36,172 +36,172 @@ void normalizeArrayName(std::string &name)
 
 }
 
-gl::UniformBinder::UniformBinder(GLuint programId, GLint index, GLint size, GLenum type) : _programId(programId), _index(index), _size(size), _type(type)
+ogl::UniformBinder::UniformBinder(GLuint programId, GLint index, GLint size, GLenum type) : _programId(programId), _index(index), _size(size), _type(type)
 {
 }
 
-gl::UniformBinder::UniformBinder(const gl::UniformBinder &binder) : _programId(binder._programId), _index(binder._index), _size(binder._size), _type(binder._type)
+ogl::UniformBinder::UniformBinder(const ogl::UniformBinder &binder) : _programId(binder._programId), _index(binder._index), _size(binder._size), _type(binder._type)
 {
 }
 
-bool gl::UniformBinder::operator == (const gl::UniformBinder &binder) const
+bool ogl::UniformBinder::operator == (const ogl::UniformBinder &binder) const
 {
     return _programId == binder._programId && _index == binder._index && _size == binder._size && _type == binder._type;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (bool v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (bool v)
 {
     glUniform1ui(_index, v);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::bvec2 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::bvec2 &v)
 {
     glUniform2ui(_index, v.x, v.y);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::bvec3 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::bvec3 &v)
 {
     glUniform3ui(_index, v.x, v.y, v.z);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::bvec4 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::bvec4 &v)
 {
     glUniform4ui(_index, v.x, v.y, v.z, v.w);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::f32 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::f32 &v)
 {
     glUniform1f(_index, v);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::fvec2 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::fvec2 &v)
 {
     glUniform2f(_index, v.x, v.y);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::fvec3 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::fvec3 &v)
 {
     glUniform3f(_index, v.x, v.y, v.z);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::fvec4 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::fvec4 &v)
 {
     glUniform4f(_index, v.x, v.y, v.z, v.w);
     return *this;
 }
 
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::i32 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::i32 &v)
 {
     glUniform1i(_index, v);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::i32vec2 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::i32vec2 &v)
 {
     glUniform2i(_index, v.x, v.y);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::i32vec3 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::i32vec3 &v)
 {
     glUniform3i(_index, v.x, v.y, v.z);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::i32vec4 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::i32vec4 &v)
 {
     glUniform4i(_index, v.x, v.y, v.z, v.w);
     return *this;
 }
 
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::u32 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::u32 &v)
 {
     glUniform1ui(_index, v);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::u32vec2 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::u32vec2 &v)
 {
     glUniform2ui(_index, v.x, v.y);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::u32vec3 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::u32vec3 &v)
 {
     glUniform3ui(_index, v.x, v.y, v.z);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::u32vec4 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::u32vec4 &v)
 {
     glUniform4ui(_index, v.x, v.y, v.z, v.w);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::f32mat2 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::f32mat2 &v)
 {
     glUniformMatrix2fv(_index, 1, false, &v[0][0]);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::f32mat3 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::f32mat3 &v)
 {
     glUniformMatrix3fv(_index, 1, false, &v[0][0]);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::f32mat4 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::f32mat4 &v)
 {
     glUniformMatrix4fv(_index, 1, false, &v[0][0]);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::f32mat2x3 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::f32mat2x3 &v)
 {
     glUniformMatrix2x3fv(_index, 1, false, &v[0][0]);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::f32mat3x2 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::f32mat3x2 &v)
 {
     glUniformMatrix3x2fv(_index, 1, false, &v[0][0]);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::f32mat2x4 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::f32mat2x4 &v)
 {
     glUniformMatrix2x4fv(_index, 1, false, &v[0][0]);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::f32mat4x2 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::f32mat4x2 &v)
 {
     glUniformMatrix4x2fv(_index, 1, false, &v[0][0]);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::f32mat3x4 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::f32mat3x4 &v)
 {
     glUniformMatrix3x4fv(_index, 1, false, &v[0][0]);
     return *this;
 }
 
-gl::UniformBinder& gl::UniformBinder::operator = (const glm::f32mat4x3 &v)
+ogl::UniformBinder& ogl::UniformBinder::operator = (const glm::f32mat4x3 &v)
 {
     glUniformMatrix4x3fv(_index, 1, false, &v[0][0]);
     return *this;
 }
 
-gl::UniformBinder::operator bool() const
+ogl::UniformBinder::operator bool() const
 {
     unsigned int v = 0;
     if (_type == GL_BOOL && _size == 1)
@@ -211,7 +211,7 @@ gl::UniformBinder::operator bool() const
     return v != 0;
 }
 
-gl::UniformBinder::operator glm::bvec2() const
+ogl::UniformBinder::operator glm::bvec2() const
 {
     glm::uvec2 v;
     if (_type == GL_BOOL_VEC2 && _size == 1)
@@ -221,7 +221,7 @@ gl::UniformBinder::operator glm::bvec2() const
     return glm::bvec2(v);
 }
 
-gl::UniformBinder::operator glm::bvec3() const
+ogl::UniformBinder::operator glm::bvec3() const
 {
     glm::uvec3 v;
     if (_type == GL_BOOL_VEC3 && _size == 1)
@@ -231,7 +231,7 @@ gl::UniformBinder::operator glm::bvec3() const
     return glm::bvec3(v);
 }
 
-gl::UniformBinder::operator glm::bvec4() const
+ogl::UniformBinder::operator glm::bvec4() const
 {
     glm::uvec4 v;
     if (_type == GL_BOOL_VEC4 && _size == 1)
@@ -243,7 +243,7 @@ gl::UniformBinder::operator glm::bvec4() const
 
 //##############################################################
 
-gl::UniformBinder::operator glm::f32() const
+ogl::UniformBinder::operator glm::f32() const
 {
     glm::f32 v = .0f;
     if (_type == GL_FLOAT && _size == 1)
@@ -253,7 +253,7 @@ gl::UniformBinder::operator glm::f32() const
     return v;
 }
 
-gl::UniformBinder::operator glm::fvec2() const
+ogl::UniformBinder::operator glm::fvec2() const
 {
     glm::fvec2 v;
     if (_type == GL_FLOAT_VEC2 && _size == 1)
@@ -263,7 +263,7 @@ gl::UniformBinder::operator glm::fvec2() const
     return v;
 }
 
-gl::UniformBinder::operator glm::fvec3() const
+ogl::UniformBinder::operator glm::fvec3() const
 {
     glm::fvec3 v;
     if (_type == GL_FLOAT_VEC3 && _size == 1)
@@ -273,7 +273,7 @@ gl::UniformBinder::operator glm::fvec3() const
     return v;
 }
 
-gl::UniformBinder::operator glm::fvec4() const
+ogl::UniformBinder::operator glm::fvec4() const
 {
     glm::fvec4 v;
     if (_type == GL_FLOAT_VEC4 && _size == 1)
@@ -285,7 +285,7 @@ gl::UniformBinder::operator glm::fvec4() const
 
 //##############################################################
 
-gl::UniformBinder::operator glm::i32() const
+ogl::UniformBinder::operator glm::i32() const
 {
     glm::i32 v = 0;
     if (_type == GL_INT && _size == 1)
@@ -295,7 +295,7 @@ gl::UniformBinder::operator glm::i32() const
     return v;
 }
 
-gl::UniformBinder::operator glm::ivec2() const
+ogl::UniformBinder::operator glm::ivec2() const
 {
     glm::ivec2 v;
     if (_type == GL_INT_VEC2 && _size == 1)
@@ -305,7 +305,7 @@ gl::UniformBinder::operator glm::ivec2() const
     return v;
 }
 
-gl::UniformBinder::operator glm::ivec3() const
+ogl::UniformBinder::operator glm::ivec3() const
 {
     glm::ivec3 v;
     if (_type == GL_INT_VEC3 && _size == 1)
@@ -315,7 +315,7 @@ gl::UniformBinder::operator glm::ivec3() const
     return v;
 }
 
-gl::UniformBinder::operator glm::ivec4() const
+ogl::UniformBinder::operator glm::ivec4() const
 {
     glm::ivec4 v;
     if (_type == GL_INT_VEC4 && _size == 1)
@@ -327,7 +327,7 @@ gl::UniformBinder::operator glm::ivec4() const
 
 //##############################################################
 
-gl::UniformBinder::operator glm::u32() const
+ogl::UniformBinder::operator glm::u32() const
 {
     glm::u32 v = 0;
     if (_type == GL_UNSIGNED_INT && _size == 1)
@@ -337,7 +337,7 @@ gl::UniformBinder::operator glm::u32() const
     return v;
 }
 
-gl::UniformBinder::operator glm::uvec2() const
+ogl::UniformBinder::operator glm::uvec2() const
 {
     glm::uvec2 v;
     if (_type == GL_UNSIGNED_INT_VEC2 && _size == 1)
@@ -347,7 +347,7 @@ gl::UniformBinder::operator glm::uvec2() const
     return v;
 }
 
-gl::UniformBinder::operator glm::uvec3() const
+ogl::UniformBinder::operator glm::uvec3() const
 {
     glm::uvec3 v;
     if (_type == GL_UNSIGNED_INT_VEC3 && _size == 1)
@@ -357,7 +357,7 @@ gl::UniformBinder::operator glm::uvec3() const
     return v;
 }
 
-gl::UniformBinder::operator glm::uvec4() const
+ogl::UniformBinder::operator glm::uvec4() const
 {
     glm::uvec4 v;
     if (_type == GL_UNSIGNED_INT_VEC4 && _size == 1)
@@ -369,7 +369,7 @@ gl::UniformBinder::operator glm::uvec4() const
 
 //##############################################################
 
-gl::UniformBinder::operator glm::f32mat2() const
+ogl::UniformBinder::operator glm::f32mat2() const
 {
     glm::f32mat2 v;
     if (_type == GL_FLOAT_MAT2 && _size == 1)
@@ -379,7 +379,7 @@ gl::UniformBinder::operator glm::f32mat2() const
     return v;
 }
 
-gl::UniformBinder::operator glm::f32mat3() const
+ogl::UniformBinder::operator glm::f32mat3() const
 {
     glm::f32mat3 v;
     if (_type == GL_FLOAT_MAT3 && _size == 1)
@@ -389,7 +389,7 @@ gl::UniformBinder::operator glm::f32mat3() const
     return v;
 }
 
-gl::UniformBinder::operator glm::f32mat4() const
+ogl::UniformBinder::operator glm::f32mat4() const
 {
     glm::f32mat4 v;
     if (_type == GL_FLOAT_MAT4 && _size == 1)
@@ -401,7 +401,7 @@ gl::UniformBinder::operator glm::f32mat4() const
 
 //##############################################################
 
-gl::UniformBinder::operator glm::f32mat2x3() const
+ogl::UniformBinder::operator glm::f32mat2x3() const
 {
     glm::f32mat2x3 v;
     if (_type == GL_FLOAT_MAT2x3 && _size == 1)
@@ -411,7 +411,7 @@ gl::UniformBinder::operator glm::f32mat2x3() const
     return v;
 }
 
-gl::UniformBinder::operator glm::f32mat2x4() const
+ogl::UniformBinder::operator glm::f32mat2x4() const
 {
     glm::f32mat2x4 v;
     if (_type == GL_FLOAT_MAT2x4 && _size == 1)
@@ -423,7 +423,7 @@ gl::UniformBinder::operator glm::f32mat2x4() const
 
 //##############################################################
 
-gl::UniformBinder::operator glm::f32mat3x2() const
+ogl::UniformBinder::operator glm::f32mat3x2() const
 {
     glm::f32mat3x2 v;
     if (_type == GL_FLOAT_MAT3x2 && _size == 1)
@@ -433,7 +433,7 @@ gl::UniformBinder::operator glm::f32mat3x2() const
     return v;
 }
 
-gl::UniformBinder::operator glm::f32mat3x4() const
+ogl::UniformBinder::operator glm::f32mat3x4() const
 {
     glm::f32mat3x4 v;
     if (_type == GL_FLOAT_MAT3x4 && _size == 1)
@@ -445,7 +445,7 @@ gl::UniformBinder::operator glm::f32mat3x4() const
 
 //##############################################################
 
-gl::UniformBinder::operator glm::f32mat4x2() const
+ogl::UniformBinder::operator glm::f32mat4x2() const
 {
     glm::f32mat4x2 v;
     if (_type == GL_FLOAT_MAT4x2 && _size == 1)
@@ -455,7 +455,7 @@ gl::UniformBinder::operator glm::f32mat4x2() const
     return v;
 }
 
-gl::UniformBinder::operator glm::f32mat4x3() const
+ogl::UniformBinder::operator glm::f32mat4x3() const
 {
     glm::f32mat4x3 v;
     if (_type == GL_FLOAT_MAT4x3 && _size == 1)
@@ -467,31 +467,31 @@ gl::UniformBinder::operator glm::f32mat4x3() const
 
 //##############################################################
 
-gl::UniformDeclaration::UniformDeclaration()
+ogl::UniformDeclaration::UniformDeclaration()
 {
 }
 
-gl::UniformDeclaration::UniformDeclaration(GLuint programId, GLint index, GLint size, GLenum type, const char *name) : _binder(programId, index, size, type), _name(name)
+ogl::UniformDeclaration::UniformDeclaration(GLuint programId, GLint index, GLint size, GLenum type, const char *name) : _binder(programId, index, size, type), _name(name)
 {
     normalizeArrayName(_name);
 }
 
-bool gl::UniformDeclaration::operator == (const gl::UniformDeclaration &ud) const
+bool ogl::UniformDeclaration::operator == (const ogl::UniformDeclaration &ud) const
 {
     return this == &ud || this->_binder == ud._binder;
 }
 
 
-gl::VertexAttributeDeclaration::VertexAttributeDeclaration() : _index(-1), _size(0), _type(GL_INT)
+ogl::VertexAttributeDeclaration::VertexAttributeDeclaration() : _index(-1), _size(0), _type(GL_INT)
 {
 }
 
-gl::VertexAttributeDeclaration::VertexAttributeDeclaration(GLint index, GLint size, GLenum type, const char *name) :_index(index), _size(size), _type(type), _name(name)
+ogl::VertexAttributeDeclaration::VertexAttributeDeclaration(GLint index, GLint size, GLenum type, const char *name) :_index(index), _size(size), _type(type), _name(name)
 {
     normalizeArrayName(_name);
 }
 
-bool gl::VertexAttributeDeclaration::operator == (const gl::VertexAttributeDeclaration &vad) const
+bool ogl::VertexAttributeDeclaration::operator == (const ogl::VertexAttributeDeclaration &vad) const
 {
     return (this == &vad) ||
            (this->_index == vad._index

@@ -6,7 +6,7 @@
 
 struct GLFWwindow;
 
-namespace gl
+namespace ogl
 {
 
 class GlWindowContext

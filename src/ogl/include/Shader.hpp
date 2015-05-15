@@ -4,7 +4,7 @@
 #include "gl.hpp"
 #include "OperationResult.hpp"
 
-namespace gl
+namespace ogl
 {
 
 using ShaderCompilation = sys::OperationResult;

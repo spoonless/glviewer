@@ -6,7 +6,7 @@
 #include "gl.hpp"
 #include "glm/fwd.hpp"
 
-namespace gl
+namespace ogl
 {
 
 class UniformBinder

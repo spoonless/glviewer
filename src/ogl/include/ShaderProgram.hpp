@@ -6,7 +6,7 @@
 #include "UniformDeclaration.hpp"
 #include "OperationResult.hpp"
 
-namespace gl
+namespace ogl
 {
 
 using ShaderAttachment = sys::OperationResult;

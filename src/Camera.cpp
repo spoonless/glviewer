@@ -2,21 +2,21 @@
 #include "glm/gtx/transform.hpp"
 #include "Camera.hpp"
 
-gl::Viewport::Viewport(): _width{100}, _height{100}
+ogl::Viewport::Viewport(): _width{100}, _height{100}
 {
 
 }
 
-gl::Camera::Camera():
+ogl::Camera::Camera():
     _near{.5f}, _far{.0f}
 {
 }
 
-gl::Camera::~Camera()
+ogl::Camera::~Camera()
 {
 }
 
-gl::OrthographicCamera::OrthographicCamera(float width): _width{width}
+ogl::OrthographicCamera::OrthographicCamera(float width): _width{width}
 {
     if (_near >= _far)
     {
@@ -24,22 +24,22 @@ gl::OrthographicCamera::OrthographicCamera(float width): _width{width}
     }
 }
 
-glm::mat4x4 gl::OrthographicCamera::projectionMatrix() const
+glm::mat4x4 ogl::OrthographicCamera::projectionMatrix() const
 {
     return glm::ortho(left(), right(), bottom(), top(), _near, _far);
 }
 
-gl::PerspectiveCamera::PerspectiveCamera(): _fovy{glm::radians(70.0f)}
+ogl::PerspectiveCamera::PerspectiveCamera(): _fovy{glm::radians(70.0f)}
 {
 
 }
 
-gl::PerspectiveCamera::PerspectiveCamera(float fovy): _fovy{fovy}
+ogl::PerspectiveCamera::PerspectiveCamera(float fovy): _fovy{fovy}
 {
 
 }
 
-glm::mat4x4 gl::PerspectiveCamera::projectionMatrix() const
+glm::mat4x4 ogl::PerspectiveCamera::projectionMatrix() const
 {
     if (_far > _near)
     {

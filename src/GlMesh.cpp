@@ -58,7 +58,7 @@ namespace
         }
     }
 
-    VertexAttributeBuffer toVertexAttributeBuffer(const gl::VertexAttributeDeclaration &vad)
+    VertexAttributeBuffer toVertexAttributeBuffer(const ogl::VertexAttributeDeclaration &vad)
     {
         if (vad.name() == "vertexPosition")
         {
@@ -94,12 +94,12 @@ namespace
         return v.empty() ? 0 : v.back().offset + v.back().size;
     }
 
-    VertexAttributeBufferDescVector createVertexAttributeBufferDescVector(const gl::VertexAttributeDeclarationVector &vads)
+    VertexAttributeBufferDescVector createVertexAttributeBufferDescVector(const ogl::VertexAttributeDeclarationVector &vads)
     {
         std::vector<VertexAttributeBufferDesc> vertexAttributeBufferDescVector;
         std::size_t vertexAttributePointerOffset = 0;
         VertexAttributeBufferDesc vabd;
-        for(const gl::VertexAttributeDeclaration &vad : vads)
+        for(const ogl::VertexAttributeDeclaration &vad : vads)
         {
             vabd.index = vad.index();
             vabd.size = vad.sizeOf() / sizeof(GLfloat);
@@ -112,11 +112,11 @@ namespace
         return vertexAttributeBufferDescVector;
     }
 
-    gl::GlMeshGeneration checkAndComputeVertexAttributes(const gl::VertexAttributeDeclarationVector &vads, vfm::ObjModel &objModel)
+    ogl::GlMeshGeneration checkAndComputeVertexAttributes(const ogl::VertexAttributeDeclarationVector &vads, vfm::ObjModel &objModel)
     {
         bool noBufferAvailable = false;
         int nbVertexAttributes = 0;
-        for(const gl::VertexAttributeDeclaration &vad : vads)
+        for(const ogl::VertexAttributeDeclaration &vad : vads)
         {
             switch(toVertexAttributeBuffer(vad))
             {
@@ -147,24 +147,24 @@ namespace
 
             if (noBufferAvailable)
             {
-                return gl::GlMeshGeneration::failed(std::string("No buffer available for vertex attribute '") + vad.name() + "'!");
+                return ogl::GlMeshGeneration::failed(std::string("No buffer available for vertex attribute '") + vad.name() + "'!");
             }
 
             if (vad.type() != GL_FLOAT_VEC2 && vad.type() != GL_FLOAT_VEC3 && vad.type() != GL_FLOAT_VEC4)
             {
-                return gl::GlMeshGeneration::failed(std::string("Invalid type for vertex attribute '") + vad.name() + "': expected float, vec2, vec3 or vec4.");
+                return ogl::GlMeshGeneration::failed(std::string("Invalid type for vertex attribute '") + vad.name() + "': expected float, vec2, vec3 or vec4.");
             }
             ++nbVertexAttributes;
         }
 
         if (nbVertexAttributes == 0)
         {
-            return gl::GlMeshGeneration::failed("No vertex attributes found!");
+            return ogl::GlMeshGeneration::failed("No vertex attributes found!");
         }
-        return gl::GlMeshGeneration::succeeded();
+        return ogl::GlMeshGeneration::succeeded();
     }
 
-    void fillBuffer(GLfloat *tmpBuffer, gl::BoundingBox &boundingBox, const vfm::ObjModel &objModel, const VertexAttributeBufferDescVector &vertexAttributeBufferDescVector)
+    void fillBuffer(GLfloat *tmpBuffer, ogl::BoundingBox &boundingBox, const vfm::ObjModel &objModel, const VertexAttributeBufferDescVector &vertexAttributeBufferDescVector)
     {
         std::size_t tmpBufferOffset = 0;
         std::size_t vertexAttributesStructureSize = computeVertexAttributesStructureSize(vertexAttributeBufferDescVector);
@@ -231,15 +231,15 @@ namespace
 
 }
 
-const gl::MaterialIndex gl::MaterialHandler::NO_MATERIAL_INDEX = MAX_UINT;
+const ogl::MaterialIndex ogl::MaterialHandler::NO_MATERIAL_INDEX = MAX_UINT;
 
-gl::GlMesh::MaterialGroup::MaterialGroup(MaterialIndex index, std::size_t size) : index{index}, size{size} {}
+ogl::GlMesh::MaterialGroup::MaterialGroup(MaterialIndex index, std::size_t size) : index{index}, size{size} {}
 
-gl::BoundingBox::BoundingBox() : min{MAX_FLOAT, MAX_FLOAT, MAX_FLOAT}, max{MIN_FLOAT, MIN_FLOAT, MIN_FLOAT}
+ogl::BoundingBox::BoundingBox() : min{MAX_FLOAT, MAX_FLOAT, MAX_FLOAT}, max{MIN_FLOAT, MIN_FLOAT, MIN_FLOAT}
 {
 }
 
-void gl::BoundingBox::accept(float x, float y, float z)
+void ogl::BoundingBox::accept(float x, float y, float z)
 {
     min.x = std::min(min.x, x);
     min.y = std::min(min.y, y);
@@ -249,19 +249,19 @@ void gl::BoundingBox::accept(float x, float y, float z)
     max.z = std::max(max.z, z);
 }
 
-gl::GlMesh::GlMesh() : _vertexArray{0}, _indexFormat{GL_UNSIGNED_SHORT}
+ogl::GlMesh::GlMesh() : _vertexArray{0}, _indexFormat{GL_UNSIGNED_SHORT}
 {
 }
 
-void gl::GlMesh::render(gl::MaterialHandler *handler)
+void ogl::GlMesh::render(ogl::MaterialHandler *handler)
 {
     glBindVertexArray(_vertexArray);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffers[0]);
     std::for_each(_definedVertexAttributes.begin(), _definedVertexAttributes.end(), glEnableVertexAttribArray);
 
     std::size_t firstPrimitive = 0;
-    std::size_t sizeofIndex = gl::glSizeof(_indexFormat);
-    for(gl::GlMesh::MaterialGroup &materialGroup : _materialGroups)
+    std::size_t sizeofIndex = ogl::glSizeof(_indexFormat);
+    for(ogl::GlMesh::MaterialGroup &materialGroup : _materialGroups)
     {
         if (handler)
         {
@@ -276,12 +276,12 @@ void gl::GlMesh::render(gl::MaterialHandler *handler)
     glBindVertexArray(0);
 }
 
-gl::GlMesh::~GlMesh()
+ogl::GlMesh::~GlMesh()
 {
     clear();
 }
 
-void gl::GlMesh::clear()
+void ogl::GlMesh::clear()
 {
     glBindVertexArray(0);
     if (_vertexArray > 0)
@@ -299,7 +299,7 @@ void gl::GlMesh::clear()
     _materialGroups.clear();
 }
 
-void gl::GlMesh::createMaterialGroups(const vfm::ObjModel &objModel)
+void ogl::GlMesh::createMaterialGroups(const vfm::ObjModel &objModel)
 {
     for(const vfm::Object &o : objModel.objects)
     {
@@ -321,7 +321,7 @@ void gl::GlMesh::createMaterialGroups(const vfm::ObjModel &objModel)
     }
 }
 
-void gl::GlMesh::createIndexBufferData(const vfm::ObjModel &objModel)
+void ogl::GlMesh::createIndexBufferData(const vfm::ObjModel &objModel)
 {
     std::size_t nbIndices = objModel.nbTriangleVertices();
 
@@ -342,7 +342,7 @@ void gl::GlMesh::createIndexBufferData(const vfm::ObjModel &objModel)
     }
 }
 
-gl::GlMeshGeneration gl::GlMesh::generate(vfm::ObjModel &objModel, const gl::VertexAttributeDeclarationVector &vads)
+ogl::GlMeshGeneration ogl::GlMesh::generate(vfm::ObjModel &objModel, const ogl::VertexAttributeDeclarationVector &vads)
 {
     clear();
     sys::Duration duration;
