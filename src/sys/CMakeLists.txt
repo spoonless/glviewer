@@ -14,6 +14,8 @@ add_library(sys STATIC
     src/log.cpp
     include/Path.hpp
     src/Path.cpp
+    include/LineReader.hpp
+    src/LineReader.cpp
 )
 
 config_executable(sys G3LOG)
@@ -28,6 +30,7 @@ if(BUILD_TESTING)
         tests/main.cpp
         tests/Path_test.cpp
         tests/CommandLineParser_test.cpp
+        tests/LineReader_test.cpp
     )
 
     config_executable(test_sys GTEST)

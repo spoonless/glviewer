@@ -6,6 +6,7 @@
 #include <sstream>
 #include <map>
 #include "glm/geometric.hpp"
+#include "LineReader.hpp"
 #include "ObjModel.hpp"
 
 namespace
@@ -67,84 +68,6 @@ inline const char *nextToken(const char* l)
     const char *start = l;
     for(; std::isspace(*start) && *start != 0; ++start);
     return start;
-}
-
-class LineReader
-{
-    static const std::size_t BUFFER_CHUNK_SIZE;
-public:
-    LineReader(std::istream &is);
-    ~LineReader();
-
-    LineReader(const LineReader &) = delete;
-    LineReader &operator = (const LineReader &) = delete;
-
-    const char *read();
-
-    inline operator bool() const
-    {
-        return _is.good();
-    }
-
-private:
-    void copyReadLine();
-
-    std::istream &_is;
-    std::size_t _capacity;
-    char *_line;
-};
-
-const std::size_t LineReader::BUFFER_CHUNK_SIZE = 256 * sizeof(char);
-
-LineReader::LineReader(std::istream &is) : _is(is), _capacity{BUFFER_CHUNK_SIZE}
-{
-    _line = static_cast<char*>(std::malloc(_capacity * sizeof(char)));
-    *_line = 0;
-}
-
-LineReader::~LineReader()
-{
-    std::free(_line);
-}
-
-const char *LineReader::read()
-{
-    copyReadLine();
-
-    char *end = _line;
-    for(; *end != 0; ++end)
-    {
-        if (*end == '#' || *end == '\r')
-        {
-            *end = 0;
-            break;
-        }
-    }
-
-    for(; end != _line && std::isspace(*(end-1)); --end);
-    *end = 0;
-
-    return nextToken(_line);
-}
-
-void LineReader::copyReadLine()
-{
-    *_line = 0;
-    _is.getline(_line, _capacity);
-    std::streamsize nbRead = 0;
-    while((_is.rdstate() & std::istream::failbit) && _is.gcount() > 0 && !_is.eof())
-    {
-        nbRead += _is.gcount();
-        _is.clear();
-        _line = static_cast<char*>(std::realloc(_line, (_capacity + BUFFER_CHUNK_SIZE) * sizeof(char)));
-        _is.getline(_line + nbRead, BUFFER_CHUNK_SIZE);
-        _capacity += BUFFER_CHUNK_SIZE;
-    }
-    if (_is.eof())
-    {
-        _is.clear();
-        _is.setstate(std::ios::eofbit);
-    }
 }
 
 inline char* read(const char *line, glm::vec4 &vec4)
@@ -334,7 +257,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
     VertexIndexVector face(10);
 	vfm::MaterialIndex currentMaterialIndex = 0;
     std::string mtllib;
-    LineReader lineReader{is};
+    sys::LineReader lineReader(is);
 
     model.objects.push_back(Object());
     Object *object = &model.objects.back();
@@ -416,7 +339,7 @@ std::istream & vfm::operator >> (std::istream &is, ObjModel &model)
 std::istream & vfm::operator >> (std::istream &is, vfm::MaterialMap &materialMap)
 {
     vfm::Material *material = 0;
-    LineReader lineReader{is};
+    sys::LineReader lineReader{is};
 
     while(lineReader)
     {
