@@ -1,8 +1,6 @@
 #ifndef DURATION_H
 #define DURATION_H
 
-#include <string>
-
 namespace sys
 {
 
