@@ -23,7 +23,7 @@ add_library(core_sources STATIC
     Camera.cpp
 )
 
-config_executable(core_sources GLAD SYS OGL GLFW SOIL OPENGL)
+config_executable(core_sources GLAD SOIL SYS OGL)
 target_link_libraries(core_sources ${CMAKE_THREAD_LIBS_INIT})
 
 #########################################################################
