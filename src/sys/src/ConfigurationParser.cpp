@@ -94,7 +94,15 @@ OperationResult ConfigurationParser::parse(std::istream &is)
     }
     while(lr);
 
-    return OperationResult::test(!is.fail(), "I/O error while reading configuration!");
+    if (is.fail())
+    {
+        return OperationResult::failed("I/O error while reading configuration!");
+    }
+    if (_validator)
+    {
+        return _validator();
+    }
+    return OperationResult::succeeded();
 }
 
 ConfigurationProperty &ConfigurationParser::property(BaseArgument &arg)

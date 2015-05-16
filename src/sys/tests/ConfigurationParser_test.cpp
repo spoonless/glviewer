@@ -179,3 +179,17 @@ TEST(ConfigurationParser, canParseBooleanArgToFalse)
     ASSERT_FALSE(args[3].value());
     ASSERT_FALSE(args[4].value());
 }
+
+TEST(ConfigurationParser, canUseValidator)
+{
+    std::stringstream sstream;
+    ConfigurationParser cp;
+    cp.validator([](){
+        return OperationResult::failed("validator failed");
+    });
+
+    OperationResult result = cp.parse(sstream);
+
+    ASSERT_FALSE(result);
+    ASSERT_EQ(std::string("validator failed"), result.message());
+}
