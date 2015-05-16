@@ -26,19 +26,19 @@ if(NOT CMAKE_COMPILER_IS_GNUCXX OR NOT(CMAKE_BUILD_TYPE STREQUAL "Coverage"))
     return()
 endif()
 
-find_program(GCOV_EXE gcov)
-find_program(LCOV_EXE lcov)
-find_program(GENHTML_EXE genhtml)
+find_program(COVERAGE_GCOV gcov)
+find_program(COVERAGE_LCOV lcov)
+find_program(COVERAGE_GENHTML genhtml)
 
-if(NOT GCOV_EXE)
+if(NOT COVERAGE_GCOV)
     message(FATAL_ERROR "gcov not found! Aborting...")
 endif()
 
-if(NOT LCOV_EXE)
+if(NOT COVERAGE_LCOV)
     message(FATAL_ERROR "lcov not found! Aborting...")
 endif()
 
-if(NOT GENHTML_EXE)
+if(NOT COVERAGE_GENHTML)
     message(FATAL_ERROR "genhtml not found! Aborting...")
 endif()
 
@@ -75,7 +75,7 @@ macro(enable_coverage)
     add_custom_command(
         TARGET coverage
         POST_BUILD
-        COMMAND ${GENHTML_EXE} -o coverage *.info
+        COMMAND ${COVERAGE_GENHTML} -o coverage *.info
         COMMAND ${CMAKE_COMMAND} -E remove *.info
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
@@ -90,12 +90,12 @@ endmacro()
 macro(add_coverage NAME EXE)
     add_custom_target(coverage_${NAME}
         # Cleanup lcov
-        ${LCOV_EXE} --directory . --zerocounters
+        ${COVERAGE_LCOV} --directory . --zerocounters
         # Run tests
         COMMAND ${EXE} ${ARGV3}
         # Capturing lcov counters and generating report
-        COMMAND ${LCOV_EXE} --directory . --capture --output-file ${NAME}.tmp.info
-        COMMAND ${LCOV_EXE} --remove ${NAME}.tmp.info 'tests/*' 'gtest/*' '/usr/*' --output-file ${NAME}.info -q
+        COMMAND ${COVERAGE_LCOV} --directory . --capture --output-file ${NAME}.tmp.info
+        COMMAND ${COVERAGE_LCOV} --remove ${NAME}.tmp.info 'tests/*' 'gtest/*' '/usr/*' --output-file ${NAME}.info -q
         COMMAND ${CMAKE_COMMAND} -E remove ${NAME}.tmp.info
 
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
