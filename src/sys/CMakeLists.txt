@@ -12,6 +12,8 @@ add_library(sys STATIC
     src/Argument.cpp
     include/CommandLineParser.hpp
     src/CommandLineParser.cpp
+    include/ConfigurationParser.hpp
+    src/ConfigurationParser.cpp
     include/log.hpp
     src/log.cpp
     include/Path.hpp
@@ -32,6 +34,7 @@ if(BUILD_TESTING)
         tests/main.cpp
         tests/Path_test.cpp
         tests/CommandLineParser_test.cpp
+        tests/ConfigurationParser_test.cpp
         tests/LineReader_test.cpp
     )
 
