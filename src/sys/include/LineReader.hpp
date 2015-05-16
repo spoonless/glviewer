@@ -18,6 +18,11 @@ public:
 
     const char *read();
 
+    std::size_t lineNumber() const
+    {
+        return _lineNumber;
+    }
+
     inline operator bool() const
     {
         return _is.good();
@@ -25,9 +30,11 @@ public:
 
 private:
     void copyReadLine();
+    void checkStream();
 
     std::istream &_is;
     std::size_t _capacity;
+    std::size_t _lineNumber;
     char *_line;
 };
 

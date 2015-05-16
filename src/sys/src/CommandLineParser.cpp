@@ -119,7 +119,7 @@ OperationResult CommandLineParser::parse(int argc, char const **argv)
             {
                 if (clo._argument->isSwitch())
                 {
-                    OperationResult result = clo._argument->convert("");
+                    OperationResult result = clo._argument->convert("true");
                     if (!result)
                     {
                         message << "Invalid option " << argv[i] << ": " << result.message();

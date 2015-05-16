@@ -43,7 +43,7 @@ const char *rightTrim(char* line, char commentStarter = '#')
 namespace sys
 {
 
-LineReader::LineReader(std::istream &is) : _is(is), _capacity(BUFFER_CHUNK_SIZE)
+LineReader::LineReader(std::istream &is) : _is(is), _capacity(BUFFER_CHUNK_SIZE), _lineNumber(0)
 {
     _line = static_cast<char*>(std::malloc(_capacity * sizeof(char)));
     *_line = 0;
@@ -57,6 +57,7 @@ LineReader::~LineReader()
 const char *LineReader::read()
 {
     copyReadLine();
+    checkStream();
     return leftTrim(rightTrim(_line));
 }
 
@@ -73,10 +74,18 @@ void LineReader::copyReadLine()
         _is.getline(_line + nbRead, BUFFER_CHUNK_SIZE);
         _capacity += BUFFER_CHUNK_SIZE;
     }
+}
+
+void LineReader::checkStream()
+{
     if (_is.eof())
     {
         _is.clear();
         _is.setstate(std::ios::eofbit);
+    }
+    if(!_is.fail())
+    {
+        ++_lineNumber;
     }
 }
 
