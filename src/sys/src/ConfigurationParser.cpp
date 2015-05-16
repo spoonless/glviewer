@@ -1,3 +1,4 @@
+#include <cctype>
 #include "ConfigurationParser.hpp"
 #include "LineReader.hpp"
 
