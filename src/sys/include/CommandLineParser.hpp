@@ -18,8 +18,8 @@ class CommandLineOption
 public:
 
     CommandLineOption(BaseArgument *argument);
-    CommandLineOption(CommandLineOption &&clp);
     CommandLineOption(const CommandLineOption &) = default;
+    CommandLineOption(CommandLineOption &&clp);
 
     CommandLineOption & description(char const *value);
     CommandLineOption & name(char const *name);
@@ -40,8 +40,8 @@ class CommandLineParameter
 public:
 
     CommandLineParameter(BaseArgument *argument);
-    CommandLineParameter(CommandLineParameter &&cla);
     CommandLineParameter(const CommandLineParameter &) = default;
+    CommandLineParameter(CommandLineParameter &&cla);
 
     CommandLineParameter & selector(std::function<bool(const char*)> selector);
     CommandLineParameter & pattern(const char *pattern);
@@ -53,9 +53,9 @@ private:
     bool matches(const char *v);
 
     BaseArgument *_argument;
-    std::function<bool(const char*)> _selector;
     std::string _placeholder;
     std::string _description;
+    std::function<bool(const char*)> _selector;
 };
 
 class CommandLineParser
