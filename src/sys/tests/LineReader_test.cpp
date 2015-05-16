@@ -14,7 +14,7 @@ TEST(LineReader, cannotReadUnknownFile)
     const char *line = lr.read();
 
     ASSERT_STREQ("", line);
-    ASSERT_EQ(0, lr.lineNumber());
+    ASSERT_EQ(0u, lr.lineNumber());
     ASSERT_FALSE(lr);
 }
 
@@ -26,7 +26,7 @@ TEST(LineReader, canReadLineWithoutEndLine)
     const char *line = lr.read();
 
     ASSERT_STREQ("hello world", line);
-    ASSERT_EQ(1, lr.lineNumber());
+    ASSERT_EQ(1u, lr.lineNumber());
     ASSERT_FALSE(lr);
 }
 
@@ -46,7 +46,7 @@ TEST(LineReader, canTrimReadLines)
 
     line = lr.read();
     ASSERT_STREQ("hello world", line);
-    ASSERT_EQ(3, lr.lineNumber());
+    ASSERT_EQ(3u, lr.lineNumber());
 }
 
 TEST(LineReader, canReadStreamUntilEof)

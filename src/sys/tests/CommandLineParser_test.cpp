@@ -228,7 +228,7 @@ TEST(CommandLineParser, canParseUIntArg)
 
     ASSERT_TRUE(result);
     ASSERT_TRUE(arg);
-    ASSERT_EQ(0, arg.value());
+    ASSERT_EQ(0u, arg.value());
 }
 
 TEST(CommandLineParser, cannotParseUIntArgWhenNegativeValue)
@@ -257,7 +257,7 @@ TEST(CommandLineParser, canParseULongLongArg)
 
     ASSERT_TRUE(result);
     ASSERT_TRUE(arg);
-    ASSERT_EQ(1000000, arg.value());
+    ASSERT_EQ(1000000u, arg.value());
 }
 
 TEST(CommandLineParser, cannotParseUnsignedLongLongArgWhenValueTooLarge)
@@ -272,7 +272,7 @@ TEST(CommandLineParser, cannotParseUnsignedLongLongArgWhenValueTooLarge)
 
     ASSERT_FALSE(result);
     ASSERT_FALSE(arg);
-    ASSERT_EQ(0, arg.value());
+    ASSERT_EQ(0u, arg.value());
 }
 
 TEST(CommandLineParser, canParseULongArg)
@@ -287,7 +287,7 @@ TEST(CommandLineParser, canParseULongArg)
 
     ASSERT_TRUE(result);
     ASSERT_TRUE(arg);
-    ASSERT_EQ(1000000, arg.value());
+    ASSERT_EQ(1000000u, arg.value());
 }
 
 TEST(CommandLineParser, canParseUShortArg)
@@ -302,7 +302,7 @@ TEST(CommandLineParser, canParseUShortArg)
 
     ASSERT_TRUE(result);
     ASSERT_TRUE(arg);
-    ASSERT_EQ(10, arg.value());
+    ASSERT_EQ(10u, arg.value());
 }
 
 TEST(CommandLineParser, canParseParameterWithSelector)
