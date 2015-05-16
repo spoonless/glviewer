@@ -62,6 +62,8 @@ CommandLineParameter::CommandLineParameter(BaseArgument *argument): _argument(ar
 
 CommandLineParameter::CommandLineParameter(CommandLineParameter &&cla):
     _argument(cla._argument),
+    _placeholder(std::move(cla._placeholder)),
+    _description(std::move(cla._description)),
     _selector(std::move(cla._selector))
 {
 }
