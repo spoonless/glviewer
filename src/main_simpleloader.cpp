@@ -46,7 +46,7 @@ int main (int argc, const char **argv)
     std::ifstream ifs(cmdLine.filename.value());
     if (!ifs.is_open())
     {
-        std::clog << "Cannot open file " << argv[1] << std::endl;
+        std::clog << "Cannot open file " << cmdLine.filename.value() << std::endl;
         return 1;
     }
 
