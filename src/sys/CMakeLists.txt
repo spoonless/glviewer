@@ -18,6 +18,8 @@ add_library(sys STATIC
     src/log.cpp
     include/Path.hpp
     src/Path.cpp
+    include/PathArg.hpp
+    src/PathArg.cpp
     include/LineReader.hpp
     src/LineReader.cpp
 )
@@ -33,6 +35,7 @@ if(BUILD_TESTING)
     add_executable(test_sys
         tests/main.cpp
         tests/Path_test.cpp
+        tests/PathArg_test.cpp
         tests/CommandLineParser_test.cpp
         tests/ConfigurationParser_test.cpp
         tests/LineReader_test.cpp
