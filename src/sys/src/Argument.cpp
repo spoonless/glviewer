@@ -292,4 +292,15 @@ void LongDoubleArg::reset(long double& value)
     value = 0;
 }
 
+template<> OperationResult Argument<Path>::convert(Path &path, char const *v)
+{
+    path = v;
+    return OperationResult::succeeded();
+}
+
+template<> void Argument<Path>::reset(Path &path)
+{
+    path = "";
+}
+
 }

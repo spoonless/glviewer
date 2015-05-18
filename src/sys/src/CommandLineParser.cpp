@@ -133,7 +133,7 @@ OperationResult CommandLineParser::parse(int argc, char const **argv)
                     OperationResult result = clo._argument->convert(argv[++i]);
                     if (!result)
                     {
-                        message << "Invalid option " << argv[i] << " value: " << result.message();
+                        message << "Invalid option " << argv[i-1] << " value: " << result.message();
                         return OperationResult::failed(message.str());
                     }
                 }

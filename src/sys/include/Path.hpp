@@ -11,7 +11,7 @@ class Path
 public:
     static const char SEPARATOR;
 
-    Path(const char *path = 0, std::size_t size = 0);
+    Path(const char *path = nullptr, std::size_t size = 0);
     Path(Path &&path);
     Path(const Path &path);
     Path(const Path &parent, const Path &path);
