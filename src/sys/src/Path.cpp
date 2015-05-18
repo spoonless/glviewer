@@ -12,7 +12,7 @@ const char sys::Path::SEPARATOR = '/';
 
 namespace
 {
-const char* EMPTY_PATH="";
+const char * const EMPTY_PATH="";
 }
 
 sys::Path::Path(const char *path, std::size_t size): _length(0), _absoluteSectionLength(0), _path(nullptr)

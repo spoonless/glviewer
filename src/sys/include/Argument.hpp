@@ -4,6 +4,7 @@
 #include <type_traits>
 #include <algorithm>
 #include <vector>
+#include "Path.hpp"
 #include "OperationResult.hpp"
 
 namespace sys
@@ -138,7 +139,7 @@ OperationResult EnumArgument<T>::convert(char const *value)
         if (found == std::end(_list))
         {
             Argument<T>::reset();
-            return OperationResult::failed("not matched any of possible values");
+            return OperationResult::failed("value does not match any possible values");
         }
     }
     return result;
@@ -233,6 +234,11 @@ template<> void DoubleArg::reset(double &);
 using LongDoubleArg = Argument<long double>;
 template<> OperationResult LongDoubleArg::convert(long double &, char const *);
 template<> void LongDoubleArg::reset(long double &);
+
+using PathArg = Argument<Path>;
+
+template<> void Argument<Path>::reset(Path &path);
+template<> OperationResult Argument<Path>::convert(Path &path, char const *v);
 
 }
 #endif

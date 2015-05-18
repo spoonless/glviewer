@@ -75,7 +75,7 @@ TEST(ConfigurationParser, cannotParseInvalidPropertyValue)
 
     ASSERT_FALSE(result);
     ASSERT_FALSE(arg);
-    ASSERT_EQ(std::string("Cannot convert property value of 'my_property' at line 1"), result.message());
+    ASSERT_EQ(std::string("Cannot convert property value of 'my_property' at line 1. Reason is: value does not match any possible values"), result.message());
 }
 
 TEST(ConfigurationParser, cannotParseLineWithoutEqualSign)
@@ -192,4 +192,50 @@ TEST(ConfigurationParser, canUseValidator)
 
     ASSERT_FALSE(result);
     ASSERT_EQ(std::string("validator failed"), result.message());
+}
+
+TEST(ConfigurationParser, canParsePathArg)
+{
+    std::stringstream sstream;
+    sstream << "prop=file.txt";
+    PathArg arg;
+    ConfigurationParser cp;
+    cp.property(arg).name("prop");
+
+    cp.parse(sstream);
+
+    ASSERT_TRUE(arg);
+    ASSERT_STREQ("./file.txt", arg.value());
+}
+
+TEST(ConfigurationParser, canParsePathArgWithFilePath)
+{
+    std::stringstream sstream;
+    sstream << "prop=file.txt";
+    PathArg arg;
+    ConfigurationParser cp;
+    cp.property(arg).name("prop");
+
+    cp.parse(sstream, Path("/tmp/exe"));
+
+    ASSERT_TRUE(arg);
+    ASSERT_STREQ("/tmp/file.txt", arg.value());
+}
+
+TEST(ConfigurationParser, cannotParseConfigurationFileArgWhenConfigurationFileDoesNotExist)
+{
+    std::stringstream sstream;
+    sstream << "conf=unknown_file.txt";
+    ConfigurationFileArg arg;
+    ConfigurationParser cp;
+    cp.property(arg).name("conf");
+
+    OperationResult result = cp.parse(sstream);
+
+    ASSERT_FALSE(result);
+    ASSERT_FALSE(arg);
+    ASSERT_EQ(std::string("Cannot convert property value of 'conf' at line 1. "
+                          "Reason is: Error while loading configuration file './unknown_file.txt'! "
+                          "I/O error while reading configuration! "
+                          "Maybe the file does not exist or is not readable."), result.message());
 }

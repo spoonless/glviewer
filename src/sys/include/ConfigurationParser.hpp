@@ -14,13 +14,14 @@ class ConfigurationProperty
 {
     friend class ConfigurationParser;
 public:
-    ConfigurationProperty(BaseArgument *argument);
+    ConfigurationProperty(BaseArgument *argument, bool treatAsPath = false);
     ConfigurationProperty(ConfigurationProperty &&cp);
     ConfigurationProperty(const ConfigurationProperty &) = default;
 
     ConfigurationProperty & name(char const *name);
 
 private:
+    bool _treatAsPath;
     BaseArgument *_argument;
     std::string _name;
 };
@@ -28,14 +29,29 @@ private:
 class ConfigurationParser
 {
 public:
-    OperationResult parse(std::istream &is);
+    OperationResult parse(std::istream &is, const Path &filePath = nullptr);
 
     ConfigurationProperty &property(BaseArgument &arg);
+    ConfigurationProperty &property(PathArg &arg);
     void validator(std::function<OperationResult()> validator);
 
 private:
     std::vector<ConfigurationProperty> _configurationProperties;
     std::function<OperationResult()> _validator;
+};
+
+class ConfigurationFileArg : public PathArg
+{
+public:
+    OperationResult convert(char const *value) override;
+
+    ConfigurationParser &parser()
+    {
+        return _configurationParser;
+    }
+
+private:
+    ConfigurationParser _configurationParser;
 };
 
 }
