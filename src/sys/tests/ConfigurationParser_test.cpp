@@ -205,7 +205,7 @@ TEST(ConfigurationParser, canParsePathArg)
     cp.parse(sstream);
 
     ASSERT_TRUE(arg);
-    ASSERT_STREQ("./file.txt", arg.value());
+    ASSERT_STREQ(Path(Path().dirpath(),"file.txt"), arg.value());
 }
 
 TEST(ConfigurationParser, canParsePathArgWithFilePath)
@@ -215,11 +215,12 @@ TEST(ConfigurationParser, canParsePathArgWithFilePath)
     PathArg arg;
     ConfigurationParser cp;
     cp.property(arg).name("prop");
+    Path filePath("/tmp/exe");
 
-    cp.parse(sstream, Path("/tmp/exe"));
+    cp.parse(sstream, filePath);
 
     ASSERT_TRUE(arg);
-    ASSERT_STREQ("/tmp/file.txt", arg.value());
+    ASSERT_STREQ(Path(filePath.dirpath(), "file.txt"), arg.value());
 }
 
 TEST(ConfigurationParser, cannotParseConfigurationFileArgWhenConfigurationFileDoesNotExist)
@@ -228,14 +229,20 @@ TEST(ConfigurationParser, cannotParseConfigurationFileArgWhenConfigurationFileDo
     sstream << "conf=unknown_file.txt";
     ConfigurationFileArg arg;
     ConfigurationParser cp;
+    Path filepath("test");
+
     cp.property(arg).name("conf");
 
-    OperationResult result = cp.parse(sstream);
+    OperationResult result = cp.parse(sstream, filepath);
 
     ASSERT_FALSE(result);
     ASSERT_FALSE(arg);
-    ASSERT_EQ(std::string("Cannot convert property value of 'conf' at line 1. "
-                          "Reason is: Error while loading configuration file './unknown_file.txt'! "
-                          "I/O error while reading configuration! "
-                          "Maybe the file does not exist or is not readable."), result.message());
+    std::string expectedMsg;
+    expectedMsg.append("Cannot convert property value of 'conf' at line 1. ")
+               .append("Reason is: Error while loading configuration file '")
+               .append(Path(filepath.dirpath(), "unknown_file.txt")).append("'! ")
+               .append("I/O error while reading configuration! ")
+               .append("Maybe the file does not exist or is not readable.");
+
+    ASSERT_EQ(expectedMsg, result.message());
 }
