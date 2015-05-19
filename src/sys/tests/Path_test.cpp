@@ -21,42 +21,59 @@ TEST(Path, canDetectAbsolute)
     ASSERT_TRUE(Path("/test/test").absolute());
     ASSERT_TRUE(Path("\\test").absolute());
 
-#ifdef WIN32
-    ASSERT_TRUE(Path("c:/test/test").absolute());
-    ASSERT_TRUE(Path("zz:\\test\\test").absolute());
-    ASSERT_TRUE(Path("\\\\test\\test").absolute());
-    ASSERT_FALSE(Path("1:\\test\\test").absolute());
-#else
-    ASSERT_FALSE(Path("c:/test/test").absolute());
-    ASSERT_FALSE(Path("zz:\\test\\test").absolute());
-    ASSERT_TRUE(Path("\\\\test\\test").absolute());
-    ASSERT_FALSE(Path("1:\\test\\test").absolute());
-#endif
-
     Path p("/");
     ASSERT_TRUE(p.absolute());
     p = "test";
     ASSERT_FALSE(p.absolute());
 }
 
-TEST(Path, canNormalizePathWithNativeSeparator)
-{
-#ifdef WIN32
-    Path p = "/test/file";
-    ASSERT_STREQ("\\test\\file", static_cast<const char*>(p));
-#else
-    Path p = "\\test\\file";
-    ASSERT_STREQ("/test/file", static_cast<const char*>(p));
-#endif
+#ifdef _WIN32
 
+TEST(Path, canDetectAbsoluteWin32)
+{
+    ASSERT_TRUE(Path("c:/test/test").absolute());
+    ASSERT_TRUE(Path("zz:\\test\\test").absolute());
+    ASSERT_TRUE(Path("\\\\test\\test").absolute());
+    ASSERT_FALSE(Path("1:\\test\\test").absolute());
 }
 
-TEST(Path, canConstructPathFromParentPath)
+#else
+
+TEST(Path, canDetectAbsoluteUnix)
+{
+    ASSERT_FALSE(Path("c:/test/test").absolute());
+    ASSERT_FALSE(Path("zz:\\test\\test").absolute());
+    ASSERT_TRUE(Path("\\\\test\\test").absolute());
+    ASSERT_FALSE(Path("1:\\test\\test").absolute());
+}
+
+#endif
+
+#ifdef _WIN32
+
+TEST(Path, canNormalizePathWithNativeSeparatorWin32)
+{
+    Path p = "/test/file";
+    ASSERT_STREQ("\\test\\file", static_cast<const char*>(p));
+}
+
+#else
+
+TEST(Path, canNormalizePathWithNativeSeparatorUnix)
+{
+    Path p = "\\test\\file";
+    ASSERT_STREQ("/test/file", static_cast<const char*>(p));
+}
+
+#endif
+
+#ifdef _WIN32
+
+TEST(Path, canConstructPathFromParentPathWin32)
 {
     Path p("", "");
     ASSERT_STREQ("", static_cast<const char*>(p));
 
-#ifdef WIN32
 
     p = Path("test", "/");
     ASSERT_STREQ("\\", static_cast<const char*>(p));
@@ -69,8 +86,15 @@ TEST(Path, canConstructPathFromParentPath)
 
     p = Path("a/", "../b");
     ASSERT_STREQ("a\\..\\b", static_cast<const char*>(p));
+}
 
 #else
+
+TEST(Path, canConstructPathFromParentPathUnix)
+{
+    Path p("", "");
+    ASSERT_STREQ("", static_cast<const char*>(p));
+
 
     p = Path("test", "/");
     ASSERT_STREQ("/", static_cast<const char*>(p));
@@ -84,8 +108,9 @@ TEST(Path, canConstructPathFromParentPath)
     p = Path("a/", "../b");
     ASSERT_STREQ("a/../b", static_cast<const char*>(p));
 
-#endif
 }
+
+#endif
 
 TEST(Path, canGetBasename)
 {
@@ -116,12 +141,23 @@ TEST(Path, canGetWithoutExtension)
     ASSERT_STREQ("test", static_cast<const char*>(Path("test.txt").withoutExtension()));
     ASSERT_STREQ("test.txt", static_cast<const char*>(Path("test.txt.txt").withoutExtension()));
     ASSERT_STREQ(".txt", static_cast<const char*>(Path(".txt").withoutExtension()));
-#ifdef WIN32
-    ASSERT_STREQ("a\\.txt", static_cast<const char*>(Path("a/.txt").withoutExtension()));
-#else
-    ASSERT_STREQ("a/.txt", static_cast<const char*>(Path("a/.txt").withoutExtension()));
-#endif
 }
+
+#ifdef _WIN32
+
+TEST(Path, canGetWithoutExtensionWin32)
+{
+    ASSERT_STREQ("a\\.txt", static_cast<const char*>(Path("a/.txt").withoutExtension()));
+}
+
+#else
+
+TEST(Path, canGetWithoutExtensionUnix)
+{
+    ASSERT_STREQ("a/.txt", static_cast<const char*>(Path("a/.txt").withoutExtension()));
+}
+
+#endif
 
 TEST(Path, canGetDirpath)
 {
@@ -132,7 +168,7 @@ TEST(Path, canGetDirpath)
     ASSERT_STREQ("a", static_cast<const char*>(Path("a/test").dirpath()));
     ASSERT_STREQ("a", static_cast<const char*>(Path("a/test/").dirpath()));
 
-#ifdef WIN32
+#ifdef _WIN32
     ASSERT_STREQ("a\\b", static_cast<const char*>(Path("a/b/test").dirpath()));
     ASSERT_STREQ("\\a\\b", static_cast<const char*>(Path("/a/b/test").dirpath()));
     ASSERT_STREQ("\\", static_cast<const char*>(Path("/test").dirpath()));
@@ -146,3 +182,27 @@ TEST(Path, canGetDirpath)
     ASSERT_STREQ("/", static_cast<const char*>(Path("/test").dirpath()));
 #endif
 }
+
+#ifdef _WIN32
+
+TEST(Path, canGetDirpathWin32)
+{
+    ASSERT_STREQ("a\\b", static_cast<const char*>(Path("a/b/test").dirpath()));
+    ASSERT_STREQ("\\a\\b", static_cast<const char*>(Path("/a/b/test").dirpath()));
+    ASSERT_STREQ("\\", static_cast<const char*>(Path("/test").dirpath()));
+    ASSERT_STREQ("c:\\", static_cast<const char*>(Path("c:/test").dirpath()));
+    ASSERT_STREQ("c:\\test", static_cast<const char*>(Path("c:/test/a").dirpath()));
+    ASSERT_STREQ("c:\\", static_cast<const char*>(Path("c:/").dirpath()));
+    ASSERT_STREQ(".", static_cast<const char*>(Path("c:").dirpath()));
+}
+
+#else
+
+TEST(Path, canGetDirpathUnix)
+{
+    ASSERT_STREQ("a/b", static_cast<const char*>(Path("a/b/test").dirpath()));
+    ASSERT_STREQ("/a/b", static_cast<const char*>(Path("/a/b/test").dirpath()));
+    ASSERT_STREQ("/", static_cast<const char*>(Path("/test").dirpath()));
+}
+
+#endif
