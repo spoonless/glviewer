@@ -128,13 +128,15 @@ TEST(ConfigurationParser, canIgnoreEmptyLineOrCommentedLine)
 
 TEST(ConfigurationParser, canParseBooleanArgToTrue)
 {
-    BoolArg args[5];
+    BoolArg args[7];
     std::stringstream sstream;
     sstream << "arg1=ON" << std::endl;
     sstream << "arg2=on" << std::endl;
     sstream << "arg3=TRUE" << std::endl;
     sstream << "arg4=true" << std::endl;
     sstream << "arg5=1" << std::endl;
+    sstream << "arg6=yes" << std::endl;
+    sstream << "arg7=YES" << std::endl;
 
     ConfigurationParser cp;
     cp.property(args[0]).name("arg1");
@@ -142,6 +144,8 @@ TEST(ConfigurationParser, canParseBooleanArgToTrue)
     cp.property(args[2]).name("arg3");
     cp.property(args[3]).name("arg4");
     cp.property(args[4]).name("arg5");
+    cp.property(args[5]).name("arg6");
+    cp.property(args[6]).name("arg7");
 
     OperationResult result = cp.parse(sstream);
 
@@ -151,17 +155,21 @@ TEST(ConfigurationParser, canParseBooleanArgToTrue)
     ASSERT_TRUE(args[2].value());
     ASSERT_TRUE(args[3].value());
     ASSERT_TRUE(args[4].value());
+    ASSERT_TRUE(args[5].value());
+    ASSERT_TRUE(args[6].value());
 }
 
 TEST(ConfigurationParser, canParseBooleanArgToFalse)
 {
-    BoolArg args[5];
+    BoolArg args[7];
     std::stringstream sstream;
     sstream << "arg1=OFF" << std::endl;
     sstream << "arg2=off" << std::endl;
     sstream << "arg3=false" << std::endl;
     sstream << "arg4=FALSE" << std::endl;
     sstream << "arg5=0" << std::endl;
+    sstream << "arg6=no" << std::endl;
+    sstream << "arg7=NO" << std::endl;
 
     ConfigurationParser cp;
     cp.property(args[0]).name("arg1");
@@ -169,6 +177,8 @@ TEST(ConfigurationParser, canParseBooleanArgToFalse)
     cp.property(args[2]).name("arg3");
     cp.property(args[3]).name("arg4");
     cp.property(args[4]).name("arg5");
+    cp.property(args[5]).name("arg6");
+    cp.property(args[6]).name("arg7");
 
     OperationResult result = cp.parse(sstream);
 
@@ -178,6 +188,8 @@ TEST(ConfigurationParser, canParseBooleanArgToFalse)
     ASSERT_FALSE(args[2].value());
     ASSERT_FALSE(args[3].value());
     ASSERT_FALSE(args[4].value());
+    ASSERT_FALSE(args[5].value());
+    ASSERT_FALSE(args[6].value());
 }
 
 TEST(ConfigurationParser, canUseValidator)

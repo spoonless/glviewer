@@ -90,9 +90,9 @@ template<>
 OperationResult BoolArg::convert(bool& dest, char const *src)
 {
 #ifdef _WIN32
-    dest = _stricmp("true", src) == 0 || _stricmp("on", src) == 0 || std::strcmp("1", src) == 0;
+    dest = _stricmp("true", src) == 0 || _stricmp("on", src) == 0 || _stricmp("yes", src) == 0 || std::strcmp("1", src) == 0;
 #else
-    dest = strcasecmp("true", src) == 0 || strcasecmp("on", src) == 0 || std::strcmp("1", src) == 0;
+    dest = strcasecmp("true", src) == 0 || strcasecmp("on", src) == 0 || strcasecmp("yes", src) == 0 || std::strcmp("1", src) == 0;
 #endif
     return OperationResult::succeeded();
 }
