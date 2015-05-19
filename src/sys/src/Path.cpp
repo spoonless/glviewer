@@ -2,7 +2,7 @@
 #include <algorithm>
 #include "Path.hpp"
 
-#ifdef WIN32
+#ifdef _WIN32
 const char sys::Path::SEPARATOR = '\\';
 #define ALTERNATE_SEPARATOR '/'
 #else
@@ -177,7 +177,7 @@ sys::Path sys::Path::dirpath() const
     return i == 0 ? Path(".") : Path(this->_path, i);
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 
 void sys::Path::computeAbsoluteSectionLength()
 {
