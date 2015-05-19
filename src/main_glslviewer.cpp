@@ -18,6 +18,7 @@
 #include "ShaderProgram.hpp"
 #include "GlMesh.hpp"
 #include "Camera.hpp"
+#include "CommandLineParser.hpp"
 
 const double PI = std::atan(1.0)*4;
 
@@ -394,28 +395,54 @@ private:
     std::vector<LoadedMaterial> _materials;
 };
 
+struct CommandLine
+{
+    sys::PathArg vertexShaderPath;
+    sys::PathArg fragmentShaderPath;
+    sys::PathArg objFilePath;
+
+    CommandLine(sys::CommandLineParser &clp);
+};
+
+CommandLine::CommandLine(sys::CommandLineParser &clp)
+{
+    clp.option(vertexShaderPath).shortName("vert").description("Vertex shader file. The option flag can be omitted if the file extension is .vert.");
+    clp.option(fragmentShaderPath).shortName("frag").description("Fragment shader file. The option flag can be omitted if the file extension is .frag.");
+    clp.option(objFilePath).shortName("obj").description("Fragment shader file. The option flag can be omitted if the file extension is .obj.");
+    clp.parameter(vertexShaderPath).pattern(".*\\.vert");
+    clp.parameter(fragmentShaderPath).pattern(".*\\.frag");
+    clp.parameter(objFilePath).pattern(".*\\.obj");
+}
+
 class GlslViewer
 {
 public:
 
     using LoadFile = sys::OperationResult;
 
-    GlslViewer(int argc, char **argv) : failure(false)
+    GlslViewer(int argc, const char **argv) : failure(false)
     {
+        sys::CommandLineParser clp;
+        CommandLine cl(clp);
+        check(clp.parse(argc, argv), "Parsing command line");
+
         const char *objFilename = 0;
         std::string vertexShader = defaultVertexShader;
         std::string fragmentShader = defaultFragmentShader;
-        for (int i = 1; good() && i < argc; ++i)
+
+        if (good() && cl.vertexShaderPath)
         {
-            if  (endsWith(argv[i], ".obj"))
-                objFilename = argv[i];
-            else if  (endsWith(argv[i], ".vert"))
-                check(readFile(argv[i], vertexShader), std::string("loading '") + argv[i] + "'");
-            else if (endsWith(argv[i], ".frag"))
-                check(readFile(argv[i], fragmentShader), std::string("loading '") + argv[i] + "'");
-            else
-                std::cerr << "! Unknown argument '" << argv[i] << "'. Expecting *.obj, *.vert and/or *.frag file path." << std::endl;
+            check(readFile(cl.vertexShaderPath.value(), vertexShader), std::string("loading '") + std::string(cl.vertexShaderPath.value()) + "'");
         }
+        if (good() && cl.fragmentShaderPath)
+        {
+            check(readFile(cl.fragmentShaderPath.value(), fragmentShader), std::string("loading '") + std::string(cl.fragmentShaderPath.value()) + "'");
+        }
+        if (good() && cl.objFilePath)
+        {
+            objFilename = cl.objFilePath.value();
+        }
+
         if (good()) createProgram(vertexShader, fragmentShader);
         if (good()) createMesh(objFilename);
     }
@@ -613,7 +640,7 @@ private:
     ogl::PerspectiveCamera _camera;
 };
 
-int main(int argc, char **argv)
+int main(int argc, const char **argv)
 {
     sys::initLogger();
     ogl::GlWindowContext glwc;
