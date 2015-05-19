@@ -19,14 +19,9 @@
 #include "GlMesh.hpp"
 #include "Camera.hpp"
 #include "CommandLineParser.hpp"
+#include "ConfigurationParser.hpp"
 
 const double PI = std::atan(1.0)*4;
-
-bool endsWith (const char *base, const char *str) {
-    std::size_t blen = std::strlen(base);
-	std::size_t slen = std::strlen(str);
-    return (blen >= slen) && (0 == std::strcmp(base + blen - slen, str));
-}
 
 const char defaultMesh[] =
         "v -1 -1  0\n"
@@ -395,54 +390,14 @@ private:
     std::vector<LoadedMaterial> _materials;
 };
 
-struct CommandLine
-{
-    sys::PathArg vertexShaderPath;
-    sys::PathArg fragmentShaderPath;
-    sys::PathArg objFilePath;
-
-    CommandLine(sys::CommandLineParser &clp);
-};
-
-CommandLine::CommandLine(sys::CommandLineParser &clp)
-{
-    clp.option(vertexShaderPath).shortName("vert").description("Vertex shader file. The option flag can be omitted if the file extension is .vert.");
-    clp.option(fragmentShaderPath).shortName("frag").description("Fragment shader file. The option flag can be omitted if the file extension is .frag.");
-    clp.option(objFilePath).shortName("obj").description("Fragment shader file. The option flag can be omitted if the file extension is .obj.");
-    clp.parameter(vertexShaderPath).pattern(".*\\.vert");
-    clp.parameter(fragmentShaderPath).pattern(".*\\.frag");
-    clp.parameter(objFilePath).pattern(".*\\.obj");
-}
-
 class GlslViewer
 {
 public:
 
     using LoadFile = sys::OperationResult;
 
-    GlslViewer(int argc, const char **argv) : failure(false)
+    GlslViewer(const std::string &vertexShader, const std::string &fragmentShader, const sys::Path &objFilename) : failure(false)
     {
-        sys::CommandLineParser clp;
-        CommandLine cl(clp);
-        check(clp.parse(argc, argv), "Parsing command line");
-
-        const char *objFilename = 0;
-        std::string vertexShader = defaultVertexShader;
-        std::string fragmentShader = defaultFragmentShader;
-
-        if (good() && cl.vertexShaderPath)
-        {
-            check(readFile(cl.vertexShaderPath.value(), vertexShader), std::string("loading '") + std::string(cl.vertexShaderPath.value()) + "'");
-        }
-        if (good() && cl.fragmentShaderPath)
-        {
-            check(readFile(cl.fragmentShaderPath.value(), fragmentShader), std::string("loading '") + std::string(cl.fragmentShaderPath.value()) + "'");
-        }
-        if (good() && cl.objFilePath)
-        {
-            objFilename = cl.objFilePath.value();
-        }
-
         if (good()) createProgram(vertexShader, fragmentShader);
         if (good()) createMesh(objFilename);
     }
@@ -468,7 +423,7 @@ public:
     void createMesh(const char *objFilename)
     {
         vfm::ObjModel model;
-        if(objFilename)
+        if(objFilename && *objFilename != 0)
         {
             sys::Duration loadfileDuration;
             std::ifstream is(objFilename);
@@ -484,12 +439,6 @@ public:
             std::istringstream modelStream(defaultMesh);
             modelStream >> model;
         }
-
-        if (model.normals.empty())
-        {
-            model.computeNormals();
-        }
-        model.computeTangents();
 
         materialHandler.loadMaterials(textureLoader, objFilename, model);
 
@@ -610,15 +559,8 @@ public:
 private:
     bool check(const sys::OperationResult &r, const std::string &context)
     {
-        if (r)
-        {
-            LOG(INFO) << context << " in " << r.duration() << "ms. " << r.message();
-        }
-        else
-        {
-            failure = true;
-            LOG(WARNING) << context << " in " << r.duration() << "ms. " << r.message();
-        }
+        LOG(r ? INFO : WARNING) << context << " in " << r.duration() << "ms. " << r.message();
+        failure = failure || !r.ok();
         return r.ok();
     }
 
@@ -640,13 +582,141 @@ private:
     ogl::PerspectiveCamera _camera;
 };
 
+struct CommandLine
+{
+    sys::PathArg vertexShaderPath;
+    sys::PathArg fragmentShaderPath;
+    sys::PathArg objFilePath;
+    sys::ConfigurationFileArg confFile;
+    sys::UShortArg height;
+    sys::UShortArg width;
+    sys::BoolArg fullscreen;
+    sys::BoolArg help;
+
+    CommandLine(sys::CommandLineParser &clp);
+};
+
+CommandLine::CommandLine(sys::CommandLineParser &clp)
+{
+    clp.option(vertexShaderPath)
+            .shortName("vert")
+            .name("vertexShader")
+            .description("Vertex shader file. Option flag can be omitted if the file extension is .vert.");
+
+    clp.option(fragmentShaderPath)
+            .shortName("frag")
+            .name("fragmentShader")
+            .description("Fragment shader file. Option flag can be omitted if the file extension is .frag.");
+
+    clp.option(objFilePath)
+            .shortName("obj").
+            name("objFile").
+            description("Model file in OBJ format. Option flag can be omitted if the file extension is .obj.");
+
+    clp.option(confFile)
+            .shortName("c")
+            .description("Configuration file. Option flag can be omitted if the file extension is .conf.");
+
+    clp.option(width)
+            .shortName("w")
+            .name("width")
+            .description("The width of the displayed window in pixels.");
+
+    clp.option(height)
+            .shortName("h")
+            .name("height")
+            .description("The height of the displayed window in pixels.");
+
+    clp.option(fullscreen)
+            .shortName("fs")
+            .name("fullscreen")
+            .description("Display in fullscreen mode. If specified, width and height define the resolution.");
+
+    clp.option(help)
+            .name("help")
+            .description("Display this help message.");
+
+    clp.parameter(vertexShaderPath).pattern(".*\\.vert");
+    clp.parameter(fragmentShaderPath).pattern(".*\\.frag");
+    clp.parameter(objFilePath).pattern(".*\\.obj");
+    clp.parameter(confFile).pattern(".*\\.conf");
+
+    confFile.parser().property(vertexShaderPath).name("vertexShader");
+    confFile.parser().property(fragmentShaderPath).name("fragmentShader");
+    confFile.parser().property(objFilePath).name("objFile");
+    confFile.parser().property(width).name("width");
+    confFile.parser().property(height).name("height");
+    confFile.parser().property(fullscreen).name("fullscreen");
+
+    clp.validator([this, &clp](){
+        if (help)
+        {
+            std::clog << "GLSL viewer allows you to display a model using OpenGL shaders." << std::endl;
+            std::clog << "The model must be in OBJ format. The GLSL program is linked based on provided vertex and fragment shaders." << std::endl;
+            std::clog << "Options can be saved in a configuration file (provided by the -c option as described below). "
+                         "Names in the configuration file are the same as long option names (without the -- prefix)." << std::endl;
+            std::clog << clp;
+            std::exit(1);
+        }
+        return sys::OperationResult::succeeded();
+    });
+}
+
+void die(const sys::OperationResult &r, const char *context)
+{
+    LOG(r ? INFO : WARNING) << context << " in " << r.duration() << "ms. " << r.message();
+    if (!r){
+        std::exit(1);
+    }
+}
+
+sys::OperationResult readFile(const char *filename, std::string &content)
+{
+    sys::Duration duration;
+    std::ifstream is(filename);
+    std::string tmpContent;
+    std::getline(is, tmpContent, '\0');
+    if (!is.eof() && is.fail())
+    {
+        std::string msg;
+        msg.append("Cannot read file '").append(filename).append("'! Maybe the path is wrong or the file is not readable.");
+        return sys::OperationResult::failed(msg, duration.elapsed());
+    }
+    if (tmpContent.empty())
+    {
+        std::string msg;
+        msg.append("File '").append(filename).append("' is empty!");
+        return sys::OperationResult::failed(msg, duration.elapsed());
+    }
+    content = std::move(tmpContent);
+    return sys::OperationResult::succeeded(duration.elapsed());
+}
+
 int main(int argc, const char **argv)
 {
     sys::initLogger();
-    ogl::GlWindowContext glwc;
     LOG(INFO) << APP_NAME " by " APP_AUTHOR " (v" APP_VERSION " compilation date " APP_COMPILATION_DATE ")";
 
-    if(!glwc.init("GLSL viewer", 800, 600) || ! glwc.makeCurrent())
+    sys::CommandLineParser clp;
+    CommandLine cmdLine(clp);
+
+    die(clp.parse(argc, argv), "Parsing command line (try --help to display all options)");
+
+    std::string vertexShader = defaultVertexShader;
+    if (cmdLine.vertexShaderPath)
+    {
+        die(readFile(cmdLine.vertexShaderPath.value(), vertexShader), "Loading vertex shader");
+    }
+
+    std::string fragmentShader = defaultFragmentShader;
+    if (cmdLine.fragmentShaderPath)
+    {
+        die(readFile(cmdLine.fragmentShaderPath.value(), fragmentShader), "Loading fragment shader");
+    }
+
+    ogl::GlWindowContext glwc;
+
+    if(!glwc.init("GLSL viewer", cmdLine.width.value(), cmdLine.height.value(), cmdLine.fullscreen.value()) || ! glwc.makeCurrent())
     {
         LOG(FATAL) << "Cannot initialise OpenGL context!";
         return 1;
@@ -657,7 +727,7 @@ int main(int argc, const char **argv)
     LOG(INFO) << "OpenGL version " << glGetString(GL_VERSION);
     LOG(INFO) << "OpenGLSL version " << glGetString(GL_SHADING_LANGUAGE_VERSION);
     {
-        GlslViewer viewer(argc, argv);
+        GlslViewer viewer(vertexShader, fragmentShader, cmdLine.objFilePath.value());
 
         if (viewer.good())
         {

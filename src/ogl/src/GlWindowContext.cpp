@@ -61,7 +61,7 @@ ogl::GlWindowContext::~GlWindowContext()
 	glfwTerminate();
 }
 
-bool ogl::GlWindowContext::init (std::string title, unsigned int width, unsigned int height)
+bool ogl::GlWindowContext::init (std::string title, unsigned int width, unsigned int height, bool fullscreenMode)
 {
     glfwSetErrorCallback(errorCallback);
     LOG(INFO) << "Initializing GLFW...";
@@ -76,8 +76,24 @@ bool ogl::GlWindowContext::init (std::string title, unsigned int width, unsigned
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
 
-    LOGF(INFO, "Creating main window (%dx%d)...", width, height);
-    _window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
+    GLFWmonitor *monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* currentMode = glfwGetVideoMode(monitor);
+
+    if (fullscreenMode)
+    {
+        width = width == 0u ? static_cast<unsigned int>(currentMode->width) : width;
+        height = height == 0u ? static_cast<unsigned int>(currentMode->height) : height;
+        LOGF(INFO, "Creating main window (%dx%d) in fullscreen mode...", width, height);
+        _window = glfwCreateWindow(width, height, title.c_str(), monitor, NULL);
+        currentMode = glfwGetVideoMode(monitor);
+    }
+    else {
+        width = width == 0u ? static_cast<unsigned int>(currentMode->width / 2) : width;
+        height = height == 0u ? static_cast<unsigned int>(currentMode->height / 2) : height;
+        LOGF(INFO, "Creating main window (%dx%d)...", width, height);
+        _window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
+    }
+
     if (!_window) {
         LOG(WARNING) << "fail to create window";
         return false;
@@ -89,7 +105,7 @@ bool ogl::GlWindowContext::init (std::string title, unsigned int width, unsigned
     glfwSetFramebufferSizeCallback(_window, framebufferSizeCallback);
     int realWidth,realHeight = 0;
     glfwGetWindowSize(_window, &realWidth, &realHeight);
-    windowSizeCallback(_window, width, height);
+    windowSizeCallback(_window, realWidth, realHeight);
 
     return true;
 }

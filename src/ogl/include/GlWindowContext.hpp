@@ -19,7 +19,7 @@ public:
     GlWindowContext(const GlWindowContext &) = delete;
     GlWindowContext & operator = (const GlWindowContext &) = delete;
 
-    bool init(std::string title, unsigned int width, unsigned int height);
+    bool init(std::string title, unsigned int width, unsigned int height, bool fullscreenMode = false);
 
     bool makeCurrent();
 
