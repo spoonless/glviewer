@@ -694,7 +694,8 @@ sys::OperationResult readFile(const char *filename, std::string &content)
 
 int main(int argc, const char **argv)
 {
-    sys::initLogger();
+    INIT_LOGGING_SYSTEM();
+
     LOG(INFO) << APP_NAME " by " APP_AUTHOR " (v" APP_VERSION " compilation date " APP_COMPILATION_DATE ")";
 
     sys::CommandLineParser clp;

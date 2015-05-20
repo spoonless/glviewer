@@ -32,22 +32,41 @@ public:
 
 };
 
-std::unique_ptr<g2::LogWorker> logworker;
+class ClogLoggingSystem : public sys::LoggingSystem
+{
+public:
+    ClogLoggingSystem()
+    {
+        _logworker = g2::LogWorker::createWithNoSink();
+        _logworker->addSink(std::unique_ptr<SimpleLogger>(new SimpleLogger), &SimpleLogger::log);
+
+        g2::initializeLogging(_logworker.get());
+    }
+
+private:
+    std::unique_ptr<g2::LogWorker> _logworker;
+};
 
 }
 
-void sys::initLogger()
+std::unique_ptr<sys::LoggingSystem> sys::LoggingSystem::create()
 {
-    logworker = g2::LogWorker::createWithNoSink();
-    logworker->addSink(std::unique_ptr<SimpleLogger>{new SimpleLogger}, &SimpleLogger::log);
-
-    g2::initializeLogging(logworker.get());
+    return std::unique_ptr<sys::LoggingSystem>(new ClogLoggingSystem);
 }
 
 #else
 
-void sys::initLogger()
+std::unique_ptr<sys::LoggingSystem> sys::LoggingSystem::init()
 {
+    return std::unique_ptr<sys::LoggingSystem>(new LoggingSystem());
 }
 
 #endif
+
+sys::LoggingSystem::LoggingSystem()
+{
+}
+
+sys::LoggingSystem::~LoggingSystem()
+{
+}
