@@ -717,7 +717,7 @@ int main(int argc, const char **argv)
 
     ogl::GlWindowContext glwc;
 
-    if(!glwc.init("GLSL viewer", cmdLine.width.value(), cmdLine.height.value(), cmdLine.fullscreen.value()) || ! glwc.makeCurrent())
+    if(!glwc.init("GL viewer", cmdLine.width.value(), cmdLine.height.value(), cmdLine.fullscreen.value()) || ! glwc.makeCurrent())
     {
         LOG(FATAL) << "Cannot initialise OpenGL context!";
         return 1;

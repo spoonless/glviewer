@@ -98,7 +98,6 @@ bool ogl::GlWindowContext::init (std::string title, unsigned int width, unsigned
         LOG(WARNING) << "fail to create window";
         return false;
     }
-    glfwSetWindowTitle(_window, "GLSL viewer");
 
     glfwSetWindowUserPointer(_window, this);
     glfwSetWindowSizeCallback(_window, windowSizeCallback);
