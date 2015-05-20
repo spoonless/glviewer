@@ -53,7 +53,7 @@ CommandLineOption & CommandLineOption::shortName(char const *value)
 
 bool CommandLineOption::matches(char const *value)
 {
-    return !*_argument && (isShortOption(value, this->_shortName) || isLongOption(value, this->_name));
+    return isShortOption(value, this->_shortName) || isLongOption(value, this->_name);
 }
 
 CommandLineParameter::CommandLineParameter(BaseArgument *argument): _argument(argument)
