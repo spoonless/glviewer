@@ -455,6 +455,21 @@ TEST(CommandLineParser, cannotParseTooManyParameters)
     ASSERT_FALSE(result);
 }
 
+TEST(CommandLineParser, canParseTooManyOptions)
+{
+    sys::CharSeqArg arg;
+
+    sys::CommandLineParser clp;
+    clp.option(arg).name("option").shortName("opt");
+
+    char const *argv[] = {"", "-opt", "hello", "--option", "world", "-opt", "lastOption"};
+    bool result = clp.parse(7, argv);
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(arg);
+    ASSERT_STREQ("lastOption", arg.value());
+}
+
 TEST(CommandLineParser, canParseEnumeratedArguments)
 {
     sys::EnumIntArg arg = {1,2,3};
