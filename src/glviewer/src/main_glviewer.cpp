@@ -669,11 +669,15 @@ CommandLine::CommandLine(sys::CommandLineParser &clp)
     clp.validator([this, &clp](){
         if (help)
         {
-            std::clog << "GLSL viewer allows you to display a model using OpenGL shaders." << std::endl;
-            std::clog << "The model must be in OBJ format. The GLSL program is linked based on provided vertex and fragment shaders." << std::endl;
-            std::clog << "Options can be saved in a configuration file (provided by the -c option as described below). "
-                         "Names in the configuration file are the same as long option names (without the -- prefix)." << std::endl;
-            std::clog << clp;
+            std::clog << std::endl;
+            std::clog << "GL Viewer allows you to display a 3D model using OpenGL shaders." << std::endl;
+            std::clog << "The filenames of the vertex and fragment shaders are passed as arguments (see options below)." << std::endl << std::endl;
+            std::clog << "Only OBJ format is supported for the model. MTL (material library) is supported." << std::endl << std::endl;
+            std::clog << "If you want to pass constantly the same arguments, you can save them in a configuration file" << std::endl;
+            std::clog << "and give the configuration file path as argument (see -c option below)." << std::endl << std::endl;
+            std::clog << "Configuration file is a plain text file using the traditional name=value format." << std::endl;
+            std::clog << "The supported configuration values are the same as long option names (without the -- prefix)." << std::endl;
+            std::clog << std::endl << clp;
             std::exit(1);
         }
         return sys::OperationResult::succeeded();
@@ -714,12 +718,12 @@ int main(int argc, const char **argv)
 {
     INIT_LOGGING_SYSTEM();
 
-    LOG(INFO) << APP_NAME " by " APP_AUTHOR " (v" APP_VERSION " compilation date " APP_COMPILATION_DATE ")";
-
     sys::CommandLineParser clp;
     CommandLine cmdLine(clp);
 
     die(clp.parse(argc, argv), "Parsing command line (try --help to display all options)");
+
+    LOG(INFO) << APP_NAME " by " APP_AUTHOR " (v" APP_VERSION " compilation date " APP_COMPILATION_DATE ")";
 
     std::string vertexShader = defaultVertexShader;
     if (cmdLine.vertexShaderPath)

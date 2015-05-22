@@ -193,12 +193,21 @@ void CommandLineParser::validator(std::function<OperationResult()> validator)
 
 void CommandLineParser::displayArguments(std::ostream &os) const
 {
-    if (!_commandLineOptions.empty())
-    {
-        os << std::endl << "Options:" << std::endl;
-    }
+    std::size_t nbDisplayedOptions = 0;
+    std::size_t nbDisplayedParameters = 0;
+
     for (const CommandLineOption& clo : _commandLineOptions)
     {
+        if (clo._description.empty() || (clo._name.empty() && clo._shortName.empty()))
+        {
+            continue;
+        }
+
+        if (++nbDisplayedOptions == 1u)
+        {
+            os << "Options:" << std::endl;
+        }
+
         if (!clo._name.empty() && !clo._shortName.empty())
         {
             os << "   -" << clo._shortName << ", --" << clo._name << std::endl;
@@ -211,26 +220,33 @@ void CommandLineParser::displayArguments(std::ostream &os) const
         {
             os << "   -" << clo._shortName << std::endl;
         }
-        if (!clo._description.empty() && (!clo._name.empty() || !clo._shortName.empty()))
-        {
-            os << "      " << clo._description << std::endl;
-        }
+
+        os << "      " << clo._description << std::endl;
     }
 
-    if (!_commandLineParameters.empty())
-    {
-        os << std::endl << "Parameters:" << std::endl;
-    }
     for (const CommandLineParameter& clp : _commandLineParameters)
     {
+        if (clp._description.empty())
+        {
+            continue;
+        }
+
+        if(++nbDisplayedParameters == 1u)
+        {
+            if (nbDisplayedOptions > 0u)
+            {
+                os << std::endl;
+            }
+
+            os << "Parameters:" << std::endl;
+        }
+
         if (!clp._placeholder.empty())
         {
             os << "   " << clp._placeholder << std::endl;
         }
-        if (!clp._description.empty())
-        {
-            os << (clp._placeholder.empty() ? "   " : "      ") << clp._description << std::endl;
-        }
+
+        os << (clp._placeholder.empty() ? "   " : "      ") << clp._description << std::endl;
     }
 }
 

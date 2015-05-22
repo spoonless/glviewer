@@ -622,7 +622,6 @@ TEST(CommandLineParser, canDisplayOptions)
     sstream << clp;
 
     const char *expected =
-    "\n"
     "Options:\n"
     "   -fo, --myFirstOption\n"
     "      test of my first option\n"
@@ -638,3 +637,20 @@ TEST(CommandLineParser, canDisplayOptions)
 
     ASSERT_STREQ(expected, sstream.str().c_str());
 }
+
+TEST(CommandLineParser, canDisplayNothingIfNoDescriptionProvided)
+{
+    sys::CharSeqArg arg;
+    std::stringstream sstream;
+
+    sys::CommandLineParser clp;
+    clp.option(arg).name("myOption").shortName("o");
+    clp.parameter(arg);
+
+    sstream << clp;
+
+    const char *expected = "";
+
+    ASSERT_STREQ(expected, sstream.str().c_str());
+}
+
