@@ -1,5 +1,7 @@
 #version 330
 
+#define ANIMATE
+
 /***************************************************/
 /* in variables                                    */
 /***************************************************/
@@ -80,6 +82,14 @@ uniform Material material = {
 
 uniform MaterialTexture materialTexture;
 
+/***************************************************/
+/* Additional uniforms                             */
+/***************************************************/
+
+uniform float time;
+
+float animationKeyTime = clamp(10*cos(time)+.5, .0, 1.0);
+
 vec3 computeLightVector(in uint lightSourceNumber, in vec3 position)
 {
     if(lightSources[lightSourceNumber].position.w == .0)
@@ -117,7 +127,12 @@ vec3 computeNormal()
     if (materialTexture.normalMapping.enable)
     {
         vec3 N = texture2D(materialTexture.normalMapping.sampler, fragTextureCoord).xyz;
+#ifdef ANIMATE
+        N = normalize(((2.0 * N) - 1.0) + fragNormal);
+        return mix(N, fragNormal, animationKeyTime);
+#else
         return normalize(((2.0 * N) - 1.0) + fragNormal);
+#endif
     }
     return normalize(fragNormal);
 }
