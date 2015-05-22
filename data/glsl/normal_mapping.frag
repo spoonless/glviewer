@@ -68,6 +68,7 @@ struct MaterialTexture
     Texture2D diffuse;
     Texture2D specular;
     Texture2D specularShininess;
+    Texture2D normalMapping;
 };
 
 uniform Material material = {
@@ -111,13 +112,23 @@ vec3 applyLightningModel(in uint lightSourceNumber, in vec3 N, in vec3 V, in vec
     }
 }
 
+vec3 computeNormal()
+{
+    if (materialTexture.normalMapping.enable)
+    {
+        vec3 N = texture2D(materialTexture.normalMapping.sampler, fragTextureCoord).xyz;
+        return normalize(((2.0 * N) - 1.0) + fragNormal);
+    }
+    return normalize(fragNormal);
+}
+
 void main() {
     vec3 V = normalize(-fragPosition);
     vec3 Ka = materialTexture.ambient.enable ? texture(materialTexture.ambient.sampler, fragTextureCoord).xyz : material.ambient;
     vec3 Kd = materialTexture.diffuse.enable ? texture(materialTexture.diffuse.sampler, fragTextureCoord).xyz : material.diffuse;
     vec3 Ks = materialTexture.specular.enable ? texture(materialTexture.specular.sampler, fragTextureCoord).xyz : material.specular;
     float Ns = materialTexture.specularShininess.enable ? texture(materialTexture.specularShininess.sampler, fragTextureCoord).x * material.specularShininess : material.specularShininess;
-    vec3 N = normalize(fragNormal);
+    vec3 N = computeNormal();
 
     vec3 color = vec3(.0);
     for (uint lightSourceNumber = 0u; lightSourceNumber < nbLightSources; ++lightSourceNumber)
