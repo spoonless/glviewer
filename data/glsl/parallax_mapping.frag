@@ -8,7 +8,7 @@ smooth in vec3 fragViewDir;
 smooth in vec2 fragTextureCoord;
 
 uniform float time;
-uniform float parallaxScale = .02;
+uniform float parallaxScale = .05;
 
 out vec4 fragColor;
 
@@ -31,7 +31,8 @@ struct MaterialTexture
     Texture2D ambient;
     Texture2D diffuse;
     Texture2D specular;
-    Texture2D bump;
+    Texture2D normalMapping;
+    Texture2D displacement;
 };
 
 struct Light
@@ -63,11 +64,11 @@ void computeColors(in vec3 normal, in vec3 viewDir, in vec3 lightDir, inout vec3
 
 vec2 parallaxMappingTextureCoord(in vec3 viewDir)
 {
-    if (! materialTexture.bump.enable)
+    if (! materialTexture.displacement.enable)
     {
         return fragTextureCoord;
     }
-    float initialHeight = 1 - texture(materialTexture.bump.sampler, fragTextureCoord).a;
+    float initialHeight = 1 - texture(materialTexture.displacement.sampler, fragTextureCoord).x;
 
 #ifdef WITH_PARALLAX_LIMITED
     // calculate amount of offset for Parallax Mapping With Offset Limiting
@@ -96,9 +97,9 @@ void main() {
     vec3 diffuseColor = materialTexture.diffuse.enable ? texture(materialTexture.diffuse.sampler, textureCoord).xyz : material.diffuse;
     vec3 specularColor = materialTexture.specular.enable ? texture(materialTexture.specular.sampler, textureCoord).xyz : material.specular;
 
-    if (materialTexture.bump.enable)
+    if (materialTexture.normalMapping.enable)
     {
-        vec3 mapNormal = 2 * texture(materialTexture.bump.sampler, textureCoord).xyz - 1;
+        vec3 mapNormal = 2 * texture(materialTexture.normalMapping.sampler, textureCoord).xyz - 1;
 #ifdef ANIMATE
         normal = normalize(mix(normal,mapNormal, animationKeyTime));
 #else

@@ -346,6 +346,7 @@ TEST(ObjModel, canLoadMapMaterialLibrary)
         "map_Ns Ns texture file  \n"
         "map_d  d texture file   \n"
         "bump   bump texture file\n"
+        "disp   disp texture file\n"
 
         "newmtl test2\n"
         "map_Tr Tr texture file\n"
@@ -359,7 +360,8 @@ TEST(ObjModel, canLoadMapMaterialLibrary)
     ASSERT_EQ("Ks texture file", material.map.specular);
     ASSERT_EQ("Ns texture file", material.map.specularCoeff);
     ASSERT_EQ("d texture file", material.map.dissolve);
-    ASSERT_EQ("bump texture file", material.map.bump);
+    ASSERT_EQ("bump texture file", material.map.normalMapping);
+    ASSERT_EQ("disp texture file", material.map.displacement);
 
     vfm::Material &material2 = materialMap["test2"];
     ASSERT_EQ("Tr texture file", material2.map.dissolve);

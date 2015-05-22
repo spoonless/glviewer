@@ -34,7 +34,8 @@ struct TextureMap
     std::string specular;
     std::string specularCoeff;
     std::string dissolve;
-    std::string bump;
+    std::string normalMapping;
+    std::string displacement;
 };
 
 struct Material

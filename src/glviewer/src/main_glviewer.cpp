@@ -121,7 +121,7 @@ private:
 
 struct LoadedTexture{
 
-    LoadedTexture(): ambient(0), diffuse(0), specular(0), specularCoeff(0), dissolve(0), bump(0)
+    LoadedTexture(): ambient(0), diffuse(0), specular(0), specularCoeff(0), dissolve(0), normalMapping(0), displacement(0)
     {
     }
 
@@ -130,7 +130,8 @@ struct LoadedTexture{
     GLuint specular;
     GLuint specularCoeff;
     GLuint dissolve;
-    GLuint bump;
+    GLuint normalMapping;
+    GLuint displacement;
 };
 
 struct LoadedMaterial
@@ -202,7 +203,8 @@ public:
                         loadedMaterial.texture.specular = textureLoader.load(basePath, material.map.specular);
                         loadedMaterial.texture.specularCoeff = textureLoader.load(basePath, material.map.specularCoeff);
                         loadedMaterial.texture.dissolve = textureLoader.load(basePath, material.map.dissolve);
-                        loadedMaterial.texture.bump = textureLoader.load(basePath, material.map.bump);
+                        loadedMaterial.texture.normalMapping = textureLoader.load(basePath, material.map.normalMapping);
+                        loadedMaterial.texture.displacement = textureLoader.load(basePath, material.map.displacement);
                     }
                 }
             }
@@ -280,19 +282,21 @@ private:
             _specularSampler = shaderProgram.getActiveUniform("materialTexture.specular.sampler");
             _specularCoeffSampler = shaderProgram.getActiveUniform("materialTexture.specularShininess.sampler");
             _dissolveSampler = shaderProgram.getActiveUniform("materialTexture.dissolve.sampler");
-            _bumpSampler = shaderProgram.getActiveUniform("materialTexture.bump.sampler");
+            _normalMappingSampler = shaderProgram.getActiveUniform("materialTexture.normalMapping.sampler");
+            _displacementSampler = shaderProgram.getActiveUniform("materialTexture.displacement.sampler");
 
             _ambiantEnable = shaderProgram.getActiveUniform("materialTexture.ambient.enable");
             _diffuseEnable = shaderProgram.getActiveUniform("materialTexture.diffuse.enable");
             _specularEnable = shaderProgram.getActiveUniform("materialTexture.specular.enable");
             _specularCoeffEnable = shaderProgram.getActiveUniform("materialTexture.specularShininess.enable");
             _dissolveEnable = shaderProgram.getActiveUniform("materialTexture.dissolve.enable");
-            _bumpEnable = shaderProgram.getActiveUniform("materialTexture.bump.enable");
+            _normalMappingEnable = shaderProgram.getActiveUniform("materialTexture.normalMapping.enable");
+            _displacementEnable = shaderProgram.getActiveUniform("materialTexture.displacement.enable");
         }
 
         inline bool hasTexture() const
         {
-            return _ambiantSampler || _diffuseSampler || _specularSampler || _specularCoeffSampler || _dissolveSampler || _bumpSampler;
+            return _ambiantSampler || _diffuseSampler || _specularSampler || _specularCoeffSampler || _dissolveSampler || _normalMappingSampler || _displacementSampler;
         }
 
         void use(const LoadedTexture &loadedTexture)
@@ -357,16 +361,28 @@ private:
                 *_dissolveEnable = false;
             }
 
-            if (_bumpSampler && loadedTexture.bump)
+            if (_normalMappingSampler && loadedTexture.normalMapping)
             {
                 glActiveTexture(GL_TEXTURE5);
-                glBindTexture(GL_TEXTURE_2D, loadedTexture.bump);
-                *_bumpSampler = 5;
-                *_bumpEnable = true;
+                glBindTexture(GL_TEXTURE_2D, loadedTexture.normalMapping);
+                *_normalMappingSampler = 5;
+                *_normalMappingEnable = true;
             }
             else
             {
-                *_bumpEnable = false;
+                *_normalMappingEnable = false;
+            }
+
+            if (_displacementSampler && loadedTexture.displacement)
+            {
+                glActiveTexture(GL_TEXTURE6);
+                glBindTexture(GL_TEXTURE_2D, loadedTexture.displacement);
+                *_displacementSampler = 6;
+                *_displacementEnable = true;
+            }
+            else
+            {
+                *_displacementEnable = false;
             }
         }
 
@@ -376,14 +392,16 @@ private:
         ogl::UniformDeclaration _specularSampler;
         ogl::UniformDeclaration _specularCoeffSampler;
         ogl::UniformDeclaration _dissolveSampler;
-        ogl::UniformDeclaration _bumpSampler;
+        ogl::UniformDeclaration _normalMappingSampler;
+        ogl::UniformDeclaration _displacementSampler;
 
         ogl::UniformDeclaration _ambiantEnable;
         ogl::UniformDeclaration _diffuseEnable;
         ogl::UniformDeclaration _specularEnable;
         ogl::UniformDeclaration _specularCoeffEnable;
         ogl::UniformDeclaration _dissolveEnable;
-        ogl::UniformDeclaration _bumpEnable;
+        ogl::UniformDeclaration _normalMappingEnable;
+        ogl::UniformDeclaration _displacementEnable;
     } _uniformTexture;
 
 

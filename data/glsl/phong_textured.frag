@@ -25,7 +25,7 @@ struct MaterialTexture
     Texture2D ambient;
     Texture2D diffuse;
     Texture2D specular;
-    Texture2D bump;
+    Texture2D normalMapping;
 };
 
 /*
@@ -85,9 +85,9 @@ void main() {
     vec3 specularColor = materialTexture.specular.enable ? texture(materialTexture.specular.sampler, fragTextureCoord).xyz : material.specular;
 
     vec3 normal;
-    if (materialTexture.bump.enable)
+    if (materialTexture.normalMapping.enable)
     {
-        normal = texture2D(materialTexture.bump.sampler, fragTextureCoord).xyz;
+        normal = texture2D(materialTexture.normalMapping.sampler, fragTextureCoord).xyz;
         normal = normalize((2.0 * normal) - 1.0);
     }
     else

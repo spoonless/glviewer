@@ -401,11 +401,15 @@ std::istream & vfm::operator >> (std::istream &is, vfm::MaterialMap &materialMap
             }
             else if (!std::strncmp(line, "bump ", 5))
             {
-                material->map.bump = nextToken(line + 5);
+                material->map.normalMapping = nextToken(line + 5);
             }
             else if (!std::strncmp(line, "map_Bump ", 9))
             {
-                material->map.bump = nextToken(line + 9);
+                material->map.normalMapping = nextToken(line + 9);
+            }
+            else if (!std::strncmp(line, "disp ", 5))
+            {
+                material->map.displacement = nextToken(line + 5);
             }
         }
     }
