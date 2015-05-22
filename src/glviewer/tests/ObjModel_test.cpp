@@ -328,7 +328,7 @@ TEST(ObjModel, canLoadColorMaterialLibrary)
     ASSERT_EQ(glm::vec3(1.0 ,0.0, 1.0), material.color.diffuse);
     ASSERT_EQ(glm::vec3(0.0 ,0.0, 1.0), material.color.specular);
     ASSERT_EQ(0.9f, material.color.dissolve);
-    ASSERT_EQ(10.0f, material.color.specularCoeff);
+    ASSERT_EQ(10.0f, material.color.specularShininess);
 
     vfm::Material &material2 = materialMap["test2"];
     ASSERT_EQ(0.9f, material2.color.dissolve);
@@ -358,7 +358,7 @@ TEST(ObjModel, canLoadMapMaterialLibrary)
     ASSERT_EQ("Ka texture file", material.map.ambient);
     ASSERT_EQ("Kd texture file", material.map.diffuse);
     ASSERT_EQ("Ks texture file", material.map.specular);
-    ASSERT_EQ("Ns texture file", material.map.specularCoeff);
+    ASSERT_EQ("Ns texture file", material.map.specularShininess);
     ASSERT_EQ("d texture file", material.map.dissolve);
     ASSERT_EQ("bump texture file", material.map.normalMapping);
     ASSERT_EQ("disp texture file", material.map.displacement);

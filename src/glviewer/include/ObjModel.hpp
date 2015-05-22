@@ -18,12 +18,12 @@ typedef std::vector<glm::vec3> Vec3Vector;
 
 struct Color
 {
-    Color() : specularCoeff(.0f), dissolve(.0f) {}
+    Color() : specularShininess(.0f), dissolve(.0f) {}
 
     glm::vec3 ambient;
     glm::vec3 diffuse;
     glm::vec3 specular;
-    float specularCoeff;
+    float specularShininess;
     float dissolve;
 };
 
@@ -32,7 +32,7 @@ struct TextureMap
     std::string ambient;
     std::string diffuse;
     std::string specular;
-    std::string specularCoeff;
+    std::string specularShininess;
     std::string dissolve;
     std::string normalMapping;
     std::string displacement;

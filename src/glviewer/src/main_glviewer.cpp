@@ -121,14 +121,14 @@ private:
 
 struct LoadedTexture{
 
-    LoadedTexture(): ambient(0), diffuse(0), specular(0), specularCoeff(0), dissolve(0), normalMapping(0), displacement(0)
+    LoadedTexture(): ambient(0), diffuse(0), specular(0), specularShininess(0), dissolve(0), normalMapping(0), displacement(0)
     {
     }
 
     GLuint ambient;
     GLuint diffuse;
     GLuint specular;
-    GLuint specularCoeff;
+    GLuint specularShininess;
     GLuint dissolve;
     GLuint normalMapping;
     GLuint displacement;
@@ -201,7 +201,7 @@ public:
                         loadedMaterial.texture.ambient = textureLoader.load(basePath, material.map.ambient);
                         loadedMaterial.texture.diffuse = textureLoader.load(basePath, material.map.diffuse);
                         loadedMaterial.texture.specular = textureLoader.load(basePath, material.map.specular);
-                        loadedMaterial.texture.specularCoeff = textureLoader.load(basePath, material.map.specularCoeff);
+                        loadedMaterial.texture.specularShininess = textureLoader.load(basePath, material.map.specularShininess);
                         loadedMaterial.texture.dissolve = textureLoader.load(basePath, material.map.dissolve);
                         loadedMaterial.texture.normalMapping = textureLoader.load(basePath, material.map.normalMapping);
                         loadedMaterial.texture.displacement = textureLoader.load(basePath, material.map.displacement);
@@ -241,7 +241,7 @@ private:
             _ambiantSampler = shaderProgram.getActiveUniform("material.ambient");
             _diffuseSampler = shaderProgram.getActiveUniform("material.diffuse");
             _specularSampler = shaderProgram.getActiveUniform("material.specular");
-            _specularCoeffSampler = shaderProgram.getActiveUniform("material.specularShininess");
+            _specularShininessSampler = shaderProgram.getActiveUniform("material.specularShininess");
         }
 
         void use(const vfm::Color &color)
@@ -258,9 +258,9 @@ private:
             {
                 *_specularSampler = color.specular;
             }
-            if (_specularCoeffSampler)
+            if (_specularShininessSampler)
             {
-                *_specularCoeffSampler = color.specularCoeff;
+                *_specularShininessSampler = color.specularShininess;
             }
         }
 
@@ -268,7 +268,7 @@ private:
         ogl::UniformDeclaration _ambiantSampler;
         ogl::UniformDeclaration _diffuseSampler;
         ogl::UniformDeclaration _specularSampler;
-        ogl::UniformDeclaration _specularCoeffSampler;
+        ogl::UniformDeclaration _specularShininessSampler;
     } _uniformColor;
 
     class
@@ -280,7 +280,7 @@ private:
             _ambiantSampler = shaderProgram.getActiveUniform("materialTexture.ambient.sampler");
             _diffuseSampler = shaderProgram.getActiveUniform("materialTexture.diffuse.sampler");
             _specularSampler = shaderProgram.getActiveUniform("materialTexture.specular.sampler");
-            _specularCoeffSampler = shaderProgram.getActiveUniform("materialTexture.specularShininess.sampler");
+            _specularShininessSampler = shaderProgram.getActiveUniform("materialTexture.specularShininess.sampler");
             _dissolveSampler = shaderProgram.getActiveUniform("materialTexture.dissolve.sampler");
             _normalMappingSampler = shaderProgram.getActiveUniform("materialTexture.normalMapping.sampler");
             _displacementSampler = shaderProgram.getActiveUniform("materialTexture.displacement.sampler");
@@ -288,7 +288,7 @@ private:
             _ambiantEnable = shaderProgram.getActiveUniform("materialTexture.ambient.enable");
             _diffuseEnable = shaderProgram.getActiveUniform("materialTexture.diffuse.enable");
             _specularEnable = shaderProgram.getActiveUniform("materialTexture.specular.enable");
-            _specularCoeffEnable = shaderProgram.getActiveUniform("materialTexture.specularShininess.enable");
+            _specularShininessEnable = shaderProgram.getActiveUniform("materialTexture.specularShininess.enable");
             _dissolveEnable = shaderProgram.getActiveUniform("materialTexture.dissolve.enable");
             _normalMappingEnable = shaderProgram.getActiveUniform("materialTexture.normalMapping.enable");
             _displacementEnable = shaderProgram.getActiveUniform("materialTexture.displacement.enable");
@@ -296,7 +296,7 @@ private:
 
         inline bool hasTexture() const
         {
-            return _ambiantSampler || _diffuseSampler || _specularSampler || _specularCoeffSampler || _dissolveSampler || _normalMappingSampler || _displacementSampler;
+            return _ambiantSampler || _diffuseSampler || _specularSampler || _specularShininessSampler || _dissolveSampler || _normalMappingSampler || _displacementSampler;
         }
 
         void use(const LoadedTexture &loadedTexture)
@@ -337,16 +337,16 @@ private:
                 *_specularEnable = false;
             }
 
-            if (_specularCoeffSampler && loadedTexture.specularCoeff)
+            if (_specularShininessSampler && loadedTexture.specularShininess)
             {
                 glActiveTexture(GL_TEXTURE3);
-                glBindTexture(GL_TEXTURE_2D, loadedTexture.specularCoeff);
-                *_specularCoeffSampler = 3;
-                *_specularCoeffEnable = true;
+                glBindTexture(GL_TEXTURE_2D, loadedTexture.specularShininess);
+                *_specularShininessSampler = 3;
+                *_specularShininessEnable = true;
             }
             else
             {
-                *_specularCoeffEnable = false;
+                *_specularShininessEnable = false;
             }
 
             if (_dissolveSampler && loadedTexture.dissolve)
@@ -390,7 +390,7 @@ private:
         ogl::UniformDeclaration _ambiantSampler;
         ogl::UniformDeclaration _diffuseSampler;
         ogl::UniformDeclaration _specularSampler;
-        ogl::UniformDeclaration _specularCoeffSampler;
+        ogl::UniformDeclaration _specularShininessSampler;
         ogl::UniformDeclaration _dissolveSampler;
         ogl::UniformDeclaration _normalMappingSampler;
         ogl::UniformDeclaration _displacementSampler;
@@ -398,7 +398,7 @@ private:
         ogl::UniformDeclaration _ambiantEnable;
         ogl::UniformDeclaration _diffuseEnable;
         ogl::UniformDeclaration _specularEnable;
-        ogl::UniformDeclaration _specularCoeffEnable;
+        ogl::UniformDeclaration _specularShininessEnable;
         ogl::UniformDeclaration _dissolveEnable;
         ogl::UniformDeclaration _normalMappingEnable;
         ogl::UniformDeclaration _displacementEnable;

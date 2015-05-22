@@ -373,7 +373,7 @@ std::istream & vfm::operator >> (std::istream &is, vfm::MaterialMap &materialMap
             }
             else if (!std::strncmp(line, "Ns ", 3))
             {
-                material->color.specularCoeff = static_cast<float>(std::max(0.0, std::min(1000.0, std::atof(line+3))));
+                material->color.specularShininess = static_cast<float>(std::max(0.0, std::min(1000.0, std::atof(line+3))));
             }
             else if (!std::strncmp(line, "map_Ka ", 7))
             {
@@ -389,7 +389,7 @@ std::istream & vfm::operator >> (std::istream &is, vfm::MaterialMap &materialMap
             }
             else if (!std::strncmp(line, "map_Ns ", 7))
             {
-                material->map.specularCoeff = nextToken(line + 7);
+                material->map.specularShininess = nextToken(line + 7);
             }
             else if (!std::strncmp(line, "map_d ", 6))
             {
