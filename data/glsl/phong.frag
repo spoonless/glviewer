@@ -14,8 +14,9 @@ smooth in vec3 fragNormal;
 out vec4 fragColor;
 
 /***************************************************/
-/* Light sources definition                        */
+/* Light sources definition view space coordinates */
 /* Directional light sources have position.w = 0   */
+/* and the position must be normalized.            */
 /***************************************************/
 
 struct LightSource

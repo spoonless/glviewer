@@ -13,8 +13,9 @@ in vec3 vertexNormal;
 smooth out vec3 color;
 
 /***************************************************/
-/* Light sources definition                        */
+/* Light sources definition view space coordinates */
 /* Directional light sources have position.w = 0   */
+/* and the position must be normalized.            */
 /***************************************************/
 
 struct LightSource
