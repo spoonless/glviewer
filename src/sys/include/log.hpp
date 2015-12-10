@@ -6,7 +6,7 @@
 
 #ifdef USE_G3LOG
 
-#include "g2log.hpp"
+#include "g3log/g3log.hpp"
 
 #else
 

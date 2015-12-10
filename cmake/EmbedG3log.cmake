@@ -11,10 +11,9 @@ endif()
 
 ExternalProject_Add(
   project_g3log
-  URL https://github.com/spoonless/g3log/archive/master.zip
-  URL_MD5 d7528946a112a9b07b43e58f8cb59e7f
+  URL https://github.com/KjellKod/g3log/archive/v1.1.zip
   PREFIX "${CMAKE_CURRENT_BINARY_DIR}/g3log"
-  CMAKE_ARGS -DUSE_FATAL_EXAMPLE=OFF -DCMAKE_BUILD_TYPE=Release ${G3LOG_ADDITIONAL_CMAKE_ARGS}
+  CMAKE_ARGS -DADD_FATAL_EXAMPLE=OFF -DCMAKE_BUILD_TYPE=Release ${G3LOG_ADDITIONAL_CMAKE_ARGS}
   INSTALL_COMMAND ""
 )
 

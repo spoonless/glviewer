@@ -13,8 +13,7 @@ endif()
 
 ExternalProject_Add(
   project_gtest
-  URL http://googletest.googlecode.com/files/gtest-1.7.0.zip
-  URL_MD5 2d6ec8ccdf5c46b05ba54a9fd1d130d7
+  URL https://github.com/google/googletest/archive/release-1.7.0.zip
   PREFIX "${CMAKE_CURRENT_BINARY_DIR}/gtest"
   CMAKE_ARGS -Dgtest_disable_pthreads=ON -Dgtest_force_shared_crt=ON ${GTEST_ADDITIONAL_CMAKE_ARGS}
   INSTALL_COMMAND ""

@@ -3,7 +3,7 @@
 
 #ifdef USE_G3LOG
 
-#include "g2logworker.hpp"
+#include "g3log/logworker.hpp"
 namespace
 {
 
@@ -11,9 +11,9 @@ class SimpleLogger
 {
 public:
 
-    void log(g2::LogMessageMover lgm)
+    void log(g3::LogMessageMover lgm)
     {
-        g2::LogMessage &logMsg = lgm.get();
+        g3::LogMessage &logMsg = lgm.get();
         if(logMsg._level.value == WARNING.value)
         {
             std::clog << " ! ";
@@ -37,14 +37,14 @@ class ClogLoggingSystem : public sys::LoggingSystem
 public:
     ClogLoggingSystem()
     {
-        _logworker = g2::LogWorker::createWithNoSink();
+        _logworker = g3::LogWorker::createLogWorker();
         _logworker->addSink(std::unique_ptr<SimpleLogger>(new SimpleLogger), &SimpleLogger::log);
 
-        g2::initializeLogging(_logworker.get());
+        g3::initializeLogging(_logworker.get());
     }
 
 private:
-    std::unique_ptr<g2::LogWorker> _logworker;
+    std::unique_ptr<g3::LogWorker> _logworker;
 };
 
 }
