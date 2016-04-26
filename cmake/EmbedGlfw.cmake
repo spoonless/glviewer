@@ -40,8 +40,9 @@ if(UNIX)
     ${GLFW_LIBRARY}
     ${CMAKE_DL_LIBS}
     ${X11_Xcursor_LIB}
+    ${X11_Xxf86vm_LIB}
     ${X11_Xrandr_LIB}
     ${X11_Xinput_LIB}
-    ${X11_Xxf86vm_LIB}
-    ${X11_Xinerama_LIB})
+    ${X11_Xinerama_LIB}
+    ${X11_X11_LIB})
 endif()
