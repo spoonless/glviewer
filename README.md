@@ -16,7 +16,14 @@ All dependencies are downloaded, compiled and statically linked with cmake: easy
 
 Cross compilation from Linux to Windows is available thanks to mingw64 compiler with toochain file:
 
-cmake -DCMAKE_TOOLCHAIN_FILE=${GLVIEWER_HOME}/cmake/toolchain-i686-w64-mingw32.cmake ${GLVIEWER_HOME}
+  cmake -DCMAKE_TOOLCHAIN_FILE=${GLVIEWER_HOME}/cmake/toolchain-i686-w64-mingw32.cmake ${GLVIEWER_HOME}
+
+Linux dependencies
+------------------
+
+Dévelopment package for OpenGL and X11 must be installed on Linux plateform. For Debian derived Linux distributions:
+
+  sudo apt-get install libgl1-mesa-dev libx11-dev
 
 Description
 -----------
