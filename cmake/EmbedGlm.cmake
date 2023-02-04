@@ -5,7 +5,7 @@ include(ExternalProject)
 ###############################################
 ExternalProject_Add(
   glm
-  URL https://github.com/g-truc/glm/releases/download/0.9.7.1/glm-0.9.7.1.zip
+  URL https://github.com/g-truc/glm/archive/refs/tags/0.9.9.8.zip
   PREFIX "${CMAKE_CURRENT_BINARY_DIR}/glm"
   CONFIGURE_COMMAND ""
   BUILD_IN_SOURCE 1

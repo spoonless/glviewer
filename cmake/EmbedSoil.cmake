@@ -13,7 +13,7 @@ ExternalProject_Add(
   project_soil
   URL https://github.com/spoonless/Simple-OpenGL-Image-Library/archive/originalfork.zip
   PREFIX "${CMAKE_CURRENT_BINARY_DIR}/soil"
-  CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release ${GLFW_ADDITIONAL_CMAKE_ARGS}
+  CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release -DOpenGL_GL_PREFERENCE=${OpenGL_GL_PREFERENCE} ${GLFW_ADDITIONAL_CMAKE_ARGS}
   INSTALL_COMMAND ""
 )
 

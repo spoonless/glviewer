@@ -59,11 +59,12 @@ if(MSVC)
     add_definitions(-DNOMINMAX)
 endif()
 
+set(OpenGL_GL_PREFERENCE "GLVND")
 find_package(OpenGL REQUIRED)
 find_package(Threads REQUIRED)
 
 include("SetCxxStandard")
-set_cxx_standard(11)
+set_cxx_standard(17)
 
 if(BUILD_TESTING)
     enable_testing()

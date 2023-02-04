@@ -13,7 +13,7 @@ endif()
 
 ExternalProject_Add(
   project_gtest
-  URL https://github.com/google/googletest/archive/release-1.7.0.zip
+  URL https://github.com/google/googletest/archive/refs/tags/v1.13.0.zip
   PREFIX "${CMAKE_CURRENT_BINARY_DIR}/gtest"
   CMAKE_ARGS -Dgtest_disable_pthreads=ON -Dgtest_force_shared_crt=ON ${GTEST_ADDITIONAL_CMAKE_ARGS}
   INSTALL_COMMAND ""
@@ -24,7 +24,7 @@ ExternalProject_Get_Property(project_gtest BINARY_DIR)
 
 add_library(gtest STATIC IMPORTED)
 
-set_property(TARGET gtest PROPERTY IMPORTED_LOCATION "${BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}gtest${CMAKE_STATIC_LIBRARY_SUFFIX}")
+set_property(TARGET gtest PROPERTY IMPORTED_LOCATION "${BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gtest${CMAKE_STATIC_LIBRARY_SUFFIX}")
 # Handling multi configurations for MSVC
 foreach( CONFIG_TYPE ${CMAKE_CONFIGURATION_TYPES} )
   string(TOUPPER ${CONFIG_TYPE} UPPER_CONFIG_TYPE)
@@ -33,5 +33,5 @@ endforeach()
 
 add_dependencies(gtest project_gtest)
 
-set(GTEST_INCLUDE_DIR "${SOURCE_DIR}/include")
+set(GTEST_INCLUDE_DIR "${SOURCE_DIR}/googletest/include")
 set(GTEST_LIBRARY gtest)

@@ -6,7 +6,7 @@ include(ExternalProject)
 # Note: FFI is disabled for security reasons
 ExternalProject_Add(
   project_glew
-  URL http://sourceforge.net/projects/glew/files/glew/1.10.0/glew-1.10.0.tgz/download
+  URL https://sourceforge.net/projects/glew/files/glew/2.1.0/glew-2.1.0.tgz/download
   URL_MD5 2f09e5e6cb1b9f3611bcac79bc9c2d5d
   PREFIX "${CMAKE_CURRENT_BINARY_DIR}/glew"
   CONFIGURE_COMMAND ""
