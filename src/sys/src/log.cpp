@@ -56,7 +56,7 @@ std::unique_ptr<sys::LoggingSystem> sys::LoggingSystem::create()
 
 #else
 
-std::unique_ptr<sys::LoggingSystem> sys::LoggingSystem::init()
+std::unique_ptr<sys::LoggingSystem> sys::LoggingSystem::create()
 {
     return std::unique_ptr<sys::LoggingSystem>(new LoggingSystem());
 }
